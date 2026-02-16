@@ -152,7 +152,7 @@ const BookJob = () => {
         service_tier: selectedTier,
       },
       selectedProperty
-        ? { address: selectedProperty.address_line_1, city: selectedProperty.city, postcode: selectedProperty.postcode }
+        ? { address: selectedProperty.address_line_1, city: selectedProperty.city, postcode: selectedProperty.postcode, property_type: selectedProperty.property_type }
         : undefined,
     );
 

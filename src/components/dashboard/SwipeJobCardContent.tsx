@@ -59,9 +59,12 @@ const SwipeJobCardContent = ({ job, statusBadge, showNetPayout = false }: SwipeJ
     return null;
   };
 
-  // Net payout for clerks
+  // Net payout for clerks — use stored clerk payout if available
   const grossPrice = job.final_price || job.quoted_price || 0;
-  const payout = calculatePayoutBreakdown(grossPrice, !!job.provider_id);
+  const clerkPayoutStored = (job as any).clerk_final_payout || (job as any).clerk_payout;
+  const payout = clerkPayoutStored
+    ? { clerkPayout: clerkPayoutStored, platformFee: grossPrice - clerkPayoutStored, providerFee: 0, grossAmount: grossPrice }
+    : calculatePayoutBreakdown(grossPrice, !!job.provider_id);
   const urgencyBadge = getUrgencyBadge();
 
   return (

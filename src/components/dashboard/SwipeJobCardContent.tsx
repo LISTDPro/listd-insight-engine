@@ -134,17 +134,11 @@ const SwipeJobCardContent = ({ job, statusBadge, showNetPayout = false }: SwipeJ
         {grossPrice > 0 && (
           <div className="bg-muted/50 rounded-lg p-3">
             {showNetPayout ? (
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Your Payout</span>
-                  <div className="flex items-center gap-1 text-accent">
-                    <PoundSterling className="w-5 h-5" />
-                    <span className="text-2xl font-bold">{payout.clerkPayout.toFixed(0)}</span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] text-muted-foreground">Job value</span>
-                  <p className="text-sm text-muted-foreground">£{grossPrice.toFixed(0)}</p>
+              <div>
+                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Your Payout</span>
+                <div className="flex items-center gap-1 text-accent">
+                  <PoundSterling className="w-5 h-5" />
+                  <span className="text-2xl font-bold">{payout.clerkPayout.toFixed(0)}</span>
                 </div>
               </div>
             ) : (

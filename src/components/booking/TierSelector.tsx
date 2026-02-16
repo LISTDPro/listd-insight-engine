@@ -120,7 +120,7 @@ const TierSelector = ({ selectedTier, onSelect }: TierSelectorProps) => {
                   <div className="flex items-center gap-1.5">
                     <h4 className="text-sm font-semibold text-foreground">{tier.label}</h4>
                     <span className="text-[10px] text-muted-foreground">— {tier.tagline}</span>
-                    <span className="text-[10px] font-semibold text-primary ml-auto">from £{tier.startingPrice}</span>
+                    <span className="text-[10px] font-semibold text-primary ml-auto">from £{tier.startingPrice}/job</span>
                   </div>
 
                   <ul className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-0.5">

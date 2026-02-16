@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProperties } from "@/hooks/useProperties";
 import { useJobs } from "@/hooks/useJobs";
-import { InspectionType } from "@/types/database";
+import { InspectionType, PropertyType, FurnishedStatus } from "@/types/database";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import PropertySelector from "@/components/booking/PropertySelector";
 import InspectionTypeSelector from "@/components/booking/InspectionTypeSelector";
 import TierSelector, { ServiceTier } from "@/components/booking/TierSelector";
+import PropertySizeSelector from "@/components/booking/PropertySizeSelector";
 import DateTimeSelector from "@/components/booking/DateTimeSelector";
 import BookingSummary from "@/components/booking/BookingSummary";
 import { PropertyFormData } from "@/components/booking/PropertyForm";
@@ -18,11 +19,12 @@ import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 
-type BookingStep = "property" | "inspection" | "tier" | "date" | "review";
+type BookingStep = "inspection" | "tier" | "size" | "property" | "date" | "review";
 
 const ALL_STEPS: { key: BookingStep; label: string }[] = [
   { key: "inspection", label: "Service" },
   { key: "tier", label: "Tier" },
+  { key: "size", label: "Size" },
   { key: "property", label: "Property" },
   { key: "date", label: "Schedule" },
   { key: "review", label: "Review" },
@@ -36,9 +38,11 @@ const BookJob = () => {
   const { toast } = useToast();
 
   const [currentStep, setCurrentStep] = useState<BookingStep>("inspection");
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [selectedInspectionTypes, setSelectedInspectionTypes] = useState<InspectionType[]>([]);
-  const [selectedTier, setSelectedTier] = useState<ServiceTier>("flex");
+  const [selectedTier, setSelectedTier] = useState<ServiceTier>("core");
+  const [selectedSize, setSelectedSize] = useState<PropertyType>("2_bed");
+  const [selectedFurnishing, setSelectedFurnishing] = useState<FurnishedStatus>("unfurnished");
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [specialInstructions, setSpecialInstructions] = useState("");
@@ -53,13 +57,13 @@ const BookJob = () => {
     }
   }, [user, role, authLoading, navigate]);
 
-  // Determine if tier step is needed based on selected inspection types
+  // Determine if tier step is needed
   const needsTier = useMemo(
     () => selectedInspectionTypes.some((t) => serviceRequiresTier(t)),
     [selectedInspectionTypes],
   );
 
-  // Build active steps list — skip "tier" when not needed
+  // Build active steps — skip "tier" when not needed
   const STEPS = useMemo(
     () => (needsTier ? ALL_STEPS : ALL_STEPS.filter((s) => s.key !== "tier")),
     [needsTier],
@@ -69,19 +73,21 @@ const BookJob = () => {
   const selectedProperty = properties.find((p) => p.id === selectedPropertyId) || null;
   const progressPercent = ((currentStepIndex + 1) / STEPS.length) * 100;
 
-  // Reset tier to flex when tier step is removed
+  // Reset tier when tier step is removed
   useEffect(() => {
-    if (!needsTier) setSelectedTier("flex");
+    if (!needsTier) setSelectedTier("core");
   }, [needsTier]);
 
   const canProceed = () => {
     switch (currentStep) {
-      case "property":
-        return !!selectedPropertyId;
       case "inspection":
         return selectedInspectionTypes.length > 0;
       case "tier":
         return !!selectedTier;
+      case "size":
+        return !!selectedSize;
+      case "property":
+        return !!selectedPropertyId;
       case "date":
         return !!selectedDate;
       case "review":
@@ -106,6 +112,9 @@ const BookJob = () => {
   };
 
   const handleCreateProperty = async (data: PropertyFormData) => {
+    // Override size and furnishing from earlier steps
+    data.property_type = selectedSize;
+    data.furnished_status = selectedFurnishing;
     setIsCreatingProperty(true);
     const { error, data: newProperty } = await createProperty(data);
     setIsCreatingProperty(false);
@@ -139,7 +148,13 @@ const BookJob = () => {
       instructions = instructions ? `${tierNote}\n\n${instructions}` : tierNote;
     }
 
-    const quotedPrice = calculateJobPrice(selectedProperty, selectedInspectionTypes, selectedTier);
+    // Build a virtual property for pricing using selected size/furnishing
+    const pricingProperty = {
+      property_type: selectedSize,
+      furnished_status: selectedFurnishing,
+    } as any;
+
+    const quotedPrice = calculateJobPrice(pricingProperty, selectedInspectionTypes, selectedTier);
 
     const { error } = await createJob(
       {
@@ -234,16 +249,6 @@ const BookJob = () => {
       {/* Content */}
       <main className="max-w-2xl mx-auto px-4 py-6">
         <div className="bg-card rounded-xl border border-border p-5">
-          {currentStep === "property" && (
-            <PropertySelector
-              properties={properties}
-              selectedPropertyId={selectedPropertyId}
-              onSelect={setSelectedPropertyId}
-              onCreateProperty={handleCreateProperty}
-              isCreating={isCreatingProperty}
-            />
-          )}
-
           {currentStep === "inspection" && (
             <InspectionTypeSelector
               selectedTypes={selectedInspectionTypes}
@@ -253,6 +258,27 @@ const BookJob = () => {
 
           {currentStep === "tier" && (
             <TierSelector selectedTier={selectedTier} onSelect={setSelectedTier} />
+          )}
+
+          {currentStep === "size" && (
+            <PropertySizeSelector
+              selectedSize={selectedSize}
+              selectedFurnishing={selectedFurnishing}
+              onSizeChange={setSelectedSize}
+              onFurnishingChange={setSelectedFurnishing}
+              inspectionTypes={selectedInspectionTypes}
+              selectedTier={selectedTier}
+            />
+          )}
+
+          {currentStep === "property" && (
+            <PropertySelector
+              properties={properties}
+              selectedPropertyId={selectedPropertyId}
+              onSelect={setSelectedPropertyId}
+              onCreateProperty={handleCreateProperty}
+              isCreating={isCreatingProperty}
+            />
           )}
 
           {currentStep === "date" && (
@@ -275,6 +301,8 @@ const BookJob = () => {
               onInstructionsChange={setSpecialInstructions}
               detailsConfirmed={detailsConfirmed}
               onDetailsConfirmedChange={setDetailsConfirmed}
+              selectedSize={selectedSize}
+              selectedFurnishing={selectedFurnishing}
             />
           )}
         </div>

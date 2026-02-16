@@ -1,10 +1,10 @@
 import { format } from "date-fns";
-import { Property, InspectionType, INSPECTION_TYPE_LABELS, PROPERTY_TYPE_LABELS, FURNISHED_STATUS_LABELS } from "@/types/database";
+import { Property, InspectionType, INSPECTION_TYPE_LABELS, PROPERTY_TYPE_LABELS, FURNISHED_STATUS_LABELS, PropertyType, FurnishedStatus } from "@/types/database";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Building2, CalendarDays, Clock, ClipboardList, MapPin, PoundSterling, AlertCircle, Layers } from "lucide-react";
-import { calculatePriceBreakdown, serviceRequiresTier, serviceUsesFurnishing } from "@/utils/pricing";
+import { Building2, CalendarDays, Clock, ClipboardList, MapPin, PoundSterling, AlertCircle, Layers, Home, Sofa } from "lucide-react";
+import { getServicePrice, serviceRequiresTier, serviceUsesFurnishing } from "@/utils/pricing";
 import { ServiceTier, TIER_LABELS, SERVICE_TIERS } from "@/components/booking/TierSelector";
 
 interface BookingSummaryProps {
@@ -17,6 +17,8 @@ interface BookingSummaryProps {
   onInstructionsChange: (value: string) => void;
   detailsConfirmed: boolean;
   onDetailsConfirmedChange: (value: boolean) => void;
+  selectedSize: PropertyType;
+  selectedFurnishing: FurnishedStatus;
 }
 
 const TIME_SLOT_LABELS: Record<string, string> = {
@@ -35,10 +37,19 @@ const BookingSummary = ({
   onInstructionsChange,
   detailsConfirmed,
   onDetailsConfirmedChange,
+  selectedSize,
+  selectedFurnishing,
 }: BookingSummaryProps) => {
   const showTier = inspectionTypes.some((t) => serviceRequiresTier(t));
-  const showFurnishing = inspectionTypes.some((t) => serviceUsesFurnishing(t));
-  const priceBreakdown = calculatePriceBreakdown(property, inspectionTypes, selectedTier);
+  const isFurnished = selectedFurnishing === "furnished";
+
+  // Calculate price from size/furnishing selections (not from property)
+  const services = inspectionTypes.map((type) => ({
+    type,
+    price: getServicePrice(type, selectedSize, selectedTier, isFurnished),
+  }));
+  const servicesTotal = services.reduce((sum, s) => sum + s.price, 0);
+
   const tierConfig = SERVICE_TIERS.find((t) => t.value === selectedTier);
   const TierIcon = tierConfig?.icon;
 
@@ -57,7 +68,21 @@ const BookingSummary = ({
         </h4>
 
         <div className="space-y-2.5">
-          {/* Property */}
+          {/* Size & Furnishing */}
+          <div className="flex gap-2.5">
+            <div className="w-7 h-7 rounded bg-muted flex items-center justify-center shrink-0">
+              <Home className="w-3.5 h-3.5 text-muted-foreground" />
+            </div>
+            <div>
+              <div className="text-xs font-medium text-foreground">{PROPERTY_TYPE_LABELS[selectedSize]}</div>
+              <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                <Sofa className="w-2.5 h-2.5" />
+                {FURNISHED_STATUS_LABELS[selectedFurnishing]}
+              </div>
+            </div>
+          </div>
+
+          {/* Property Address */}
           {property && (
             <div className="flex gap-2.5">
               <div className="w-7 h-7 rounded bg-muted flex items-center justify-center shrink-0">
@@ -68,16 +93,6 @@ const BookingSummary = ({
                 <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                   <MapPin className="w-2.5 h-2.5" />
                   {property.city}, {property.postcode}
-                </div>
-                <div className="flex gap-1.5 mt-1">
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                    {PROPERTY_TYPE_LABELS[property.property_type]}
-                  </span>
-                  {showFurnishing && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                      {FURNISHED_STATUS_LABELS[property.furnished_status]}
-                    </span>
-                  )}
                 </div>
               </div>
             </div>
@@ -138,31 +153,30 @@ const BookingSummary = ({
         </div>
 
         {/* Price Breakdown */}
-        {priceBreakdown.total > 0 && (
+        {servicesTotal > 0 && (
           <div className="pt-3 border-t border-border space-y-1.5">
             <div className="flex items-center gap-1.5 mb-2">
               <PoundSterling className="w-3.5 h-3.5 text-foreground" />
               <span className="text-xs font-semibold text-foreground">Price Breakdown</span>
             </div>
 
-            {priceBreakdown.services.map((service, index) => (
+            {services.map((service, index) => (
               <div key={index} className="flex justify-between text-[11px]">
                 <span className="text-muted-foreground">{INSPECTION_TYPE_LABELS[service.type]}</span>
                 <span className="font-medium text-foreground">£{service.price}</span>
               </div>
             ))}
 
-            {priceBreakdown.services.length > 1 && (
+            {services.length > 1 && (
               <div className="flex justify-between text-[11px] pt-1 border-t border-border/50">
                 <span className="text-muted-foreground font-medium">Services Subtotal</span>
-                <span className="font-medium text-foreground">£{priceBreakdown.servicesTotal}</span>
+                <span className="font-medium text-foreground">£{servicesTotal}</span>
               </div>
             )}
 
-
             <div className="flex justify-between items-center pt-2 border-t border-border mt-1">
-              <span className="text-xs font-semibold text-foreground">Estimated Total</span>
-              <span className="text-lg font-bold text-accent">£{priceBreakdown.total}</span>
+              <span className="text-xs font-semibold text-foreground">Total</span>
+              <span className="text-lg font-bold text-accent">£{servicesTotal}</span>
             </div>
 
             <p className="text-[10px] text-muted-foreground">

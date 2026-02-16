@@ -86,7 +86,7 @@ const Onboarding = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, role, profile, loading, setRole, completeOnboarding } = useAuth();
+  const { user, role, profile, loading, setRole, completeOnboarding, refreshProfile } = useAuth();
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -140,6 +140,9 @@ const Onboarding = () => {
       setIsLoading(false);
       return;
     }
+
+    // Refresh profile to ensure auth context is up-to-date before navigating
+    await refreshProfile();
 
     toast({
       title: "Welcome to LISTD!",

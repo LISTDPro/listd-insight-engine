@@ -4,6 +4,7 @@ import HowItWorks from "@/components/landing/HowItWorks";
 import Differentiation from "@/components/landing/Differentiation";
 import Footer from "@/components/landing/Footer";
 import { Link } from "react-router-dom";
+import { ArrowUp } from "lucide-react";
 
 const Index = () => {
   return (
@@ -30,6 +31,13 @@ const Index = () => {
           >
             Create Client Account
           </Link>
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="mt-6 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors text-sm"
+          >
+            <ArrowUp className="w-4 h-4" />
+            Back to top
+          </button>
         </div>
       </section>
 
@@ -50,6 +58,13 @@ const Index = () => {
           >
             Apply to Join
           </Link>
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="mt-6 inline-flex items-center gap-2 text-background/50 hover:text-background transition-colors text-sm"
+          >
+            <ArrowUp className="w-4 h-4" />
+            Back to top
+          </button>
         </div>
       </section>
 

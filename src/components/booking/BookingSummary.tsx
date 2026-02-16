@@ -179,7 +179,7 @@ const BookingSummary = ({
             </div>
 
             <p className="text-[10px] text-muted-foreground">
-              Final price confirmed after provider accepts the job
+              Payment is processed upon report approval in line with LISTD terms.
             </p>
           </div>
         )}

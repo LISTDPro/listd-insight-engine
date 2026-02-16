@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2, ClipboardCheck, ArrowRight, Check, Users } from "lucide-react";
+import { Building2, ClipboardCheck, ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import listdLogo from "@/assets/listd-pro-green.png";
 
-type RoleOption = "client" | "clerk" | "provider";
+// Provider role reserved for future SaaS expansion. Not active in Phase 1.
+type RoleOption = "client" | "clerk";
 
 interface RoleCardProps {
   role: RoleOption;
@@ -66,18 +67,6 @@ const roles: { role: RoleOption; title: string; description: string; features: s
       "Access tribunal-ready documentation",
     ],
     icon: <Building2 className="w-6 h-6" />,
-  },
-  {
-    role: "provider",
-    title: "Provider",
-    description: "Property management companies that coordinate clerks and manage teams.",
-    features: [
-      "Manage your clerk team",
-      "Accept and assign jobs",
-      "Track team performance",
-      "Invoice via Xero integration",
-    ],
-    icon: <Users className="w-6 h-6" />,
   },
   {
     role: "clerk",
@@ -187,7 +176,7 @@ const Onboarding = () => {
         </div>
 
         {/* Role Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10 max-w-2xl mx-auto">
           {roles.map((roleOption) => (
             <RoleCard
               key={roleOption.role}

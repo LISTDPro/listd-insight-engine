@@ -90,8 +90,6 @@ const PaymentsPage = () => {
 
       if (role === "client") {
         query = query.eq("client_id", user.id);
-      } else if (role === "provider") {
-        query = query.eq("provider_id", user.id);
       } else if (role === "clerk") {
         query = query.eq("clerk_id", user.id);
       }

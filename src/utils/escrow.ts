@@ -6,8 +6,8 @@
 // Platform fee percentage (visible to admin only)
 export const PLATFORM_FEE_PERCENT = 0.15; // 15%
 
-// Provider cut when a provider is involved
-export const PROVIDER_FEE_PERCENT = 0.10; // 10% of gross
+// Provider cut — reserved for future SaaS expansion. Not active in Phase 1.
+export const PROVIDER_FEE_PERCENT = 0.10; // 10% of gross (inactive)
 
 // Auto-release timer in hours
 export const AUTO_RELEASE_HOURS = 48;

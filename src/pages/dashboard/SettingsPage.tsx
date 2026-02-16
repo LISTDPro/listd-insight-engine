@@ -105,8 +105,6 @@ const SettingsPage = () => {
     switch (role) {
       case "client":
         return <Badge className="bg-primary/10 text-primary">Client</Badge>;
-      case "provider":
-        return <Badge className="bg-accent/10 text-accent">Provider</Badge>;
       case "clerk":
         return <Badge className="bg-success/10 text-success">Clerk</Badge>;
       default:
@@ -185,7 +183,7 @@ const SettingsPage = () => {
                   placeholder="Enter phone number"
                 />
               </div>
-              {(role === "provider" || role === "client") && (
+              {role === "client" && (
                 <div className="space-y-2">
                   <Label htmlFor="company">Company Name</Label>
                   <Input 

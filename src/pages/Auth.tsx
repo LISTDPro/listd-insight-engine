@@ -52,10 +52,10 @@ const Auth = () => {
   useEffect(() => {
     if (user && !authLoading) {
       setIsRedirecting(true);
-      if (!role || !profile?.onboarding_completed) {
-        navigate("/onboarding");
-      } else {
+      if (profile?.onboarding_completed && role) {
         navigate("/dashboard");
+      } else {
+        navigate("/onboarding");
       }
     }
   }, [user, role, profile, authLoading, navigate]);

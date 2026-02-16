@@ -1,7 +1,10 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import dashboardScreenshot from "@/assets/dashboard-screenshot.png";
 
 const Hero = () => {
+  const { user } = useAuth();
+
   return (
     <section className="relative mt-[72px] min-h-[85vh] flex items-center py-24 px-6 md:px-12 overflow-hidden">
       {/* Decorative gradient circle */}
@@ -29,14 +32,14 @@ const Hero = () => {
 
           <div className="flex flex-wrap gap-4">
             <Link
-              to="/auth"
+              to={user ? "/book" : "/auth"}
               className="inline-block px-10 py-4 bg-primary text-primary-foreground font-medium text-base transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/20 relative overflow-hidden group"
             >
               <span className="relative z-10">Post a Job</span>
               <span className="absolute inset-0 bg-primary-foreground/10 scale-0 group-hover:scale-100 transition-transform duration-500 rounded-full" />
             </Link>
             <Link
-              to="/auth"
+              to={user ? "/dashboard" : "/auth"}
               className="inline-block px-10 py-4 border-[1.5px] border-border text-foreground font-medium text-base transition-all duration-300 hover:-translate-y-0.5 hover:border-primary hover:text-primary"
             >
               Apply as a Clerk

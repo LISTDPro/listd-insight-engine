@@ -72,18 +72,20 @@ const EscrowStatusCard = ({
           </Badge>
         </div>
 
-        {/* Amount display */}
-        <div className="bg-muted/50 rounded-lg p-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] text-muted-foreground">Total Amount</span>
-            <div className="flex items-center gap-1 text-foreground">
-              <PoundSterling className="w-4 h-4" />
-              <span className="text-lg font-bold">
-                {payout.grossAmount.toFixed(2)}
-              </span>
+        {/* Amount display — hide gross from clerks */}
+        {!showClerkPayout && (
+          <div className="bg-muted/50 rounded-lg p-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] text-muted-foreground">Total Amount</span>
+              <div className="flex items-center gap-1 text-foreground">
+                <PoundSterling className="w-4 h-4" />
+                <span className="text-lg font-bold">
+                  {payout.grossAmount.toFixed(2)}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Payout breakdown */}
         <div className="space-y-1.5">

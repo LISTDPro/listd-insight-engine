@@ -35,10 +35,14 @@ interface JobWithPayment {
   final_price: number | null;
   client_report_accepted: boolean;
   provider_id: string | null;
+  service_tier?: string | null;
+  clerk_payout?: number | null;
+  clerk_final_payout?: number | null;
   property: {
     address_line_1: string;
     city: string;
     postcode: string;
+    property_type?: string;
   };
 }
 
@@ -72,10 +76,14 @@ const PaymentsPage = () => {
           final_price,
           client_report_accepted,
           provider_id,
+          service_tier,
+          clerk_payout,
+          clerk_final_payout,
           property:properties(
             address_line_1,
             city,
-            postcode
+            postcode,
+            property_type
           )
         `)
         .order("scheduled_date", { ascending: false });
@@ -109,8 +117,7 @@ const PaymentsPage = () => {
   const getAmount = (job: JobWithPayment) => {
     const gross = job.final_price || job.quoted_price || 0;
     if (isClerk) {
-      // Use stored clerk payout if available, otherwise fallback to calculation
-      return (job as any).clerk_final_payout || (job as any).clerk_payout || calculatePayoutBreakdown(gross, !!job.provider_id).clerkPayout;
+      return job.clerk_final_payout || job.clerk_payout || calculatePayoutBreakdown(gross, !!job.provider_id).clerkPayout;
     }
     return gross;
   };
@@ -299,7 +306,10 @@ const PaymentsPage = () => {
               <div className="space-y-3">
                 {jobsReadyToPay.map((job) => {
                   const gross = job.final_price || job.quoted_price || 0;
-                  const payout = calculatePayoutBreakdown(gross, !!job.provider_id);
+                  const clerkPayoutAmount = job.clerk_final_payout || job.clerk_payout || 0;
+                  const payout = isClerk
+                    ? { clerkPayout: clerkPayoutAmount, platformFee: 0, providerFee: 0, grossAmount: clerkPayoutAmount }
+                    : calculatePayoutBreakdown(gross, !!job.provider_id);
                   const status = getPaymentStatus(job);
                   return (
                     <div key={job.id} className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -322,6 +332,14 @@ const PaymentsPage = () => {
                                 <MapPin className="w-3.5 h-3.5" />
                                 {job.property.city}
                               </div>
+                              {isClerk && (
+                                <div className="mt-2">
+                                  <p className="text-lg font-semibold text-accent">
+                                    £{clerkPayoutAmount.toFixed(2)}
+                                    <span className="text-xs text-muted-foreground ml-1">payout</span>
+                                  </p>
+                                </div>
+                              )}
                             </div>
                             {!isClerk && (
                               <div className="text-right space-y-2">
@@ -333,7 +351,6 @@ const PaymentsPage = () => {
                                   className="gap-1 w-full"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    // Navigate to job detail for payment release
                                     window.location.href = `/dashboard/jobs/${job.id}`;
                                   }}
                                 >

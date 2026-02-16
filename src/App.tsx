@@ -19,6 +19,7 @@ import ServiceTiersPage from "./pages/ServiceTiersPage";
 import AboutPage from "./pages/AboutPage";
 import NotFound from "./pages/NotFound";
 import XeroCallback from "./pages/XeroCallback";
+import BackToTop from "./components/ui/BackToTop";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <BackToTop />
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>

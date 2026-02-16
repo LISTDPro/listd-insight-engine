@@ -1,0 +1,1 @@
+ALTER TABLE public.inspection_items ALTER COLUMN cleanliness TYPE text USING cleanliness::text;

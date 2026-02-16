@@ -1,0 +1,454 @@
+import { useParams, useNavigate } from "react-router-dom";
+import { useJobDetail } from "@/hooks/useJobDetail";
+import { useAuth } from "@/hooks/useAuth";
+import { useClerkJobs } from "@/hooks/useClerkJobs";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import TierBadge from "@/components/ui/tier-badge";
+import JobTimeline from "@/components/dashboard/JobTimeline";
+import AcknowledgementDialog from "@/components/dashboard/AcknowledgementDialog";
+import JobMessaging from "@/components/dashboard/JobMessaging";
+import { 
+  INSPECTION_TYPE_LABELS, 
+  JOB_STATUS_LABELS,
+  PROPERTY_TYPE_LABELS,
+  PropertyType,
+  JobStatus
+} from "@/types/database";
+import { format } from "date-fns";
+import { useState } from "react";
+import { toast } from "sonner";
+import { 
+  ArrowLeft, 
+  MapPin, 
+  Calendar, 
+  Clock, 
+  Home, 
+  BedDouble, 
+  Bath,
+  User,
+  Building,
+  FileText,
+  Shield,
+  FileCheck,
+  AlertCircle,
+  PoundSterling,
+  Layers,
+  Check,
+  X,
+  Loader2,
+  ClipboardCheck,
+  CheckCircle2
+} from "lucide-react";
+
+const STATUS_STYLES: Partial<Record<JobStatus, string>> = {
+  draft: "bg-muted text-muted-foreground",
+  pending: "bg-warning/10 text-warning border-warning/30",
+  published: "bg-primary/10 text-primary border-primary/30",
+  accepted: "bg-accent/10 text-accent border-accent/30",
+  assigned: "bg-accent/10 text-accent border-accent/30",
+  in_progress: "bg-warning/10 text-warning border-warning/30",
+  submitted: "bg-success/10 text-success border-success/30",
+  reviewed: "bg-success/10 text-success border-success/30",
+  signed: "bg-success/10 text-success border-success/30",
+  completed: "bg-success/10 text-success border-success/30",
+  paid: "bg-success/10 text-success border-success/30",
+  cancelled: "bg-destructive/10 text-destructive border-destructive/30",
+};
+
+const JobDetailPage = () => {
+  const { jobId } = useParams();
+  const navigate = useNavigate();
+  const { role, profile } = useAuth();
+  const { job, timeline, loading, error, refetch } = useJobDetail(jobId);
+  const { acceptJob, declineJob } = useClerkJobs();
+  
+  const [ackDialogOpen, setAckDialogOpen] = useState(false);
+  const [ackType, setAckType] = useState<"pre_inspection" | "report_acceptance">("pre_inspection");
+  const [accepting, setAccepting] = useState(false);
+
+  if (loading) {
+    return (
+      <div className="p-6 space-y-6">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <Skeleton className="h-8 w-64" />
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <Skeleton className="h-48" />
+          <Skeleton className="h-48" />
+        </div>
+        <Skeleton className="h-64" />
+      </div>
+    );
+  }
+
+  if (error || !job) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12">
+          <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-foreground mb-2">Job Not Found</h2>
+          <p className="text-muted-foreground mb-4">{error || "This job doesn't exist or you don't have access."}</p>
+          <Button onClick={() => navigate("/dashboard/jobs")}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Jobs
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const needsPreAck = role === "client" && 
+    ['published', 'accepted', 'assigned'].includes(job.status) && 
+    !job.client_pre_inspection_ack;
+    
+  const needsReportAcceptance = role === "client" && 
+    job.status === 'submitted' && 
+    !job.client_report_accepted;
+
+  const openAckDialog = (type: "pre_inspection" | "report_acceptance") => {
+    setAckType(type);
+    setAckDialogOpen(true);
+  };
+
+  const isClerkAvailableJob = role === "clerk" && job.status === "published" && !job.clerk_id;
+  const isClerkAcceptedJob = role === "clerk" && 
+    ["accepted", "assigned"].includes(job.status) && 
+    job.clerk_id === profile?.user_id;
+  const isClerkInProgressJob = role === "clerk" && 
+    job.status === "in_progress" && 
+    job.clerk_id === profile?.user_id;
+
+  const handleAcceptJob = async () => {
+    setAccepting(true);
+    const { error } = await acceptJob(job.id);
+    setAccepting(false);
+    if (error) {
+      toast.error("Failed to accept job");
+    } else {
+      toast.success("Job accepted! It's now in your active jobs.");
+      refetch();
+    }
+  };
+
+  const handleDeclineJob = () => {
+    declineJob(job.id);
+    toast.info("Job declined");
+    navigate("/dashboard/jobs");
+  };
+
+
+  // Inspection is handled via InventoryBase — no in-app inspection flow
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={() => navigate("/dashboard/jobs")}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-bold text-foreground">
+                {job.property?.address_line_1 || "Job Details"}
+              </h1>
+              <Badge 
+                variant="outline" 
+                className={STATUS_STYLES[job.status as JobStatus] || ""}
+              >
+                {JOB_STATUS_LABELS[job.status as JobStatus]}
+              </Badge>
+            </div>
+            <p className="text-muted-foreground flex items-center gap-2">
+              {INSPECTION_TYPE_LABELS[job.inspection_type as keyof typeof INSPECTION_TYPE_LABELS]} • 
+              Created {format(new Date(job.created_at), "MMM d, yyyy")}
+              <TierBadge tier={job.service_tier} />
+            </p>
+          </div>
+        </div>
+
+        {/* Action buttons */}
+        {(needsPreAck || needsReportAcceptance || isClerkAvailableJob || isClerkAcceptedJob || isClerkInProgressJob) && (
+          <div className="flex gap-2">
+            {isClerkAvailableJob && (
+              <>
+                <Button 
+                  variant="outline" 
+                  className="gap-1 text-destructive hover:text-destructive"
+                  onClick={handleDeclineJob}
+                >
+                  <X className="w-4 h-4" />
+                  Decline
+                </Button>
+                <Button 
+                  variant="accent" 
+                  className="gap-1"
+                  onClick={handleAcceptJob}
+                  disabled={accepting}
+                >
+                  {accepting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  Accept Job
+                </Button>
+              </>
+            )}
+            {isClerkAcceptedJob && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <CheckCircle2 className="w-4 h-4 text-success" />
+                Accepted — awaiting InventoryBase assignment
+              </div>
+            )}
+            {isClerkInProgressJob && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <ClipboardCheck className="w-4 h-4 text-primary" />
+                In progress via InventoryBase
+              </div>
+            )}
+            {needsPreAck && (
+              <Button onClick={() => openAckDialog("pre_inspection")} className="gap-2">
+                <Shield className="w-4 h-4" />
+                Confirm Details
+              </Button>
+            )}
+            {needsReportAcceptance && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate(`/dashboard/reports/${job.id}`)}
+                  className="gap-2"
+                >
+                  <FileText className="w-4 h-4" />
+                  View Report
+                </Button>
+                <Button onClick={() => openAckDialog("report_acceptance")} className="gap-2">
+                  <FileCheck className="w-4 h-4" />
+                  Accept Report
+                </Button>
+              </>
+            )}
+            {!needsReportAcceptance && job.client_report_accepted && (
+              <Button
+                variant="outline"
+                onClick={() => navigate(`/dashboard/reports/${job.id}`)}
+                className="gap-2"
+              >
+                <FileText className="w-4 h-4" />
+                View Report
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Left column - Property & Schedule */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Price Card */}
+          {(job.quoted_price || job.final_price) && (
+            <Card className="border-primary/30 bg-primary/5">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <PoundSterling className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        {job.final_price ? "Final Price" : "Quoted Price"}
+                      </p>
+                      <p className="text-2xl font-bold text-foreground">
+                        £{(job.final_price || job.quoted_price || 0).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className={STATUS_STYLES[job.status as JobStatus] || ""}>
+                    {JOB_STATUS_LABELS[job.status as JobStatus]}
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Property Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Home className="w-5 h-5" />
+                Property Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {job.property && (
+                <>
+                  <div className="flex items-start gap-3">
+                    <MapPin className="w-5 h-5 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="font-medium">{job.property.address_line_1}</p>
+                      {job.property.address_line_2 && (
+                        <p className="text-muted-foreground">{job.property.address_line_2}</p>
+                      )}
+                      <p className="text-muted-foreground">
+                        {job.property.city}, {job.property.postcode}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4 pt-2">
+                    <div className="flex items-center gap-2">
+                      <Home className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        {PROPERTY_TYPE_LABELS[job.property.property_type as PropertyType]}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <BedDouble className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">{job.property.bedrooms} Beds</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Bath className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">{job.property.bathrooms} Baths</span>
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Schedule Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Schedule
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-5 h-5 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm text-muted-foreground">Date</p>
+                    <p className="font-medium">
+                      {format(new Date(job.scheduled_date), "EEEE, MMMM d, yyyy")}
+                    </p>
+                  </div>
+                </div>
+                {job.preferred_time_slot && (
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-muted-foreground" />
+                    <div>
+                      <p className="text-sm text-muted-foreground">Time Slot</p>
+                      <p className="font-medium capitalize">{job.preferred_time_slot}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {job.special_instructions && (
+                <div className="pt-2 border-t">
+                  <p className="text-sm text-muted-foreground mb-1">Special Instructions</p>
+                  <p className="text-sm">{job.special_instructions}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Assigned Team Card */}
+          {(job.provider_id || job.clerk_id) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="w-5 h-5" />
+                  Assigned Team
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {job.provider_profile && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Building className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">
+                        {job.provider_profile.company_name || job.provider_profile.full_name || "Provider"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">Inventory Provider</p>
+                    </div>
+                  </div>
+                )}
+                {job.clerk_profile && (
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
+                      <User className="w-5 h-5 text-accent" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{job.clerk_profile.full_name || "Clerk"}</p>
+                      <p className="text-sm text-muted-foreground">Inventory Clerk</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+
+        {/* Right column - Timeline + Messaging */}
+        <div className="lg:col-span-1 space-y-4">
+          <Card className="sticky top-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Activity Timeline
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <JobTimeline events={timeline} />
+            </CardContent>
+          </Card>
+
+          {/* In-app messaging */}
+          {job.clerk_id && role === "client" && (
+            <JobMessaging
+              jobId={job.id}
+              otherUserId={job.clerk_id}
+              otherUserName={job.clerk_profile?.full_name || "Clerk"}
+            />
+          )}
+          {job.client_id && role === "clerk" && (
+            <JobMessaging
+              jobId={job.id}
+              otherUserId={job.client_id}
+              otherUserName="Client"
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Acknowledgement Dialog */}
+      {job.property && (
+        <AcknowledgementDialog
+          open={ackDialogOpen}
+          onOpenChange={setAckDialogOpen}
+          jobId={job.id}
+          type={ackType}
+          propertyAddress={job.property.address_line_1}
+          city={job.property.city}
+          postcode={job.property.postcode}
+          inspectionType={job.inspection_type}
+          scheduledDate={job.scheduled_date}
+          clientName={profile?.full_name || undefined}
+          onSuccess={refetch}
+        />
+      )}
+    </div>
+  );
+};
+
+export default JobDetailPage;

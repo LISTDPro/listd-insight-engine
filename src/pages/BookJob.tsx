@@ -21,9 +21,9 @@ import { Progress } from "@/components/ui/progress";
 type BookingStep = "property" | "inspection" | "tier" | "date" | "review";
 
 const ALL_STEPS: { key: BookingStep; label: string }[] = [
-  { key: "property", label: "Property" },
   { key: "inspection", label: "Service" },
   { key: "tier", label: "Tier" },
+  { key: "property", label: "Property" },
   { key: "date", label: "Schedule" },
   { key: "review", label: "Review" },
 ];
@@ -35,7 +35,7 @@ const BookJob = () => {
   const { createJob } = useJobs();
   const { toast } = useToast();
 
-  const [currentStep, setCurrentStep] = useState<BookingStep>("property");
+  const [currentStep, setCurrentStep] = useState<BookingStep>("inspection");
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [selectedInspectionTypes, setSelectedInspectionTypes] = useState<InspectionType[]>([]);
   const [selectedTier, setSelectedTier] = useState<ServiceTier>("flex");

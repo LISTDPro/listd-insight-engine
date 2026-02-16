@@ -69,7 +69,7 @@ const PropertyPricingPreview = ({ formData }: PropertyPricingPreviewProps) => {
               {INSPECTION_TYPE_LABELS[type]}
             </span>
             <span className="text-xs font-semibold text-foreground whitespace-nowrap">
-              {hasTiers ? "from " : ""}£{price}
+              £{price}
             </span>
           </div>
         ))}

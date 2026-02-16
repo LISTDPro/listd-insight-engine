@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -85,6 +86,9 @@ const AdminPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [userFilter, setUserFilter] = useState<string>("all");
   const [jobFilter, setJobFilter] = useState<string>("all");
+  const [payoutStatusFilter, setPayoutStatusFilter] = useState<string>("all");
+  const [payoutTypeFilter, setPayoutTypeFilter] = useState<string>("all");
+  const [payoutSort, setPayoutSort] = useState<string>("date_desc");
 
   // Dialog states
   const [markDeliveredJobId, setMarkDeliveredJobId] = useState<string | null>(null);
@@ -910,16 +914,96 @@ const AdminPage = () => {
 
         {/* Payouts Tab */}
         <TabsContent value="payouts" className="space-y-6">
-          <div className="bg-card border border-border overflow-hidden">
-            <div className="px-5 py-4 border-b border-border">
-              <h3 className="text-sm font-semibold text-foreground">Job Payout Management</h3>
-              <p className="text-xs text-muted-foreground">Override clerk payouts, apply bonuses, lock and mark as paid</p>
+          {/* Summary Stats */}
+          {(() => {
+            const activeJobs = jobs.filter(j => j.status !== "cancelled" && j.status !== "draft");
+            const totalRevenue = activeJobs.reduce((s, j) => s + (j.quoted_price || 0), 0);
+            const totalPayouts = activeJobs.reduce((s, j) => s + (j.clerk_final_payout || j.clerk_payout || 0), 0);
+            const totalMargin = totalRevenue - totalPayouts;
+            const paidJobs = activeJobs.filter(j => j.status === "paid").length;
+            const unpaidReady = activeJobs.filter(j => ["submitted", "reviewed", "signed", "completed"].includes(j.status) && j.clerk_id).length;
+            return (
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <div className="bg-card border border-border rounded-lg p-4 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Revenue</p>
+                  <p className="text-xl font-bold text-foreground">£{totalRevenue.toFixed(0)}</p>
+                </div>
+                <div className="bg-card border border-border rounded-lg p-4 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Payouts</p>
+                  <p className="text-xl font-bold text-accent">£{totalPayouts.toFixed(0)}</p>
+                </div>
+                <div className="bg-card border border-border rounded-lg p-4 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Margin</p>
+                  <p className={`text-xl font-bold ${totalMargin >= 0 ? "text-success" : "text-destructive"}`}>£{totalMargin.toFixed(0)}</p>
+                </div>
+                <div className="bg-card border border-border rounded-lg p-4 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Paid</p>
+                  <p className="text-xl font-bold text-foreground">{paidJobs}</p>
+                </div>
+                <div className="bg-card border border-border rounded-lg p-4 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Awaiting Payment</p>
+                  <p className="text-xl font-bold text-warning">{unpaidReady}</p>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Filters */}
+          <div className="flex flex-wrap gap-3 items-end">
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1 block">Status</Label>
+              <select
+                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                value={payoutStatusFilter}
+                onChange={(e) => setPayoutStatusFilter(e.target.value)}
+              >
+                <option value="all">All Statuses</option>
+                <option value="paid">Paid</option>
+                <option value="unpaid">Unpaid (Ready)</option>
+                <option value="in_progress">In Progress</option>
+                <option value="locked">Locked</option>
+              </select>
             </div>
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1 block">Type</Label>
+              <select
+                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                value={payoutTypeFilter}
+                onChange={(e) => setPayoutTypeFilter(e.target.value)}
+              >
+                <option value="all">All Types</option>
+                <option value="new_inventory">Inventory</option>
+                <option value="check_out">Check-Out</option>
+                <option value="check_in">Check-In</option>
+                <option value="interim">Interim</option>
+                <option value="mid_term">Mid-Term</option>
+              </select>
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1 block">Sort</Label>
+              <select
+                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+                value={payoutSort}
+                onChange={(e) => setPayoutSort(e.target.value)}
+              >
+                <option value="date_desc">Newest First</option>
+                <option value="date_asc">Oldest First</option>
+                <option value="margin_desc">Highest Margin</option>
+                <option value="margin_asc">Lowest Margin</option>
+                <option value="payout_desc">Highest Payout</option>
+                <option value="price_desc">Highest Price</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="bg-card border border-border rounded-lg overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40">
                   <TableHead>Job</TableHead>
                   <TableHead>Type</TableHead>
+                  <TableHead>Tier</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Client Price</TableHead>
                   <TableHead className="text-right">Clerk Payout</TableHead>
@@ -932,20 +1016,46 @@ const AdminPage = () => {
               <TableBody>
                 {jobs
                   .filter(j => j.status !== "cancelled" && j.status !== "draft")
+                  .filter(j => {
+                    if (payoutStatusFilter === "paid") return j.status === "paid";
+                    if (payoutStatusFilter === "unpaid") return ["submitted", "reviewed", "signed", "completed"].includes(j.status) && j.clerk_id;
+                    if (payoutStatusFilter === "in_progress") return ["accepted", "assigned", "in_progress"].includes(j.status);
+                    if (payoutStatusFilter === "locked") return j.clerk_payout_locked;
+                    return true;
+                  })
+                  .filter(j => payoutTypeFilter === "all" || j.inspection_type === payoutTypeFilter)
+                  .sort((a, b) => {
+                    const aPrice = a.quoted_price || 0;
+                    const bPrice = b.quoted_price || 0;
+                    const aPayout = a.clerk_final_payout || a.clerk_payout || 0;
+                    const bPayout = b.clerk_final_payout || b.clerk_payout || 0;
+                    const aMargin = aPrice - aPayout;
+                    const bMargin = bPrice - bPayout;
+                    switch (payoutSort) {
+                      case "date_asc": return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+                      case "margin_desc": return bMargin - aMargin;
+                      case "margin_asc": return aMargin - bMargin;
+                      case "payout_desc": return bPayout - aPayout;
+                      case "price_desc": return bPrice - aPrice;
+                      default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                    }
+                  })
                   .map((job) => {
                     const clientPrice = job.quoted_price || 0;
                     const payout = job.clerk_final_payout || job.clerk_payout || 0;
                     const bonus = job.clerk_bonus || 0;
                     const jobMargin = job.margin || (clientPrice - payout);
                     const isPaid = job.status === "paid";
+                    const marginPct = clientPrice > 0 ? ((jobMargin / clientPrice) * 100).toFixed(0) : "—";
                     return (
-                      <TableRow key={job.id}>
+                      <TableRow key={job.id} className="cursor-pointer hover:bg-muted/30" onClick={() => navigate(`/dashboard/jobs/${job.id}`)}>
                         <TableCell className="font-mono text-xs">{job.id.slice(0, 8)}...</TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="text-xs">
                             {job.inspection_type.replace("_", " ")}
                           </Badge>
                         </TableCell>
+                        <TableCell className="text-xs capitalize">{job.service_tier}</TableCell>
                         <TableCell>{getStatusBadge(job.status)}</TableCell>
                         <TableCell className="text-right font-medium">£{clientPrice.toFixed(0)}</TableCell>
                         <TableCell className="text-right font-medium text-accent">£{payout.toFixed(0)}</TableCell>
@@ -953,7 +1063,7 @@ const AdminPage = () => {
                           {bonus > 0 ? `£${bonus.toFixed(0)}` : "—"}
                         </TableCell>
                         <TableCell className={`text-right font-medium ${jobMargin >= 0 ? "text-success" : "text-destructive"}`}>
-                          £{jobMargin.toFixed(0)}
+                          £{jobMargin.toFixed(0)} <span className="text-[10px] text-muted-foreground">({marginPct}%)</span>
                         </TableCell>
                         <TableCell>
                           {job.clerk_payout_locked ? (

@@ -109,8 +109,8 @@ const PaymentsPage = () => {
   const getAmount = (job: JobWithPayment) => {
     const gross = job.final_price || job.quoted_price || 0;
     if (isClerk) {
-      const payout = calculatePayoutBreakdown(gross, !!job.provider_id);
-      return payout.clerkPayout;
+      // Use stored clerk payout if available, otherwise fallback to calculation
+      return (job as any).clerk_final_payout || (job as any).clerk_payout || calculatePayoutBreakdown(gross, !!job.provider_id).clerkPayout;
     }
     return gross;
   };

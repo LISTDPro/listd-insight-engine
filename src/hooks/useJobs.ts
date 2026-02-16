@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Job, InspectionType, JobStatus } from "@/types/database";
+import { getClerkPayout, calculateMargin } from "@/utils/clerkPricing";
 
 interface CreateJobInput {
   property_id: string;
@@ -44,8 +45,15 @@ export const useJobs = () => {
     fetchJobs();
   }, [user]);
 
-  const createJob = async (input: CreateJobInput, propertyDetails?: { address: string; city: string; postcode: string }) => {
+  const createJob = async (input: CreateJobInput, propertyDetails?: { address: string; city: string; postcode: string; property_type?: string }) => {
     if (!user) return { error: new Error("Not authenticated"), data: null };
+
+    // Calculate clerk payout and margin automatically
+    const clerkPay = propertyDetails?.property_type
+      ? getClerkPayout(input.inspection_type, propertyDetails.property_type)
+      : 0;
+    const clientPrice = input.quoted_price ?? 0;
+    const margin = calculateMargin(clientPrice, clerkPay);
 
     // Auto-publish jobs so providers can see them immediately
     const { data, error: insertError } = await supabase
@@ -54,6 +62,9 @@ export const useJobs = () => {
         ...input,
         client_id: user.id,
         status: "published" as JobStatus,
+        clerk_payout: clerkPay,
+        clerk_final_payout: clerkPay,
+        margin,
       })
       .select()
       .single();

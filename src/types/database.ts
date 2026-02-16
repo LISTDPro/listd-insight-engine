@@ -46,6 +46,15 @@ export interface Job {
   special_instructions: string | null;
   quoted_price: number | null;
   final_price: number | null;
+  service_tier?: string;
+  // Clerk payout fields (internal)
+  clerk_payout?: number;
+  clerk_bonus?: number;
+  clerk_final_payout?: number;
+  clerk_payout_locked?: boolean;
+  clerk_payment_date?: string | null;
+  clerk_level_at_job?: number;
+  margin?: number;
   created_at: string;
   updated_at: string;
 }

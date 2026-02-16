@@ -454,7 +454,13 @@ export type Database = {
           cancellation_fee: number | null
           cancelled_at: string | null
           cancelled_by: string | null
+          clerk_bonus: number | null
+          clerk_final_payout: number | null
           clerk_id: string | null
+          clerk_level_at_job: number | null
+          clerk_payment_date: string | null
+          clerk_payout: number | null
+          clerk_payout_locked: boolean | null
           clerk_report_submitted_ack: boolean | null
           clerk_report_submitted_ack_at: string | null
           client_id: string
@@ -471,6 +477,7 @@ export type Database = {
           id: string
           inspection_type: Database["public"]["Enums"]["inspection_type"]
           inventorybase_job_id: string | null
+          margin: number | null
           preferred_time_slot: string | null
           property_id: string
           provider_id: string | null
@@ -489,7 +496,13 @@ export type Database = {
           cancellation_fee?: number | null
           cancelled_at?: string | null
           cancelled_by?: string | null
+          clerk_bonus?: number | null
+          clerk_final_payout?: number | null
           clerk_id?: string | null
+          clerk_level_at_job?: number | null
+          clerk_payment_date?: string | null
+          clerk_payout?: number | null
+          clerk_payout_locked?: boolean | null
           clerk_report_submitted_ack?: boolean | null
           clerk_report_submitted_ack_at?: string | null
           client_id: string
@@ -506,6 +519,7 @@ export type Database = {
           id?: string
           inspection_type: Database["public"]["Enums"]["inspection_type"]
           inventorybase_job_id?: string | null
+          margin?: number | null
           preferred_time_slot?: string | null
           property_id: string
           provider_id?: string | null
@@ -524,7 +538,13 @@ export type Database = {
           cancellation_fee?: number | null
           cancelled_at?: string | null
           cancelled_by?: string | null
+          clerk_bonus?: number | null
+          clerk_final_payout?: number | null
           clerk_id?: string | null
+          clerk_level_at_job?: number | null
+          clerk_payment_date?: string | null
+          clerk_payout?: number | null
+          clerk_payout_locked?: boolean | null
           clerk_report_submitted_ack?: boolean | null
           clerk_report_submitted_ack_at?: string | null
           client_id?: string
@@ -541,6 +561,7 @@ export type Database = {
           id?: string
           inspection_type?: Database["public"]["Enums"]["inspection_type"]
           inventorybase_job_id?: string | null
+          margin?: number | null
           preferred_time_slot?: string | null
           property_id?: string
           provider_id?: string | null

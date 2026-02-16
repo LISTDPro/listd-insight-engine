@@ -21,18 +21,27 @@ export interface PayoutBreakdown {
 
 /**
  * Calculate payout breakdown for a job.
+ * Uses fixed clerk payout from clerkPricing.ts when provided.
+ * Falls back to percentage-based calculation if no fixed payout given.
  * @param grossAmount - Total job price paid by client
  * @param hasProvider - Whether a provider is involved (takes a cut)
+ * @param fixedClerkPayout - Optional fixed clerk payout from clerk pricing tables
  */
 export const calculatePayoutBreakdown = (
   grossAmount: number,
-  hasProvider: boolean = false
+  hasProvider: boolean = false,
+  fixedClerkPayout?: number
 ): PayoutBreakdown => {
-  const platformFee = Math.round(grossAmount * PLATFORM_FEE_PERCENT * 100) / 100;
   const providerFee = hasProvider
     ? Math.round(grossAmount * PROVIDER_FEE_PERCENT * 100) / 100
     : 0;
-  const clerkPayout = Math.round((grossAmount - platformFee - providerFee) * 100) / 100;
+  
+  // Use fixed clerk payout if provided, otherwise calculate from percentage
+  const clerkPayout = fixedClerkPayout !== undefined
+    ? fixedClerkPayout
+    : Math.round((grossAmount * (1 - PLATFORM_FEE_PERCENT) - providerFee) * 100) / 100;
+  
+  const platformFee = Math.round((grossAmount - clerkPayout - providerFee) * 100) / 100;
 
   return {
     grossAmount,

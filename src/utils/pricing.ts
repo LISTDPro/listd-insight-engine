@@ -21,9 +21,9 @@ const INVENTORY_PRICING: Record<ServiceTier, number[]> = {
 };
 
 // ─── Check-Out pricing (unfurnished base) ───
-// Smoothed 5→6 bed Flex jump: original £130→£165 (£35) → now £125→£145 (£20)
+// ─── Check-Out pricing (unfurnished base) ───
 const CHECKOUT_PRICING: Record<ServiceTier, number[]> = {
-  flex:     [50,  60,  75,  90, 105, 125, 145, 165, 185, 200],
+  flex:     [50,  60,  75,  90, 105, 130, 165, 175, 185, 195],
   core:     [60,  80, 100, 120, 140, 160, 180, 200, 230, 250],
   priority: [80, 100, 120, 140, 160, 180, 200, 230, 260, 280],
 };

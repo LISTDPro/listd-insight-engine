@@ -14,7 +14,7 @@ import {
   Users, Briefcase, ShieldCheck, AlertTriangle,
   CheckCircle2, XCircle, Clock, Search, Eye, UserCheck, Package, Zap,
   ListChecks, ExternalLink, ClipboardList, Mail, RefreshCw, Calendar,
-  PoundSterling,
+  PoundSterling, Download,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -948,7 +948,48 @@ const AdminPage = () => {
             );
           })()}
 
-          {/* Filters */}
+          {/* Filters + Export */}
+          <div className="flex flex-wrap gap-3 items-end">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 ml-auto"
+              onClick={() => {
+                const activeJobs = jobs.filter(j => j.status !== "cancelled" && j.status !== "draft");
+                const headers = ["Job ID","Inspection Type","Tier","Status","Client Price","Clerk Payout","Bonus","Final Payout","Margin","Locked","Paid Date"];
+                const rows = activeJobs.map(j => {
+                  const payout = j.clerk_final_payout || j.clerk_payout || 0;
+                  const bonus = j.clerk_bonus || 0;
+                  const clientPrice = j.quoted_price || 0;
+                  const jobMargin = j.margin || (clientPrice - payout);
+                  return [
+                    j.id,
+                    j.inspection_type.replace("_", " "),
+                    j.service_tier,
+                    j.status,
+                    clientPrice.toFixed(2),
+                    (j.clerk_payout || 0).toFixed(2),
+                    bonus.toFixed(2),
+                    payout.toFixed(2),
+                    jobMargin.toFixed(2),
+                    j.clerk_payout_locked ? "Yes" : "No",
+                    j.clerk_payment_date ? format(new Date(j.clerk_payment_date), "yyyy-MM-dd") : "",
+                  ].join(",");
+                });
+                const csv = [headers.join(","), ...rows].join("\n");
+                const blob = new Blob([csv], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `listd-payouts-${format(new Date(), "yyyy-MM-dd")}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+            >
+              <Download className="w-3.5 h-3.5" />
+              Export CSV
+            </Button>
+          </div>
           <div className="flex flex-wrap gap-3 items-end">
             <div>
               <Label className="text-xs text-muted-foreground mb-1 block">Status</Label>

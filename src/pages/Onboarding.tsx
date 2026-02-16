@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Building2, ClipboardCheck, ArrowRight, Check } from "lucide-react";
+import { Building2, ClipboardCheck, ArrowRight, ArrowLeft, Check } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -166,6 +167,10 @@ const Onboarding = () => {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
+          <Link to="/" className="inline-flex items-center gap-2 text-primary-foreground/60 hover:text-primary-foreground transition-colors text-sm mb-6">
+            <ArrowLeft className="w-4 h-4" />
+            Back to home
+          </Link>
           <img src={listdLogo} alt="LISTD" className="h-10 mx-auto mb-8" />
           <h1 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
             How will you use LISTD?

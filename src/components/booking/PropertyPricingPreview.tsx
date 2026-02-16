@@ -7,9 +7,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { calculateEstimateFromForm, serviceRequiresTier, FURNISHED_SURCHARGE } from "@/utils/pricing";
+import { calculateEstimateFromForm, serviceRequiresTier } from "@/utils/pricing";
 import { INSPECTION_TYPE_LABELS, InspectionType } from "@/types/database";
-import { PLATFORM_FEE_PERCENT } from "@/utils/escrow";
 import type { PropertyFormData } from "./PropertyForm";
 
 interface PropertyPricingPreviewProps {
@@ -43,7 +42,7 @@ const PropertyPricingPreview = ({ formData }: PropertyPricingPreviewProps) => {
     "interim",
   ];
 
-  const platformFeeLabel = `${Math.round(PLATFORM_FEE_PERCENT * 100)}%`;
+  
 
   return (
     <div className="space-y-3">
@@ -68,8 +67,7 @@ const PropertyPricingPreview = ({ formData }: PropertyPricingPreviewProps) => {
       </div>
 
       <p className="text-[10px] text-muted-foreground">
-        Prices update as you change property details. LISTD retains a{" "}
-        {platformFeeLabel} platform fee; the remainder goes to the clerk.
+        Prices update as you change property details.
       </p>
 
       {/* Per-service prices — show Flex base for tiered, flat for others */}
@@ -129,24 +127,11 @@ const PropertyPricingPreview = ({ formData }: PropertyPricingPreviewProps) => {
         </>
       )}
 
-      {/* Fee split info */}
+      {/* Payment note */}
       <Separator />
-      <div className="rounded-md bg-accent/5 border border-accent/20 p-2.5 space-y-1.5">
-        <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[10px]">
-          <span className="text-muted-foreground">Platform fee</span>
-          <span className="text-foreground font-medium text-right">
-            {platformFeeLabel} of total
-          </span>
-          <span className="text-muted-foreground">Clerk receives</span>
-          <span className="text-foreground font-medium text-right">
-            {Math.round((1 - PLATFORM_FEE_PERCENT) * 100)}% of total
-          </span>
-        </div>
-        <p className="text-[9px] text-muted-foreground leading-tight">
-          Funds held in escrow until report is accepted. Auto-released 48hrs
-          after delivery.
-        </p>
-      </div>
+      <p className="text-[9px] text-muted-foreground leading-tight">
+        Payment is processed upon report approval in line with LISTD terms.
+      </p>
     </div>
   );
 };

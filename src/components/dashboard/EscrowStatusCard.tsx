@@ -60,9 +60,9 @@ const EscrowStatusCard = ({
       <CardContent className="p-4 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+         <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-primary" />
-            <h3 className="text-sm font-semibold text-foreground">Escrow</h3>
+            <h3 className="text-sm font-semibold text-foreground">Payment Status</h3>
           </div>
           <Badge
             variant="outline"
@@ -115,8 +115,8 @@ const EscrowStatusCard = ({
           )}
         </div>
 
-        {/* 48-hour Timer */}
-        {status === "held" && autoReleaseAt && (
+        {/* Auto-Release Timer — admin only */}
+        {status === "held" && autoReleaseAt && showPlatformMargin && (
           <div className="space-y-2 pt-2 border-t border-border">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -133,6 +133,13 @@ const EscrowStatusCard = ({
               no dispute is raised.
             </p>
           </div>
+        )}
+
+        {/* Non-admin payment note */}
+        {status === "held" && !showPlatformMargin && (
+          <p className="text-[10px] text-muted-foreground pt-2 border-t border-border">
+            Payment is processed upon report approval in line with LISTD terms.
+          </p>
         )}
 
         {status === "released" && releasedAt && (

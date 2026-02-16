@@ -394,19 +394,7 @@ const JobDetailPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {job.provider_profile && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Building className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">
-                        {job.provider_profile.company_name || job.provider_profile.full_name || "Provider"}
-                      </p>
-                      <p className="text-sm text-muted-foreground">Inventory Provider</p>
-                    </div>
-                  </div>
-                )}
+                {/* Provider role reserved for future SaaS expansion. Not active in Phase 1. */}
                 {job.clerk_profile && (
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">

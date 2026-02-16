@@ -107,22 +107,13 @@ export const useJobDetail = (jobId: string | undefined) => {
         clerkProfile = clerkData;
       }
 
-      // Fetch provider profile if assigned
-      let providerProfile = null;
-      if (jobData.provider_id) {
-        const { data: providerData } = await supabase
-          .from("profiles")
-          .select("full_name, company_name")
-          .eq("user_id", jobData.provider_id)
-          .maybeSingle();
-        providerProfile = providerData;
-      }
+      // Provider role reserved for future SaaS expansion. Not active in Phase 1.
 
       const fullJob: JobWithDetails = {
         ...jobData,
         property: jobData.property,
         clerk_profile: clerkProfile,
-        provider_profile: providerProfile,
+        provider_profile: null,
       };
 
       setJob(fullJob);
@@ -160,20 +151,7 @@ export const useJobDetail = (jobId: string | undefined) => {
       });
     }
 
-    // Provider assignment
-    if (job.provider_id) {
-      events.push({
-        id: "provider_assigned",
-        type: "assignment",
-        title: "Provider Accepted",
-        description: job.provider_profile?.company_name 
-          ? `${job.provider_profile.company_name} accepted the job`
-          : "A provider accepted the job",
-        timestamp: job.updated_at, // We use updated_at as approximation
-        icon: "building",
-        actor: job.provider_profile?.company_name || "Provider",
-      });
-    }
+    // Provider role reserved for future SaaS expansion. Not active in Phase 1.
 
     // Clerk assignment
     if (job.clerk_id) {
@@ -246,18 +224,7 @@ export const useJobDetail = (jobId: string | undefined) => {
       });
     }
 
-    // Provider completion acknowledgement
-    if (job.provider_job_completed_ack && job.provider_job_completed_ack_at) {
-      events.push({
-        id: "provider_completed_ack",
-        type: "acknowledgement",
-        title: "Provider Confirmed Completion",
-        description: "Provider acknowledged the job is complete and ready for payment",
-        timestamp: job.provider_job_completed_ack_at,
-        icon: "badge-check",
-        actor: job.provider_profile?.company_name || "Provider",
-      });
-    }
+    // Provider role reserved for future SaaS expansion. Not active in Phase 1.
 
     // Completed/Paid status
     if (job.status === "completed" || job.status === "paid" || job.status === "signed") {

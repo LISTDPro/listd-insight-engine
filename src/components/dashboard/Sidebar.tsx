@@ -55,9 +55,7 @@ const Sidebar = () => {
         .filter(item => ["Dashboard", "Jobs", "Reports", "Payments"].includes(item.label))
         .map(item => item.label === "Payments" ? { ...item, label: "Earnings" } : item);
     }
-    if (role === "provider") {
-      return mainNavItems;
-    }
+    // Provider role reserved for future SaaS expansion. Not active in Phase 1.
     return mainNavItems;
   };
 

@@ -17,7 +17,7 @@ const Index = () => {
       <section id="for-clients" className="py-32 px-6 md:px-12 bg-card">
         <div className="max-w-[900px] mx-auto text-center">
           <h2 className="font-display text-3xl md:text-[3rem] font-normal text-foreground mb-6">
-            For Agencies & Inventory Providers
+            For Agencies & Landlords
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed mb-12">
             Scale fulfilment without sacrificing control.

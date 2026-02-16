@@ -2,6 +2,7 @@ import { useState, useEffect, createContext, useContext, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+// Provider role reserved for future SaaS expansion. Not active in Phase 1.
 type AppRole = "client" | "provider" | "clerk" | "admin";
 
 interface Profile {

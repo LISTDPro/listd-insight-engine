@@ -159,19 +159,6 @@ const BookingSummary = ({
               </div>
             )}
 
-            {priceBreakdown.addOns.length > 0 && (
-              <>
-                <div className="pt-1 mt-1 border-t border-border/50" />
-                {priceBreakdown.addOns.map((addon, index) => (
-                  <div key={index} className="flex justify-between text-[11px]">
-                    <span className="text-muted-foreground">
-                      {addon.label} × {addon.quantity}
-                    </span>
-                    <span className="font-medium text-foreground">£{addon.total}</span>
-                  </div>
-                ))}
-              </>
-            )}
 
             <div className="flex justify-between items-center pt-2 border-t border-border mt-1">
               <span className="text-xs font-semibold text-foreground">Estimated Total</span>

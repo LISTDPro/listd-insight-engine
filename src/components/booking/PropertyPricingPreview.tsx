@@ -7,7 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { calculateEstimateFromForm, serviceRequiresTier } from "@/utils/pricing";
+import { getServicePrice, serviceRequiresTier } from "@/utils/pricing";
 import { INSPECTION_TYPE_LABELS, InspectionType } from "@/types/database";
 import type { PropertyFormData } from "./PropertyForm";
 
@@ -16,25 +16,6 @@ interface PropertyPricingPreviewProps {
 }
 
 const PropertyPricingPreview = ({ formData }: PropertyPricingPreviewProps) => {
-  const estimate = useMemo(() => {
-    return calculateEstimateFromForm(
-      formData.property_type,
-      formData.furnished_status,
-      {
-        kitchens: formData.kitchens,
-        bathrooms: formData.bathrooms,
-        living_rooms: formData.living_rooms,
-        dining_areas: formData.dining_areas,
-        hallways_stairs: formData.hallways_stairs,
-        utility_rooms: formData.utility_rooms,
-        storage_rooms: formData.storage_rooms,
-        gardens: formData.gardens,
-        communal_areas: formData.communal_areas,
-      },
-      formData.heavily_furnished
-    );
-  }, [formData]);
-
   const inspectionTypes: InspectionType[] = [
     "new_inventory",
     "check_in",
@@ -42,7 +23,14 @@ const PropertyPricingPreview = ({ formData }: PropertyPricingPreviewProps) => {
     "interim",
   ];
 
-  
+  const prices = useMemo(() => {
+    const isFurnished = formData.furnished_status === "furnished";
+    return inspectionTypes.map((type) => ({
+      type,
+      hasTiers: serviceRequiresTier(type),
+      price: getServicePrice(type, formData.property_type, "flex", isFurnished),
+    }));
+  }, [formData.property_type, formData.furnished_status]);
 
   return (
     <div className="space-y-3">
@@ -58,8 +46,8 @@ const PropertyPricingPreview = ({ formData }: PropertyPricingPreviewProps) => {
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-[240px] text-[10px]">
               <p>
-                Live estimate based on property details. Tiered services show Flex
-                base price. Check-In and Interim are flat-rate.
+                Price based on service type, property size, and tier.
+                Check-In and Interim are flat-rate.
               </p>
             </TooltipContent>
           </Tooltip>
@@ -67,65 +55,25 @@ const PropertyPricingPreview = ({ formData }: PropertyPricingPreviewProps) => {
       </div>
 
       <p className="text-[10px] text-muted-foreground">
-        Prices update as you change property details.
+        Prices update as you change property size and furnishing.
       </p>
 
-      {/* Per-service prices — show Flex base for tiered, flat for others */}
+      {/* Per-service prices */}
       <div className="grid grid-cols-2 gap-1.5">
-        {inspectionTypes.map((type) => {
-          const hasTiers = serviceRequiresTier(type);
-          // Show flex price as the "from" price for tiered services
-          const price = estimate.perService[type]?.flex ?? estimate.perService[type]?.flex ?? 0;
-          const total = price + estimate.addOnsTotal;
-          return (
-            <div
-              key={type}
-              className="flex items-center justify-between rounded-md border border-border px-2.5 py-1.5 bg-muted/30"
-            >
-              <span className="text-[10px] text-muted-foreground truncate mr-1">
-                {INSPECTION_TYPE_LABELS[type]}
-              </span>
-              <span className="text-xs font-semibold text-foreground whitespace-nowrap">
-                {hasTiers ? "from " : ""}£{total.toFixed(0)}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Add-ons breakdown */}
-      {estimate.addOns.length > 0 && (
-        <>
-          <Separator />
-          <div className="space-y-1">
-            <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">
-              Add-ons included
-            </p>
-            {estimate.addOns.map((addon, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between text-[10px]"
-              >
-                <span className="text-muted-foreground">
-                  {addon.quantity > 1 ? `${addon.quantity}× ` : ""}
-                  {addon.label}
-                </span>
-                <span className="text-foreground font-medium">
-                  +£{addon.total.toFixed(0)}
-                </span>
-              </div>
-            ))}
-            <div className="flex items-center justify-between text-[10px] pt-1 border-t border-border">
-              <span className="text-muted-foreground font-medium">
-                Total add-ons
-              </span>
-              <span className="text-foreground font-semibold">
-                +£{estimate.addOnsTotal.toFixed(0)}
-              </span>
-            </div>
+        {prices.map(({ type, hasTiers, price }) => (
+          <div
+            key={type}
+            className="flex items-center justify-between rounded-md border border-border px-2.5 py-1.5 bg-muted/30"
+          >
+            <span className="text-[10px] text-muted-foreground truncate mr-1">
+              {INSPECTION_TYPE_LABELS[type]}
+            </span>
+            <span className="text-xs font-semibold text-foreground whitespace-nowrap">
+              {hasTiers ? "from " : ""}£{price}
+            </span>
           </div>
-        </>
-      )}
+        ))}
+      </div>
 
       {/* Payment note */}
       <Separator />

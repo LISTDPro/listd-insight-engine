@@ -141,29 +141,8 @@ export const calculatePriceBreakdown = (
 
   const servicesTotal = services.reduce((sum, s) => sum + s.price, 0);
 
-  // Add-ons for extra rooms
-  const addOns: AddOnItem[] = [];
-
-  const push = (label: string, quantity: number, unitPrice: number) => {
-    if (quantity > 0) addOns.push({ label, quantity, unitPrice, total: quantity * unitPrice });
-  };
-
-  push("Additional Kitchen", Math.max(0, property.kitchens - 1), ADD_ON_PRICES.additionalKitchen);
-  push("Additional Bathroom / WC", Math.max(0, property.bathrooms - 1), ADD_ON_PRICES.additionalBathroom);
-  push("Additional Living Room", Math.max(0, property.living_rooms - 1), ADD_ON_PRICES.additionalLivingRoom);
-  push("Dining Area", property.dining_areas, ADD_ON_PRICES.diningArea);
-  push("Hallways, Landings & Stairs", property.hallways_stairs, ADD_ON_PRICES.hallwaysStairs);
-  push("Utility Room", property.utility_rooms, ADD_ON_PRICES.utilityRoom);
-  push("Storage Room", property.storage_rooms, ADD_ON_PRICES.storageRoom);
-  push("Garden / Outdoor Space", property.gardens, ADD_ON_PRICES.garden);
-  push("Communal Area", property.communal_areas, ADD_ON_PRICES.communalArea);
-  if (property.heavily_furnished) {
-    push("Heavily Furnished Surcharge", 1, ADD_ON_PRICES.heavilyFurnished);
-  }
-
-  const addOnsTotal = addOns.reduce((sum, a) => sum + a.total, 0);
-
-  return { services, servicesTotal, addOns, addOnsTotal, total: servicesTotal + addOnsTotal };
+  // Add-ons removed in Phase 1 — pricing is strictly service + tier + size
+  return { services, servicesTotal, addOns: [], addOnsTotal: 0, total: servicesTotal };
 };
 
 // ─── Simple total ───
@@ -177,26 +156,13 @@ export const calculateJobPrice = (
 };
 
 // ─── Estimate from form (used in PropertyPricingPreview) ───
+// Simplified: no add-ons in Phase 1
 
 export const calculateEstimateFromForm = (
   propertyType: string,
   furnishedStatus: string,
-  rooms: {
-    kitchens: number;
-    bathrooms: number;
-    living_rooms: number;
-    dining_areas: number;
-    hallways_stairs: number;
-    utility_rooms: number;
-    storage_rooms: number;
-    gardens: number;
-    communal_areas: number;
-  },
-  heavilyFurnished: boolean,
 ): {
   perService: Record<InspectionType, Record<ServiceTier, number>>;
-  addOns: AddOnItem[];
-  addOnsTotal: number;
 } => {
   const isFurnished = furnishedStatus === "furnished";
   const tiers: ServiceTier[] = ["flex", "core", "priority"];
@@ -210,23 +176,5 @@ export const calculateEstimateFromForm = (
     }
   }
 
-  const addOns: AddOnItem[] = [];
-  const push = (label: string, qty: number, unit: number) => {
-    if (qty > 0) addOns.push({ label, quantity: qty, unitPrice: unit, total: qty * unit });
-  };
-
-  push("Additional Kitchen", Math.max(0, rooms.kitchens - 1), ADD_ON_PRICES.additionalKitchen);
-  push("Additional Bathroom / WC", Math.max(0, rooms.bathrooms - 1), ADD_ON_PRICES.additionalBathroom);
-  push("Additional Living Room", Math.max(0, rooms.living_rooms - 1), ADD_ON_PRICES.additionalLivingRoom);
-  push("Dining Area", rooms.dining_areas, ADD_ON_PRICES.diningArea);
-  push("Hallways & Stairs", rooms.hallways_stairs, ADD_ON_PRICES.hallwaysStairs);
-  push("Utility Room", rooms.utility_rooms, ADD_ON_PRICES.utilityRoom);
-  push("Storage Room", rooms.storage_rooms, ADD_ON_PRICES.storageRoom);
-  push("Garden / Outdoor", rooms.gardens, ADD_ON_PRICES.garden);
-  push("Communal Area", rooms.communal_areas, ADD_ON_PRICES.communalArea);
-  if (heavilyFurnished) push("Heavily Furnished", 1, ADD_ON_PRICES.heavilyFurnished);
-
-  const addOnsTotal = addOns.reduce((sum, a) => sum + a.total, 0);
-
-  return { perService, addOns, addOnsTotal };
+  return { perService };
 };

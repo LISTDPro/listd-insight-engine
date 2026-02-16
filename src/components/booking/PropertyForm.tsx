@@ -176,14 +176,10 @@ const PropertyForm = ({ onSubmit, onCancel, isLoading, initialData, submitLabel 
           </div>
         </div>
 
-        {(formData.furnished_status === "furnished" || formData.furnished_status === "part_furnished") && (
-          <div className="flex items-start space-x-2.5 p-2.5 rounded-lg bg-warning/10 border border-warning/30">
-            <Checkbox id="heavily_furnished" checked={formData.heavily_furnished} onCheckedChange={(checked) => handleChange("heavily_furnished", checked === true)} className="mt-0.5" />
-            <div>
-              <Label htmlFor="heavily_furnished" className="cursor-pointer text-xs font-medium text-foreground">Heavily furnished (+£30)</Label>
-              <p className="text-[10px] text-muted-foreground">Excessive linen, crockery, ornaments requiring extra documentation.</p>
-            </div>
-          </div>
+        {formData.furnished_status === "furnished" && (
+          <p className="text-[10px] text-muted-foreground p-2 rounded-lg bg-muted/50 border border-border">
+            Furnished properties include a £10 surcharge on Inventory and Check-Out services.
+          </p>
         )}
       </div>
 
@@ -193,7 +189,7 @@ const PropertyForm = ({ onSubmit, onCancel, isLoading, initialData, submitLabel 
           <Home className="w-4 h-4 text-accent" />
           <h3 className="text-xs font-semibold uppercase tracking-wider">Rooms</h3>
         </div>
-        <p className="text-[10px] text-muted-foreground">Base includes 1 kitchen, 1 bathroom, 1 living room. Extras charged separately.</p>
+        <p className="text-[10px] text-muted-foreground">Optional — helps the clerk prepare for the inspection.</p>
 
         <div className="grid grid-cols-3 gap-2">
           {([

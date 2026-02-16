@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useJobDetail } from "@/hooks/useJobDetail";
 import { useAuth } from "@/hooks/useAuth";
 import { useClerkJobs } from "@/hooks/useClerkJobs";
+import AdminPayoutControls from "@/components/admin/AdminPayoutControls";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -250,8 +251,8 @@ const JobDetailPage = () => {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Left column - Property & Schedule */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Price Card */}
-          {(job.quoted_price || job.final_price) && (
+          {/* Price Card — show client price to clients/admins, payout to clerks */}
+          {(job.quoted_price || job.final_price) && role !== "clerk" && (
             <Card className="border-primary/30 bg-primary/5">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -265,6 +266,29 @@ const JobDetailPage = () => {
                       </p>
                       <p className="text-2xl font-bold text-foreground">
                         £{(job.final_price || job.quoted_price || 0).toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className={STATUS_STYLES[job.status as JobStatus] || ""}>
+                    {JOB_STATUS_LABELS[job.status as JobStatus]}
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          {/* Clerk sees only their payout */}
+          {role === "clerk" && ((job as any).clerk_payout > 0 || (job as any).clerk_final_payout > 0) && (
+            <Card className="border-accent/30 bg-accent/5">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg bg-accent/10 flex items-center justify-center">
+                      <PoundSterling className="w-6 h-6 text-accent" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Your Payout</p>
+                      <p className="text-2xl font-bold text-accent">
+                        £{((job as any).clerk_final_payout || (job as any).clerk_payout || 0).toFixed(2)}
                       </p>
                     </div>
                   </div>
@@ -396,6 +420,21 @@ const JobDetailPage = () => {
                 )}
               </CardContent>
             </Card>
+          )}
+
+          {/* Admin Payout Controls */}
+          {role === "admin" && (
+            <AdminPayoutControls
+              jobId={job.id}
+              clerkPayout={(job as any).clerk_payout || 0}
+              clerkBonus={(job as any).clerk_bonus || 0}
+              clerkFinalPayout={(job as any).clerk_final_payout || 0}
+              clerkPayoutLocked={(job as any).clerk_payout_locked || false}
+              status={job.status}
+              quotedPrice={job.final_price || job.quoted_price || 0}
+              margin={(job as any).margin || 0}
+              onUpdate={refetch}
+            />
           )}
         </div>
 

@@ -13,8 +13,11 @@ import {
   Users, Briefcase, ShieldCheck, AlertTriangle,
   CheckCircle2, XCircle, Clock, Search, Eye, UserCheck, Package, Zap,
   ListChecks, ExternalLink, ClipboardList, Mail, RefreshCw, Calendar,
+  PoundSterling,
 } from "lucide-react";
+import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import AdminPayoutControls from "@/components/admin/AdminPayoutControls";
 import MarkDeliveredDialog from "@/components/admin/MarkDeliveredDialog";
 import DisputeResolutionDialog from "@/components/admin/DisputeResolutionDialog";
 import IssueStrikeDialog from "@/components/admin/IssueStrikeDialog";
@@ -48,6 +51,12 @@ interface JobRow {
   service_tier: string;
   quoted_price: number | null;
   inventorybase_job_id: string | null;
+  clerk_payout: number | null;
+  clerk_bonus: number | null;
+  clerk_final_payout: number | null;
+  clerk_payout_locked: boolean | null;
+  clerk_payment_date: string | null;
+  margin: number | null;
 }
 
 interface DisputeRow {
@@ -312,6 +321,9 @@ const AdminPage = () => {
           </TabsTrigger>
           <TabsTrigger value="emails" className="gap-2">
             <Mail className="w-4 h-4" /> Emails
+          </TabsTrigger>
+          <TabsTrigger value="payouts" className="gap-2">
+            <PoundSterling className="w-4 h-4" /> Payouts
           </TabsTrigger>
         </TabsList>
 
@@ -894,6 +906,104 @@ const AdminPage = () => {
         {/* Emails Tab */}
         <TabsContent value="emails">
           <EmailLogDashboard />
+        </TabsContent>
+
+        {/* Payouts Tab */}
+        <TabsContent value="payouts" className="space-y-6">
+          <div className="bg-card border border-border overflow-hidden">
+            <div className="px-5 py-4 border-b border-border">
+              <h3 className="text-sm font-semibold text-foreground">Job Payout Management</h3>
+              <p className="text-xs text-muted-foreground">Override clerk payouts, apply bonuses, lock and mark as paid</p>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/40">
+                  <TableHead>Job</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Client Price</TableHead>
+                  <TableHead className="text-right">Clerk Payout</TableHead>
+                  <TableHead className="text-right">Bonus</TableHead>
+                  <TableHead className="text-right">Margin</TableHead>
+                  <TableHead>Locked</TableHead>
+                  <TableHead>Paid</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {jobs
+                  .filter(j => j.status !== "cancelled" && j.status !== "draft")
+                  .map((job) => {
+                    const clientPrice = job.quoted_price || 0;
+                    const payout = job.clerk_final_payout || job.clerk_payout || 0;
+                    const bonus = job.clerk_bonus || 0;
+                    const jobMargin = job.margin || (clientPrice - payout);
+                    const isPaid = job.status === "paid";
+                    return (
+                      <TableRow key={job.id}>
+                        <TableCell className="font-mono text-xs">{job.id.slice(0, 8)}...</TableCell>
+                        <TableCell>
+                          <Badge variant="secondary" className="text-xs">
+                            {job.inspection_type.replace("_", " ")}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{getStatusBadge(job.status)}</TableCell>
+                        <TableCell className="text-right font-medium">£{clientPrice.toFixed(0)}</TableCell>
+                        <TableCell className="text-right font-medium text-accent">£{payout.toFixed(0)}</TableCell>
+                        <TableCell className="text-right text-muted-foreground">
+                          {bonus > 0 ? `£${bonus.toFixed(0)}` : "—"}
+                        </TableCell>
+                        <TableCell className={`text-right font-medium ${jobMargin >= 0 ? "text-success" : "text-destructive"}`}>
+                          £{jobMargin.toFixed(0)}
+                        </TableCell>
+                        <TableCell>
+                          {job.clerk_payout_locked ? (
+                            <Badge variant="outline" className="bg-warning/10 text-warning text-[10px]">Locked</Badge>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {isPaid ? (
+                            <Badge variant="outline" className="bg-success/10 text-success text-[10px]">
+                              {job.clerk_payment_date ? format(new Date(job.clerk_payment_date), "d MMM") : "Paid"}
+                            </Badge>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Individual payout controls for completed/submitted jobs */}
+          <h3 className="text-sm font-semibold text-foreground">Manage Individual Payouts</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {jobs
+              .filter(j => ["submitted", "reviewed", "signed", "completed", "paid"].includes(j.status) && j.clerk_id)
+              .slice(0, 10)
+              .map((job) => (
+                <AdminPayoutControls
+                  key={job.id}
+                  jobId={job.id}
+                  clerkPayout={job.clerk_payout || 0}
+                  clerkBonus={job.clerk_bonus || 0}
+                  clerkFinalPayout={job.clerk_final_payout || 0}
+                  clerkPayoutLocked={job.clerk_payout_locked || false}
+                  status={job.status}
+                  quotedPrice={job.quoted_price || 0}
+                  margin={job.margin || 0}
+                  onUpdate={fetchJobs}
+                />
+              ))}
+            {jobs.filter(j => ["submitted", "reviewed", "signed", "completed", "paid"].includes(j.status) && j.clerk_id).length === 0 && (
+              <div className="col-span-2 text-center py-8 text-sm text-muted-foreground">
+                No jobs ready for payout management yet.
+              </div>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
 

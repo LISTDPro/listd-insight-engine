@@ -93,9 +93,11 @@ export const serviceUsesFurnishing = (type: InspectionType): boolean =>
 // Base includes: 1 Kitchen, 1 Bathroom, 1 Living Room, 1 Dining Room
 
 export const ADD_ON_PRICES = {
+  additionalBedroom: 10,
   additionalKitchen: 20,
   additionalBathroom: 10,
   additionalLivingRoom: 15,
+  additionalDiningArea: 10,
   hallwaysStairs: 10,
   utilityRoom: 10,
   storageRoom: 10,
@@ -148,6 +150,13 @@ export const calculatePriceBreakdown = (
   // Calculate add-ons from property room counts (base = 1 of each)
   const addOns: AddOnItem[] = [];
 
+  // Extra bedrooms beyond property type
+  const baseBedrooms = PROPERTY_SIZES.indexOf(property.property_type as any);
+  const extraBedrooms = Math.max(0, (property.bedrooms ?? baseBedrooms) - Math.max(baseBedrooms, 0));
+  if (extraBedrooms > 0) {
+    addOns.push({ label: "Additional Bedroom", quantity: extraBedrooms, unitPrice: ADD_ON_PRICES.additionalBedroom, total: extraBedrooms * ADD_ON_PRICES.additionalBedroom });
+  }
+
   const extraKitchens = Math.max(0, (property.kitchens ?? 1) - 1);
   if (extraKitchens > 0) {
     addOns.push({ label: "Additional Kitchen", quantity: extraKitchens, unitPrice: ADD_ON_PRICES.additionalKitchen, total: extraKitchens * ADD_ON_PRICES.additionalKitchen });
@@ -166,6 +175,11 @@ export const calculatePriceBreakdown = (
   const hallways = property.hallways_stairs ?? 0;
   if (hallways > 0) {
     addOns.push({ label: "Hallways, Landings & Stairs", quantity: hallways, unitPrice: ADD_ON_PRICES.hallwaysStairs, total: hallways * ADD_ON_PRICES.hallwaysStairs });
+  }
+
+  const extraDining = Math.max(0, (property.dining_areas ?? 1) - 1);
+  if (extraDining > 0) {
+    addOns.push({ label: "Additional Dining Area", quantity: extraDining, unitPrice: ADD_ON_PRICES.additionalDiningArea, total: extraDining * ADD_ON_PRICES.additionalDiningArea });
   }
 
   const utilityRooms = property.utility_rooms ?? 0;

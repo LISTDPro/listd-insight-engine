@@ -8,7 +8,7 @@ import {
   FURNISHED_STATUS_LABELS,
   InspectionType,
 } from "@/types/database";
-import { getServicePrice, serviceRequiresTier, FURNISHED_SURCHARGE, FURNISHING_SERVICES } from "@/utils/pricing";
+import { getServicePrice, serviceRequiresTier, FURNISHED_SURCHARGE, PART_FURNISHED_SURCHARGE, FURNISHING_SERVICES } from "@/utils/pricing";
 import type { ServiceTier } from "@/components/booking/TierSelector";
 import { Separator } from "@/components/ui/separator";
 
@@ -37,14 +37,15 @@ const PropertySizeSelector = ({
   selectedTier,
 }: PropertySizeSelectorProps) => {
   const isFurnished = selectedFurnishing === "furnished";
+  const isPartFurnished = selectedFurnishing === "part_furnished";
   const hasFurnishingSurcharge = inspectionTypes.some((t) => FURNISHING_SERVICES.includes(t));
 
   const totalPrice = useMemo(() => {
     return inspectionTypes.reduce(
-      (sum, type) => sum + getServicePrice(type, selectedSize, selectedTier, isFurnished),
+      (sum, type) => sum + getServicePrice(type, selectedSize, selectedTier, selectedFurnishing),
       0,
     );
-  }, [inspectionTypes, selectedSize, selectedTier, isFurnished]);
+  }, [inspectionTypes, selectedSize, selectedTier, selectedFurnishing]);
 
   return (
     <div className="space-y-5">
@@ -115,6 +116,11 @@ const PropertySizeSelector = ({
         {isFurnished && hasFurnishingSurcharge && (
           <p className="text-[10px] text-muted-foreground p-2 rounded-lg bg-muted/50 border border-border">
             Furnished properties include a £{FURNISHED_SURCHARGE} surcharge on Inventory and Check-Out services.
+          </p>
+        )}
+        {isPartFurnished && hasFurnishingSurcharge && (
+          <p className="text-[10px] text-muted-foreground p-2 rounded-lg bg-muted/50 border border-border">
+            Part-furnished properties include a £{PART_FURNISHED_SURCHARGE} surcharge on Inventory and Check-Out services.
           </p>
         )}
       </div>

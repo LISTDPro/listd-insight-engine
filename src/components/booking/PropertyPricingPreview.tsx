@@ -24,11 +24,10 @@ const PropertyPricingPreview = ({ formData }: PropertyPricingPreviewProps) => {
   ];
 
   const prices = useMemo(() => {
-    const isFurnished = formData.furnished_status === "furnished";
     return inspectionTypes.map((type) => ({
       type,
       hasTiers: serviceRequiresTier(type),
-      price: getServicePrice(type, formData.property_type, "flex", isFurnished),
+      price: getServicePrice(type, formData.property_type, "flex", formData.furnished_status),
     }));
   }, [formData.property_type, formData.furnished_status]);
 

@@ -7,6 +7,7 @@ export type ServiceTier = "flex" | "core" | "priority";
 export const TIERED_SERVICES: InspectionType[] = ["new_inventory", "check_out"];
 export const FURNISHING_SERVICES: InspectionType[] = ["new_inventory", "check_out"];
 export const FURNISHED_SURCHARGE = 10;
+export const PART_FURNISHED_SURCHARGE = 5;
 
 const PROPERTY_SIZES = [
   "studio", "1_bed", "2_bed", "3_bed", "4_bed",
@@ -43,7 +44,7 @@ export const getServicePrice = (
   inspectionType: InspectionType,
   propertyType: string,
   tier: ServiceTier = "flex",
-  isFurnished: boolean = false,
+  furnishedStatus: string = "unfurnished",
 ): number => {
   const idx = (PROPERTY_SIZES as readonly string[]).indexOf(propertyType);
   if (idx === -1) return 0;
@@ -69,8 +70,12 @@ export const getServicePrice = (
       base = 0;
   }
 
-  if (isFurnished && FURNISHING_SERVICES.includes(inspectionType)) {
-    base += FURNISHED_SURCHARGE;
+  if (FURNISHING_SERVICES.includes(inspectionType)) {
+    if (furnishedStatus === "furnished") {
+      base += FURNISHED_SURCHARGE;
+    } else if (furnishedStatus === "part_furnished") {
+      base += PART_FURNISHED_SURCHARGE;
+    }
   }
 
   return base;
@@ -132,11 +137,11 @@ export const calculatePriceBreakdown = (
     return { services: [], servicesTotal: 0, addOns: [], addOnsTotal: 0, total: 0 };
   }
 
-  const isFurnished = property.furnished_status === "furnished";
+  const furnishedStatus = property.furnished_status;
 
   const services: ServicePrice[] = inspectionTypes.map((type) => ({
     type,
-    price: getServicePrice(type, property.property_type, tier, isFurnished),
+    price: getServicePrice(type, property.property_type, tier, furnishedStatus),
   }));
 
   const servicesTotal = services.reduce((sum, s) => sum + s.price, 0);
@@ -164,7 +169,6 @@ export const calculateEstimateFromForm = (
 ): {
   perService: Record<InspectionType, Record<ServiceTier, number>>;
 } => {
-  const isFurnished = furnishedStatus === "furnished";
   const tiers: ServiceTier[] = ["flex", "core", "priority"];
   const inspectionTypes: InspectionType[] = ["new_inventory", "check_in", "check_out", "mid_term", "interim"];
 
@@ -172,7 +176,7 @@ export const calculateEstimateFromForm = (
   for (const type of inspectionTypes) {
     perService[type] = {} as Record<ServiceTier, number>;
     for (const tier of tiers) {
-      perService[type][tier] = getServicePrice(type, propertyType, tier, isFurnished);
+      perService[type][tier] = getServicePrice(type, propertyType, tier, furnishedStatus);
     }
   }
 

@@ -41,12 +41,11 @@ const BookingSummary = ({
   selectedFurnishing,
 }: BookingSummaryProps) => {
   const showTier = inspectionTypes.some((t) => serviceRequiresTier(t));
-  const isFurnished = selectedFurnishing === "furnished";
 
   // Calculate price from size/furnishing selections (not from property)
   const services = inspectionTypes.map((type) => ({
     type,
-    price: getServicePrice(type, selectedSize, selectedTier, isFurnished),
+    price: getServicePrice(type, selectedSize, selectedTier, selectedFurnishing),
   }));
   const servicesTotal = services.reduce((sum, s) => sum + s.price, 0);
 

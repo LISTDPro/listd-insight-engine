@@ -57,6 +57,19 @@ export const useInventoryBaseSync = () => {
       setEvents(data.events);
       setMatchedCount(data.matched_count);
 
+      // Notify admin of IB sync results
+      try {
+        await supabase.functions.invoke("notify-admin", {
+          body: {
+            type: "ib_sync",
+            totalEvents: data.total_events,
+            matchedCount: data.matched_count,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to notify admin of IB sync:", e);
+      }
+
       if (data.matched_count > 0) {
         toast.success(`Fetched ${data.total_events} inspections — ${data.matched_count} auto-matched to LISTD jobs`);
       } else {

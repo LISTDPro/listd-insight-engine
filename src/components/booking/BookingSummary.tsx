@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Building2, CalendarDays, Clock, ClipboardList, MapPin, PoundSterling, AlertCircle, Layers, Home, Sofa } from "lucide-react";
-import { getServicePrice, serviceRequiresTier, serviceUsesFurnishing } from "@/utils/pricing";
+import { getServicePrice, serviceRequiresTier, serviceUsesFurnishing, calculatePriceBreakdown } from "@/utils/pricing";
 import { ServiceTier, TIER_LABELS, SERVICE_TIERS } from "@/components/booking/TierSelector";
 
 interface BookingSummaryProps {
@@ -48,6 +48,12 @@ const BookingSummary = ({
     price: getServicePrice(type, selectedSize, selectedTier, selectedFurnishing),
   }));
   const servicesTotal = services.reduce((sum, s) => sum + s.price, 0);
+
+  // Calculate add-ons from property room counts
+  const breakdown = calculatePriceBreakdown(property, inspectionTypes, selectedTier);
+  const addOns = breakdown.addOns;
+  const addOnsTotal = breakdown.addOnsTotal;
+  const grandTotal = servicesTotal + addOnsTotal;
 
   const tierConfig = SERVICE_TIERS.find((t) => t.value === selectedTier);
   const TierIcon = tierConfig?.icon;
@@ -173,9 +179,28 @@ const BookingSummary = ({
               </div>
             )}
 
+            {/* Add-Ons */}
+            {addOns.length > 0 && (
+              <div className="pt-1.5 border-t border-border/50 space-y-1">
+                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Add-Ons</span>
+                {addOns.map((addOn, index) => (
+                  <div key={index} className="flex justify-between text-[11px]">
+                    <span className="text-muted-foreground">
+                      {addOn.label}{addOn.quantity > 1 ? ` ×${addOn.quantity}` : ""}
+                    </span>
+                    <span className="font-medium text-foreground">£{addOn.total}</span>
+                  </div>
+                ))}
+                <div className="flex justify-between text-[11px] pt-1 border-t border-border/50">
+                  <span className="text-muted-foreground font-medium">Add-Ons Subtotal</span>
+                  <span className="font-medium text-foreground">£{addOnsTotal}</span>
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-between items-center pt-2 border-t border-border mt-1">
               <span className="text-xs font-semibold text-foreground">Total</span>
-              <span className="text-lg font-bold text-accent">£{servicesTotal}</span>
+              <span className="text-lg font-bold text-accent">£{grandTotal}</span>
             </div>
 
             <p className="text-[10px] text-muted-foreground">

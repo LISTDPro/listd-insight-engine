@@ -32,6 +32,7 @@ const FUNCTION_LABELS: Record<string, string> = {
   "notify-pre-inspection-ack": "Pre-Inspection Ack",
   "notify-invitation-accepted": "Invitation Accepted",
   "send-password-reset": "Password Reset",
+  "notify-admin": "Admin Notification",
 };
 
 const FUNCTION_COLORS: Record<string, string> = {
@@ -40,6 +41,7 @@ const FUNCTION_COLORS: Record<string, string> = {
   "notify-pre-inspection-ack": "bg-success/10 text-success",
   "notify-invitation-accepted": "bg-accent/10 text-accent-foreground",
   "send-password-reset": "bg-warning/10 text-warning",
+  "notify-admin": "bg-purple-100 text-purple-800",
 };
 
 const EmailLogDashboard = () => {

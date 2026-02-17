@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Building2, ClipboardCheck, ArrowRight, ArrowLeft, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -145,6 +146,20 @@ const Onboarding = () => {
 
     // Refresh profile to ensure auth context is up-to-date before navigating
     await refreshProfile();
+
+    // Notify admin of new sign-up
+    try {
+      await supabase.functions.invoke("notify-admin", {
+        body: {
+          type: "signup",
+          userName: user?.user_metadata?.full_name || profile?.full_name || "Unknown",
+          userEmail: user?.email || "—",
+          userRole: selectedRole,
+        },
+      });
+    } catch (e) {
+      console.error("Failed to notify admin of sign-up:", e);
+    }
 
     toast({
       title: "Welcome to LISTD!",

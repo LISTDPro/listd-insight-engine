@@ -87,8 +87,24 @@ export const useJobs = () => {
         });
         console.log("Clerk notification sent for new job");
       } catch (notifyError) {
-        // Don't fail the job creation if notification fails
         console.error("Failed to notify clerks:", notifyError);
+      }
+
+      // Notify admin about the new job
+      try {
+        await supabase.functions.invoke("notify-admin", {
+          body: {
+            type: "job_posted",
+            jobId: data.id,
+            propertyAddress: propertyDetails?.address || "Property",
+            city: propertyDetails?.city || "",
+            postcode: propertyDetails?.postcode || "",
+            inspectionType: input.inspection_type,
+            scheduledDate: input.scheduled_date,
+          },
+        });
+      } catch (e) {
+        console.error("Failed to notify admin:", e);
       }
     }
 

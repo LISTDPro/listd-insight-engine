@@ -5,17 +5,23 @@ import { getClerkPayout, calculateMargin, calculateFinalClerkPayout } from "@/ut
 describe("Pricing and Clerk Payout Calculations", () => {
   describe("Client pricing", () => {
     it("returns correct flex inventory price for 2_bed", () => {
-      expect(getServicePrice("new_inventory", "2_bed", "flex", false)).toBe(85);
+      expect(getServicePrice("new_inventory", "2_bed", "flex", "unfurnished")).toBe(85);
     });
 
     it("returns correct core inventory price for 3_bed", () => {
-      expect(getServicePrice("new_inventory", "3_bed", "core", false)).toBe(130);
+      expect(getServicePrice("new_inventory", "3_bed", "core", "unfurnished")).toBe(130);
     });
 
     it("adds furnished surcharge for inventory", () => {
-      const unfurnished = getServicePrice("new_inventory", "2_bed", "flex", false);
-      const furnished = getServicePrice("new_inventory", "2_bed", "flex", true);
+      const unfurnished = getServicePrice("new_inventory", "2_bed", "flex", "unfurnished");
+      const furnished = getServicePrice("new_inventory", "2_bed", "flex", "furnished");
       expect(furnished - unfurnished).toBe(10);
+    });
+
+    it("adds part_furnished surcharge for inventory", () => {
+      const unfurnished = getServicePrice("new_inventory", "2_bed", "flex", "unfurnished");
+      const partFurnished = getServicePrice("new_inventory", "2_bed", "flex", "part_furnished");
+      expect(partFurnished - unfurnished).toBe(5);
     });
 
     it("check_in is flat pricing regardless of tier", () => {
@@ -49,7 +55,7 @@ describe("Pricing and Clerk Payout Calculations", () => {
 
   describe("Margin calculation", () => {
     it("calculates margin as client price minus clerk pay", () => {
-      const clientPrice = getServicePrice("new_inventory", "2_bed", "flex", false); // 85
+      const clientPrice = getServicePrice("new_inventory", "2_bed", "flex", "unfurnished"); // 85
       const clerkPay = getClerkPayout("new_inventory", "2_bed"); // 35
       const margin = calculateMargin(clientPrice, clerkPay);
       expect(margin).toBe(50);
@@ -80,7 +86,7 @@ describe("Pricing and Clerk Payout Calculations", () => {
 
   describe("End-to-end job creation scenario", () => {
     it("2_bed flex inventory: client=85, clerk=35, margin=50", () => {
-      const clientPrice = getServicePrice("new_inventory", "2_bed", "flex", false);
+      const clientPrice = getServicePrice("new_inventory", "2_bed", "flex", "unfurnished");
       const clerkPay = getClerkPayout("new_inventory", "2_bed");
       const margin = calculateMargin(clientPrice, clerkPay);
 
@@ -90,7 +96,7 @@ describe("Pricing and Clerk Payout Calculations", () => {
     });
 
     it("4_bed priority check_out furnished: client=170, clerk=45, margin=125", () => {
-      const clientPrice = getServicePrice("check_out", "4_bed", "priority", true);
+      const clientPrice = getServicePrice("check_out", "4_bed", "priority", "furnished");
       const clerkPay = getClerkPayout("check_out", "4_bed");
       const margin = calculateMargin(clientPrice, clerkPay);
 
@@ -100,7 +106,7 @@ describe("Pricing and Clerk Payout Calculations", () => {
     });
 
     it("with bonus applied: clerk final = base + bonus, margin adjusts", () => {
-      const clientPrice = getServicePrice("new_inventory", "3_bed", "core", false); // 130
+      const clientPrice = getServicePrice("new_inventory", "3_bed", "core", "unfurnished"); // 130
       const clerkPay = getClerkPayout("new_inventory", "3_bed"); // 40
       const bonus = 15;
       const finalPayout = calculateFinalClerkPayout(clerkPay, bonus); // 55

@@ -108,9 +108,9 @@ export const calculateClerkAddOns = (property: Property | null): ClerkAddOnItem[
     addOns.push({ label: "Communal Lounge / Living Room", quantity: extraLivingRooms, unitPrice: CLERK_ADD_ON_PRICES.additionalLivingRoom, total: extraLivingRooms * CLERK_ADD_ON_PRICES.additionalLivingRoom });
   }
 
-  const hallways = property.hallways_stairs ?? 0;
-  if (hallways > 0) {
-    addOns.push({ label: "Hallways / Landings / Stairs", quantity: hallways, unitPrice: CLERK_ADD_ON_PRICES.hallwaysStairs, total: hallways * CLERK_ADD_ON_PRICES.hallwaysStairs });
+  const extraHallways = Math.max(0, (property.hallways_stairs ?? 1) - 1);
+  if (extraHallways > 0) {
+    addOns.push({ label: "Hallways / Landings / Stairs", quantity: extraHallways, unitPrice: CLERK_ADD_ON_PRICES.hallwaysStairs, total: extraHallways * CLERK_ADD_ON_PRICES.hallwaysStairs });
   }
 
   const extraDining = Math.max(0, (property.dining_areas ?? 1) - 1);
@@ -118,24 +118,24 @@ export const calculateClerkAddOns = (property: Property | null): ClerkAddOnItem[
     addOns.push({ label: "Additional Dining Area", quantity: extraDining, unitPrice: CLERK_ADD_ON_PRICES.additionalDiningArea, total: extraDining * CLERK_ADD_ON_PRICES.additionalDiningArea });
   }
 
-  const utilityRooms = property.utility_rooms ?? 0;
-  if (utilityRooms > 0) {
-    addOns.push({ label: "Utility Room", quantity: utilityRooms, unitPrice: CLERK_ADD_ON_PRICES.utilityRoom, total: utilityRooms * CLERK_ADD_ON_PRICES.utilityRoom });
+  const extraUtility = Math.max(0, (property.utility_rooms ?? 1) - 1);
+  if (extraUtility > 0) {
+    addOns.push({ label: "Utility Room", quantity: extraUtility, unitPrice: CLERK_ADD_ON_PRICES.utilityRoom, total: extraUtility * CLERK_ADD_ON_PRICES.utilityRoom });
   }
 
-  const storageRooms = property.storage_rooms ?? 0;
-  if (storageRooms > 0) {
-    addOns.push({ label: "Storage Room", quantity: storageRooms, unitPrice: CLERK_ADD_ON_PRICES.storageRoom, total: storageRooms * CLERK_ADD_ON_PRICES.storageRoom });
+  const extraStorage = Math.max(0, (property.storage_rooms ?? 1) - 1);
+  if (extraStorage > 0) {
+    addOns.push({ label: "Storage Room", quantity: extraStorage, unitPrice: CLERK_ADD_ON_PRICES.storageRoom, total: extraStorage * CLERK_ADD_ON_PRICES.storageRoom });
   }
 
-  const gardens = property.gardens ?? 0;
-  if (gardens > 0) {
-    addOns.push({ label: "Garden / Outdoor Space", quantity: gardens, unitPrice: CLERK_ADD_ON_PRICES.garden, total: gardens * CLERK_ADD_ON_PRICES.garden });
+  const extraGardens = Math.max(0, (property.gardens ?? 1) - 1);
+  if (extraGardens > 0) {
+    addOns.push({ label: "Garden / Outdoor Space", quantity: extraGardens, unitPrice: CLERK_ADD_ON_PRICES.garden, total: extraGardens * CLERK_ADD_ON_PRICES.garden });
   }
 
-  const communalAreas = property.communal_areas ?? 0;
-  if (communalAreas > 0) {
-    addOns.push({ label: "Communal Area", quantity: communalAreas, unitPrice: CLERK_ADD_ON_PRICES.communalArea, total: communalAreas * CLERK_ADD_ON_PRICES.communalArea });
+  const extraCommunal = Math.max(0, (property.communal_areas ?? 1) - 1);
+  if (extraCommunal > 0) {
+    addOns.push({ label: "Communal Area", quantity: extraCommunal, unitPrice: CLERK_ADD_ON_PRICES.communalArea, total: extraCommunal * CLERK_ADD_ON_PRICES.communalArea });
   }
 
   if (property.heavily_furnished) {

@@ -30,9 +30,11 @@ const PROPERTY_SIZES = [
 
 // ─── Clerk Add-On Rates (per extra room beyond base) ───
 export const CLERK_ADD_ON_PRICES = {
+  additionalBedroom: 5,
   additionalKitchen: 10,
   additionalBathroom: 5,
   additionalLivingRoom: 7.5,
+  additionalDiningArea: 5,
   hallwaysStairs: 5,
   utilityRoom: 5,
   storageRoom: 5,
@@ -83,6 +85,13 @@ export const calculateClerkAddOns = (property: Property | null): ClerkAddOnItem[
 
   const addOns: ClerkAddOnItem[] = [];
 
+  // Extra bedrooms beyond property type
+  const baseBedrooms = PROPERTY_SIZES.indexOf(property.property_type as any);
+  const extraBedrooms = Math.max(0, (property.bedrooms ?? baseBedrooms) - Math.max(baseBedrooms, 0));
+  if (extraBedrooms > 0) {
+    addOns.push({ label: "Additional Bedroom", quantity: extraBedrooms, unitPrice: CLERK_ADD_ON_PRICES.additionalBedroom, total: extraBedrooms * CLERK_ADD_ON_PRICES.additionalBedroom });
+  }
+
   const extraKitchens = Math.max(0, (property.kitchens ?? 1) - 1);
   if (extraKitchens > 0) {
     addOns.push({ label: "Additional Kitchen", quantity: extraKitchens, unitPrice: CLERK_ADD_ON_PRICES.additionalKitchen, total: extraKitchens * CLERK_ADD_ON_PRICES.additionalKitchen });
@@ -101,6 +110,11 @@ export const calculateClerkAddOns = (property: Property | null): ClerkAddOnItem[
   const hallways = property.hallways_stairs ?? 0;
   if (hallways > 0) {
     addOns.push({ label: "Hallways / Landings / Stairs", quantity: hallways, unitPrice: CLERK_ADD_ON_PRICES.hallwaysStairs, total: hallways * CLERK_ADD_ON_PRICES.hallwaysStairs });
+  }
+
+  const extraDining = Math.max(0, (property.dining_areas ?? 1) - 1);
+  if (extraDining > 0) {
+    addOns.push({ label: "Additional Dining Area", quantity: extraDining, unitPrice: CLERK_ADD_ON_PRICES.additionalDiningArea, total: extraDining * CLERK_ADD_ON_PRICES.additionalDiningArea });
   }
 
   const utilityRooms = property.utility_rooms ?? 0;

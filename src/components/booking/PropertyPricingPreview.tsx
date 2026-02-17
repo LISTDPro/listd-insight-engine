@@ -7,7 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getServicePrice, serviceRequiresTier } from "@/utils/pricing";
+import { getServicePrice, serviceRequiresTier, ADD_ON_PRICES } from "@/utils/pricing";
 import { INSPECTION_TYPE_LABELS, InspectionType } from "@/types/database";
 import type { PropertyFormData } from "./PropertyForm";
 
@@ -30,6 +30,24 @@ const PropertyPricingPreview = ({ formData }: PropertyPricingPreviewProps) => {
       price: getServicePrice(type, formData.property_type, "flex", formData.furnished_status),
     }));
   }, [formData.property_type, formData.furnished_status]);
+
+  const addOns = useMemo(() => {
+    const items: { label: string; total: number }[] = [];
+    const extraKitchens = Math.max(0, (formData.kitchens ?? 1) - 1);
+    if (extraKitchens > 0) items.push({ label: `Additional Kitchen ×${extraKitchens}`, total: extraKitchens * ADD_ON_PRICES.additionalKitchen });
+    const extraBathrooms = Math.max(0, (formData.bathrooms ?? 1) - 1);
+    if (extraBathrooms > 0) items.push({ label: `Additional Bathroom ×${extraBathrooms}`, total: extraBathrooms * ADD_ON_PRICES.additionalBathroom });
+    const extraLiving = Math.max(0, (formData.living_rooms ?? 1) - 1);
+    if (extraLiving > 0) items.push({ label: `Additional Living Room ×${extraLiving}`, total: extraLiving * ADD_ON_PRICES.additionalLivingRoom });
+    if (formData.hallways_stairs > 0) items.push({ label: `Hallways / Stairs ×${formData.hallways_stairs}`, total: formData.hallways_stairs * ADD_ON_PRICES.hallwaysStairs });
+    if (formData.utility_rooms > 0) items.push({ label: `Utility Room ×${formData.utility_rooms}`, total: formData.utility_rooms * ADD_ON_PRICES.utilityRoom });
+    if (formData.storage_rooms > 0) items.push({ label: `Storage Room ×${formData.storage_rooms}`, total: formData.storage_rooms * ADD_ON_PRICES.storageRoom });
+    if (formData.gardens > 0) items.push({ label: `Garden ×${formData.gardens}`, total: formData.gardens * ADD_ON_PRICES.garden });
+    if (formData.heavily_furnished) items.push({ label: "Heavily Furnished", total: ADD_ON_PRICES.heavilyFurnished });
+    return items;
+  }, [formData.kitchens, formData.bathrooms, formData.living_rooms, formData.hallways_stairs, formData.utility_rooms, formData.storage_rooms, formData.gardens, formData.heavily_furnished]);
+
+  const addOnsTotal = addOns.reduce((sum, a) => sum + a.total, 0);
 
   return (
     <div className="space-y-3">
@@ -73,6 +91,23 @@ const PropertyPricingPreview = ({ formData }: PropertyPricingPreviewProps) => {
           </div>
         ))}
       </div>
+
+      {/* Add-on fees */}
+      {addOns.length > 0 && (
+        <div className="space-y-1">
+          <p className="text-[10px] font-medium text-muted-foreground">Add-on fees (per service):</p>
+          {addOns.map((item) => (
+            <div key={item.label} className="flex items-center justify-between text-[10px] px-2.5">
+              <span className="text-muted-foreground">{item.label}</span>
+              <span className="font-semibold text-foreground">+£{item.total}</span>
+            </div>
+          ))}
+          <div className="flex items-center justify-between text-[10px] px-2.5 pt-1 border-t border-border">
+            <span className="text-muted-foreground font-medium">Add-ons total</span>
+            <span className="font-semibold text-foreground">+£{addOnsTotal}</span>
+          </div>
+        </div>
+      )}
 
       {/* Payment note */}
       <Separator />

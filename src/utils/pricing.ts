@@ -100,6 +100,7 @@ export const ADD_ON_PRICES = {
   utilityRoom: 10,
   storageRoom: 10,
   garden: 20,
+  heavilyFurnished: 30,
 };
 
 // ─── Types ───
@@ -180,6 +181,10 @@ export const calculatePriceBreakdown = (
   const gardens = property.gardens ?? 0;
   if (gardens > 0) {
     addOns.push({ label: "Garden / Outdoor Space", quantity: gardens, unitPrice: ADD_ON_PRICES.garden, total: gardens * ADD_ON_PRICES.garden });
+  }
+
+  if (property.heavily_furnished) {
+    addOns.push({ label: "Heavily Furnished Property", quantity: 1, unitPrice: ADD_ON_PRICES.heavilyFurnished, total: ADD_ON_PRICES.heavilyFurnished });
   }
 
   const addOnsTotal = addOns.reduce((sum, a) => sum + a.total, 0);

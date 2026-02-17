@@ -50,9 +50,10 @@ const PropertyPricingPreview = ({ formData }: PropertyPricingPreviewProps) => {
     if (formData.utility_rooms > 0) items.push({ label: `Utility Room ×${formData.utility_rooms}`, total: formData.utility_rooms * ADD_ON_PRICES.utilityRoom });
     if (formData.storage_rooms > 0) items.push({ label: `Storage Room ×${formData.storage_rooms}`, total: formData.storage_rooms * ADD_ON_PRICES.storageRoom });
     if (formData.gardens > 0) items.push({ label: `Garden ×${formData.gardens}`, total: formData.gardens * ADD_ON_PRICES.garden });
+    if (formData.communal_areas > 0) items.push({ label: `Communal Area ×${formData.communal_areas}`, total: formData.communal_areas * ADD_ON_PRICES.communalArea });
     if (formData.heavily_furnished) items.push({ label: "Heavily Furnished", total: ADD_ON_PRICES.heavilyFurnished });
     return items;
-  }, [formData.property_type, formData.bedrooms, formData.kitchens, formData.bathrooms, formData.living_rooms, formData.dining_areas, formData.hallways_stairs, formData.utility_rooms, formData.storage_rooms, formData.gardens, formData.heavily_furnished]);
+  }, [formData.property_type, formData.bedrooms, formData.kitchens, formData.bathrooms, formData.living_rooms, formData.dining_areas, formData.hallways_stairs, formData.utility_rooms, formData.storage_rooms, formData.gardens, formData.communal_areas, formData.heavily_furnished]);
 
   const addOnsTotal = addOns.reduce((sum, a) => sum + a.total, 0);
 

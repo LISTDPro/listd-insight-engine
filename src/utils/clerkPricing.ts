@@ -39,6 +39,7 @@ export const CLERK_ADD_ON_PRICES = {
   utilityRoom: 5,
   storageRoom: 5,
   garden: 10,
+  communalArea: 5,
   heavilyFurnished: 15,
 };
 
@@ -130,6 +131,11 @@ export const calculateClerkAddOns = (property: Property | null): ClerkAddOnItem[
   const gardens = property.gardens ?? 0;
   if (gardens > 0) {
     addOns.push({ label: "Garden / Outdoor Space", quantity: gardens, unitPrice: CLERK_ADD_ON_PRICES.garden, total: gardens * CLERK_ADD_ON_PRICES.garden });
+  }
+
+  const communalAreas = property.communal_areas ?? 0;
+  if (communalAreas > 0) {
+    addOns.push({ label: "Communal Area", quantity: communalAreas, unitPrice: CLERK_ADD_ON_PRICES.communalArea, total: communalAreas * CLERK_ADD_ON_PRICES.communalArea });
   }
 
   if (property.heavily_furnished) {

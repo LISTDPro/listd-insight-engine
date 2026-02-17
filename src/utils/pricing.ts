@@ -102,6 +102,7 @@ export const ADD_ON_PRICES = {
   utilityRoom: 10,
   storageRoom: 10,
   garden: 20,
+  communalArea: 10,
   heavilyFurnished: 30,
 };
 
@@ -195,6 +196,11 @@ export const calculatePriceBreakdown = (
   const gardens = property.gardens ?? 0;
   if (gardens > 0) {
     addOns.push({ label: "Garden / Outdoor Space", quantity: gardens, unitPrice: ADD_ON_PRICES.garden, total: gardens * ADD_ON_PRICES.garden });
+  }
+
+  const communalAreas = property.communal_areas ?? 0;
+  if (communalAreas > 0) {
+    addOns.push({ label: "Communal Area", quantity: communalAreas, unitPrice: ADD_ON_PRICES.communalArea, total: communalAreas * ADD_ON_PRICES.communalArea });
   }
 
   if (property.heavily_furnished) {

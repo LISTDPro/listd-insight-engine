@@ -30,6 +30,7 @@ interface UserWithRole {
   id: string;
   user_id: string;
   full_name: string | null;
+  email: string | null;
   phone: string | null;
   onboarding_completed: boolean;
   verification_status: string;
@@ -113,11 +114,26 @@ const AdminPage = () => {
     const { data: profiles } = await supabase.from("profiles").select("*");
     const { data: roles } = await supabase.from("user_roles").select("*");
 
+    // Fetch emails from auth via edge function
+    let emailMap: Record<string, string> = {};
+    try {
+      const { data: emailData, error: emailError } = await supabase.functions.invoke("admin-list-users");
+      if (!emailError && emailData?.users) {
+        emailMap = emailData.users.reduce((acc: Record<string, string>, u: any) => {
+          acc[u.id] = u.email;
+          return acc;
+        }, {});
+      }
+    } catch (e) {
+      console.warn("Could not fetch user emails:", e);
+    }
+
     if (profiles) {
       const merged = profiles.map((p: any) => ({
         id: p.id,
         user_id: p.user_id,
         full_name: p.full_name,
+        email: emailMap[p.user_id] || null,
         phone: p.phone,
         onboarding_completed: p.onboarding_completed,
         verification_status: p.verification_status || "unverified",
@@ -603,6 +619,7 @@ const AdminPage = () => {
               <TableHeader>
                 <TableRow className="bg-muted/40">
                   <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Verification</TableHead>
                   <TableHead>Level / Rating</TableHead>
@@ -613,7 +630,7 @@ const AdminPage = () => {
               <TableBody>
                 {filteredUsers.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                       No users found
                     </TableCell>
                   </TableRow>
@@ -622,6 +639,9 @@ const AdminPage = () => {
                     <TableRow key={u.id}>
                       <TableCell className="font-medium">
                         {u.full_name || "—"}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {u.email || "—"}
                       </TableCell>
                       <TableCell>{getRoleBadge(u.role)}</TableCell>
                       <TableCell>

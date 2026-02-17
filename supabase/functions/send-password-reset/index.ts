@@ -18,6 +18,10 @@ const ALLOWED_REDIRECT_HOSTS = [
   "localhost",
 ];
 
+function isAllowedHost(hostname: string): boolean {
+  return ALLOWED_REDIRECT_HOSTS.some(h => hostname === h || hostname.endsWith('.lovableproject.com') || hostname.endsWith('.lovable.app'));
+}
+
 function escapeHtml(unsafe: string): string {
   return unsafe
     .replace(/&/g, "&amp;")
@@ -61,7 +65,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     try {
       const parsedUrl = new URL(redirectUrl);
-      if (!ALLOWED_REDIRECT_HOSTS.includes(parsedUrl.hostname)) {
+      if (!isAllowedHost(parsedUrl.hostname)) {
         console.error("Rejected redirect URL:", parsedUrl.hostname);
         return new Response(JSON.stringify({ error: "Invalid redirect URL" }), {
           status: 400,

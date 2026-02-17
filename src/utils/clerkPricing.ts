@@ -5,7 +5,7 @@
  * Only clerks see their own payout; admins see both client price + clerk pay.
  */
 
-import { InspectionType } from "@/types/database";
+import { InspectionType, Property } from "@/types/database";
 import type { ServiceTier } from "./pricing";
 
 // ─── Inventory clerk pay (unfurnished base) ───
@@ -27,6 +27,18 @@ const PROPERTY_SIZES = [
   "studio", "1_bed", "2_bed", "3_bed", "4_bed",
   "5_bed", "6_bed", "7_bed", "8_bed", "9_bed",
 ] as const;
+
+// ─── Clerk Add-On Rates (per extra room beyond base) ───
+export const CLERK_ADD_ON_PRICES = {
+  additionalKitchen: 10,
+  additionalBathroom: 5,
+  additionalLivingRoom: 7.5,
+  hallwaysStairs: 5,
+  utilityRoom: 5,
+  storageRoom: 5,
+  garden: 10,
+  heavilyFurnished: 15,
+};
 
 /**
  * Get the clerk payout for a job.
@@ -53,6 +65,89 @@ export const getClerkPayout = (
     default:
       return 0;
   }
+};
+
+/**
+ * Calculate clerk add-on pay from property room counts.
+ * Base includes: 1 Kitchen, 1 Bathroom, 1 Living Room.
+ */
+export interface ClerkAddOnItem {
+  label: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+}
+
+export const calculateClerkAddOns = (property: Property | null): ClerkAddOnItem[] => {
+  if (!property) return [];
+
+  const addOns: ClerkAddOnItem[] = [];
+
+  const extraKitchens = Math.max(0, (property.kitchens ?? 1) - 1);
+  if (extraKitchens > 0) {
+    addOns.push({ label: "Additional Kitchen", quantity: extraKitchens, unitPrice: CLERK_ADD_ON_PRICES.additionalKitchen, total: extraKitchens * CLERK_ADD_ON_PRICES.additionalKitchen });
+  }
+
+  const extraBathrooms = Math.max(0, (property.bathrooms ?? 1) - 1);
+  if (extraBathrooms > 0) {
+    addOns.push({ label: "Additional Bathroom / WC", quantity: extraBathrooms, unitPrice: CLERK_ADD_ON_PRICES.additionalBathroom, total: extraBathrooms * CLERK_ADD_ON_PRICES.additionalBathroom });
+  }
+
+  const extraLivingRooms = Math.max(0, (property.living_rooms ?? 1) - 1);
+  if (extraLivingRooms > 0) {
+    addOns.push({ label: "Communal Lounge / Living Room", quantity: extraLivingRooms, unitPrice: CLERK_ADD_ON_PRICES.additionalLivingRoom, total: extraLivingRooms * CLERK_ADD_ON_PRICES.additionalLivingRoom });
+  }
+
+  const hallways = property.hallways_stairs ?? 0;
+  if (hallways > 0) {
+    addOns.push({ label: "Hallways / Landings / Stairs", quantity: hallways, unitPrice: CLERK_ADD_ON_PRICES.hallwaysStairs, total: hallways * CLERK_ADD_ON_PRICES.hallwaysStairs });
+  }
+
+  const utilityRooms = property.utility_rooms ?? 0;
+  if (utilityRooms > 0) {
+    addOns.push({ label: "Utility Room", quantity: utilityRooms, unitPrice: CLERK_ADD_ON_PRICES.utilityRoom, total: utilityRooms * CLERK_ADD_ON_PRICES.utilityRoom });
+  }
+
+  const storageRooms = property.storage_rooms ?? 0;
+  if (storageRooms > 0) {
+    addOns.push({ label: "Storage Room", quantity: storageRooms, unitPrice: CLERK_ADD_ON_PRICES.storageRoom, total: storageRooms * CLERK_ADD_ON_PRICES.storageRoom });
+  }
+
+  const gardens = property.gardens ?? 0;
+  if (gardens > 0) {
+    addOns.push({ label: "Garden / Outdoor Space", quantity: gardens, unitPrice: CLERK_ADD_ON_PRICES.garden, total: gardens * CLERK_ADD_ON_PRICES.garden });
+  }
+
+  if (property.heavily_furnished) {
+    addOns.push({ label: "Heavily Furnished Property", quantity: 1, unitPrice: CLERK_ADD_ON_PRICES.heavilyFurnished, total: CLERK_ADD_ON_PRICES.heavilyFurnished });
+  }
+
+  return addOns;
+};
+
+/**
+ * Get total clerk payout including base + add-ons from property.
+ */
+export const getFullClerkPayout = (
+  inspectionType: InspectionType,
+  propertyType: string,
+  property: Property | null,
+): { base: number; addOns: ClerkAddOnItem[]; addOnsTotal: number; total: number } => {
+  const base = getClerkPayout(inspectionType, propertyType);
+  const addOns = calculateClerkAddOns(property);
+  const addOnsTotal = addOns.reduce((sum, a) => sum + a.total, 0);
+  return { base, addOns, addOnsTotal, total: base + addOnsTotal };
+};
+
+/**
+ * Calculate aborted visit payout (50% of base clerk job pay).
+ */
+export const calculateAbortedVisitPayout = (
+  inspectionType: InspectionType,
+  propertyType: string,
+): number => {
+  const base = getClerkPayout(inspectionType, propertyType);
+  return Math.round((base * 0.5) * 100) / 100;
 };
 
 /**

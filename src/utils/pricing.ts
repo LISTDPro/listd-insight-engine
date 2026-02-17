@@ -90,18 +90,16 @@ export const serviceUsesFurnishing = (type: InspectionType): boolean =>
   FURNISHING_SERVICES.includes(type);
 
 // ─── Add-on pricing (per extra room beyond base inclusion) ───
+// Base includes: 1 Kitchen, 1 Bathroom, 1 Living Room, 1 Dining Room
 
 export const ADD_ON_PRICES = {
   additionalKitchen: 20,
   additionalBathroom: 10,
   additionalLivingRoom: 15,
-  diningArea: 15,
   hallwaysStairs: 10,
   utilityRoom: 10,
   storageRoom: 10,
   garden: 20,
-  communalArea: 15,
-  heavilyFurnished: 30,
 };
 
 // ─── Types ───
@@ -146,8 +144,47 @@ export const calculatePriceBreakdown = (
 
   const servicesTotal = services.reduce((sum, s) => sum + s.price, 0);
 
-  // Add-ons removed in Phase 1 — pricing is strictly service + tier + size
-  return { services, servicesTotal, addOns: [], addOnsTotal: 0, total: servicesTotal };
+  // Calculate add-ons from property room counts (base = 1 of each)
+  const addOns: AddOnItem[] = [];
+
+  const extraKitchens = Math.max(0, (property.kitchens ?? 1) - 1);
+  if (extraKitchens > 0) {
+    addOns.push({ label: "Additional Kitchen", quantity: extraKitchens, unitPrice: ADD_ON_PRICES.additionalKitchen, total: extraKitchens * ADD_ON_PRICES.additionalKitchen });
+  }
+
+  const extraBathrooms = Math.max(0, (property.bathrooms ?? 1) - 1);
+  if (extraBathrooms > 0) {
+    addOns.push({ label: "Additional Bathroom / WC", quantity: extraBathrooms, unitPrice: ADD_ON_PRICES.additionalBathroom, total: extraBathrooms * ADD_ON_PRICES.additionalBathroom });
+  }
+
+  const extraLivingRooms = Math.max(0, (property.living_rooms ?? 1) - 1);
+  if (extraLivingRooms > 0) {
+    addOns.push({ label: "Communal Lounge / Living Room", quantity: extraLivingRooms, unitPrice: ADD_ON_PRICES.additionalLivingRoom, total: extraLivingRooms * ADD_ON_PRICES.additionalLivingRoom });
+  }
+
+  const hallways = property.hallways_stairs ?? 0;
+  if (hallways > 0) {
+    addOns.push({ label: "Hallways, Landings & Stairs", quantity: hallways, unitPrice: ADD_ON_PRICES.hallwaysStairs, total: hallways * ADD_ON_PRICES.hallwaysStairs });
+  }
+
+  const utilityRooms = property.utility_rooms ?? 0;
+  if (utilityRooms > 0) {
+    addOns.push({ label: "Utility Room", quantity: utilityRooms, unitPrice: ADD_ON_PRICES.utilityRoom, total: utilityRooms * ADD_ON_PRICES.utilityRoom });
+  }
+
+  const storageRooms = property.storage_rooms ?? 0;
+  if (storageRooms > 0) {
+    addOns.push({ label: "Storage Room", quantity: storageRooms, unitPrice: ADD_ON_PRICES.storageRoom, total: storageRooms * ADD_ON_PRICES.storageRoom });
+  }
+
+  const gardens = property.gardens ?? 0;
+  if (gardens > 0) {
+    addOns.push({ label: "Garden / Outdoor Space", quantity: gardens, unitPrice: ADD_ON_PRICES.garden, total: gardens * ADD_ON_PRICES.garden });
+  }
+
+  const addOnsTotal = addOns.reduce((sum, a) => sum + a.total, 0);
+
+  return { services, servicesTotal, addOns, addOnsTotal, total: servicesTotal + addOnsTotal };
 };
 
 // ─── Simple total ───

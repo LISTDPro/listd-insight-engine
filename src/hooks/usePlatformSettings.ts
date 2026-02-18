@@ -5,6 +5,8 @@ export interface PlatformSettings {
   google_review_link: string;
   google_star_rating: string;
   google_review_count: string;
+  google_reviews_embed_code: string;
+  google_reviews_enabled: string;
   instagram_url: string;
   facebook_url: string;
   review_email_enabled: string;
@@ -12,9 +14,11 @@ export interface PlatformSettings {
 }
 
 const DEFAULT_SETTINGS: PlatformSettings = {
-  google_review_link: "https://g.page/r/CfNpNpoSIt-1EAI/review",
-  google_star_rating: "5.0",
-  google_review_count: "24",
+  google_review_link: "",
+  google_star_rating: "",
+  google_review_count: "",
+  google_reviews_embed_code: "",
+  google_reviews_enabled: "true",
   instagram_url: "https://instagram.com/listd.pro",
   facebook_url: "https://facebook.com/listd.pro",
   review_email_enabled: "true",

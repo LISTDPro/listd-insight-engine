@@ -91,6 +91,13 @@ const Onboarding = () => {
   const { toast } = useToast();
   const { user, role, profile, loading, setRole, completeOnboarding, refreshProfile } = useAuth();
 
+  // Preserve any redirect param that was set before auth (e.g. invite token)
+  const getPostOnboardingRedirect = () => {
+    const params = new URLSearchParams(window.location.search);
+    const redirect = params.get("redirect");
+    return redirect || "/dashboard";
+  };
+
   // Redirect if not authenticated
   useEffect(() => {
     if (!loading && !user) {
@@ -166,7 +173,7 @@ const Onboarding = () => {
       description: `Your ${selectedRole} account is ready.`,
     });
 
-    navigate("/dashboard");
+    navigate(getPostOnboardingRedirect());
   };
 
   if (loading) {

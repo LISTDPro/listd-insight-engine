@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { usePlatformSettings, useUpdatePlatformSetting } from "@/hooks/usePlatformSettings";
-import { Star, Instagram, Facebook, Link2, Mail, Save } from "lucide-react";
+import { Star, Instagram, Facebook, Link2, Mail, Save, Code } from "lucide-react";
 
 const PlatformSettingsPanel = () => {
   const { data: settings, isLoading } = usePlatformSettings();
@@ -16,6 +17,8 @@ const PlatformSettingsPanel = () => {
     google_review_link: "",
     google_star_rating: "",
     google_review_count: "",
+    google_reviews_embed_code: "",
+    google_reviews_enabled: "true",
     instagram_url: "",
     facebook_url: "",
     review_email_enabled: "true",
@@ -61,34 +64,46 @@ const PlatformSettingsPanel = () => {
             <Star className="w-4 h-4 text-warning" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-foreground">Google Reviews</h3>
-            <p className="text-xs text-muted-foreground">Configure review display and link</p>
+            <h3 className="text-sm font-semibold text-foreground">Google Business Profile</h3>
+            <p className="text-xs text-muted-foreground">Real reviews from your Google Business Profile only</p>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Display on site</span>
+            <Switch
+              checked={form.google_reviews_enabled !== "false"}
+              onCheckedChange={(checked) => {
+                const value = checked ? "true" : "false";
+                setForm((f) => ({ ...f, google_reviews_enabled: value }));
+                updateSetting.mutate({ key: "google_reviews_enabled", value });
+              }}
+            />
           </div>
         </div>
         <div className="p-5 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">Google Review Link</Label>
+              <Label className="text-xs">Google Business Profile URL</Label>
               <div className="flex gap-2">
                 <Input
                   value={form.google_review_link}
                   onChange={(e) => setForm((f) => ({ ...f, google_review_link: e.target.value }))}
-                  placeholder="https://g.page/r/..."
+                  placeholder="https://maps.google.com/..."
                   className="text-sm"
                 />
                 <Button size="sm" variant="outline" onClick={() => handleSave("google_review_link")}>
                   <Save className="w-3.5 h-3.5" />
                 </Button>
               </div>
+              <p className="text-[11px] text-muted-foreground">Used for the "Leave a review" link</p>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Star Rating Override</Label>
+              <Label className="text-xs">Star Rating (from Google)</Label>
               <div className="flex gap-2">
                 <Input
                   value={form.google_star_rating}
                   onChange={(e) => setForm((f) => ({ ...f, google_star_rating: e.target.value }))}
-                  placeholder="5.0"
+                  placeholder="e.g. 4.9"
                   type="number"
                   min="1"
                   max="5"
@@ -99,15 +114,16 @@ const PlatformSettingsPanel = () => {
                   <Save className="w-3.5 h-3.5" />
                 </Button>
               </div>
+              <p className="text-[11px] text-muted-foreground">Enter your actual Google rating — do not fabricate</p>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">Review Count Display</Label>
+              <Label className="text-xs">Review Count (from Google)</Label>
               <div className="flex gap-2">
                 <Input
                   value={form.google_review_count}
                   onChange={(e) => setForm((f) => ({ ...f, google_review_count: e.target.value }))}
-                  placeholder="24"
+                  placeholder="e.g. 47"
                   type="number"
                   className="text-sm"
                 />
@@ -115,6 +131,7 @@ const PlatformSettingsPanel = () => {
                   <Save className="w-3.5 h-3.5" />
                 </Button>
               </div>
+              <p className="text-[11px] text-muted-foreground">Enter your actual Google review count — do not fabricate</p>
             </div>
 
             <div className="space-y-1.5">
@@ -130,6 +147,29 @@ const PlatformSettingsPanel = () => {
                   <Save className="w-3.5 h-3.5" />
                 </Button>
               </div>
+            </div>
+          </div>
+
+          {/* Embed code */}
+          <div className="space-y-1.5 pt-2 border-t border-border">
+            <div className="flex items-center gap-2 mb-1">
+              <Code className="w-3.5 h-3.5 text-muted-foreground" />
+              <Label className="text-xs">Google Reviews Widget Embed Code</Label>
+            </div>
+            <Textarea
+              value={form.google_reviews_embed_code}
+              onChange={(e) => setForm((f) => ({ ...f, google_reviews_embed_code: e.target.value }))}
+              placeholder='Paste embed code from a Google Reviews widget (e.g. Elfsight, ReviewsOnMyWebsite, etc.)&#10;&#10;Example: <div class="elfsight-app-..." data-elfsight-app-lazy></div>'
+              className="text-xs font-mono min-h-[100px]"
+              rows={5}
+            />
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] text-muted-foreground">
+                Only real reviews from your Google Business Profile. Widget script tag must be added separately if required.
+              </p>
+              <Button size="sm" variant="outline" onClick={() => handleSave("google_reviews_embed_code")}>
+                <Save className="w-3.5 h-3.5 mr-1" /> Save embed
+              </Button>
             </div>
           </div>
         </div>

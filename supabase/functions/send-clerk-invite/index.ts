@@ -130,12 +130,13 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+    const resendId = emailResponse?.data?.id || emailResponse?.id || null;
     await supabaseAdmin.from("email_logs").insert({
       function_name: "send-clerk-invite",
       recipient_email: email,
-      subject: `Clerk invitation sent`,
-      status: emailResponse?.id ? "sent" : "failed",
-      resend_id: emailResponse?.id || null,
+      subject: `You're invited to join LISTD as an Inventory Clerk`,
+      status: resendId ? "sent" : "failed",
+      resend_id: resendId,
       metadata: { inviteToken },
     });
 

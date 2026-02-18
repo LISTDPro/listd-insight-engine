@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { Mail, ArrowLeft, CheckCircle, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -29,47 +29,56 @@ interface ForgotPasswordFormProps {
 export const ForgotPasswordForm = ({ onBack }: ForgotPasswordFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const [lastEmail, setLastEmail] = useState("");
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (resendCountdown <= 0) return;
+    const timer = setTimeout(() => setResendCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCountdown]);
 
   const form = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: { email: "" },
   });
 
-  const handleForgotPassword = async (data: ForgotPasswordFormData) => {
-    setIsLoading(true);
-
+  const sendResetEmail = async (email: string) => {
+    const redirectUrl = `${window.location.origin}/reset-password`;
     try {
-      const redirectUrl = `${window.location.origin}/reset-password`;
-
-      // Use custom edge function with Resend for reliable email delivery
       const { error } = await supabase.functions.invoke("send-password-reset", {
-        body: {
-          email: data.email,
-          redirectUrl,
-        },
+        body: { email, redirectUrl },
       });
-
-      if (error) {
-        throw error;
-      }
-
-      setIsSuccess(true);
-      toast({
-        title: "Check your email",
-        description: "We've sent you a password reset link.",
-      });
+      if (error) throw error;
     } catch (error: any) {
       console.error("Password reset error:", error);
-      // Don't reveal if email exists or not for security
-      toast({
-        title: "Check your email",
-        description: "If an account exists with this email, you'll receive a reset link.",
-      });
-      setIsSuccess(true);
-    } finally {
-      setIsLoading(false);
     }
+  };
+
+  const handleForgotPassword = async (data: ForgotPasswordFormData) => {
+    setIsLoading(true);
+    await sendResetEmail(data.email);
+    setLastEmail(data.email);
+    setIsSuccess(true);
+    setResendCountdown(60);
+    setIsLoading(false);
+    toast({
+      title: "Check your email",
+      description: "We've sent you a password reset link.",
+    });
+  };
+
+  const handleResend = async () => {
+    if (resendCountdown > 0 || !lastEmail) return;
+    setIsLoading(true);
+    await sendResetEmail(lastEmail);
+    setIsLoading(false);
+    setResendCountdown(60);
+    toast({
+      title: "Email resent",
+      description: "We've sent another password reset link.",
+    });
   };
 
   if (isSuccess) {
@@ -80,7 +89,18 @@ export const ForgotPasswordForm = ({ onBack }: ForgotPasswordFormProps) => {
         <p className="text-muted-foreground mb-6">
           We've sent a password reset link to your email address. The link will expire in 1 hour.
         </p>
-        <Button variant="outline" onClick={onBack} className="w-full">
+        <Button
+          variant="outline"
+          onClick={handleResend}
+          disabled={resendCountdown > 0 || isLoading}
+          className="w-full mb-3"
+        >
+          <RotateCcw className="w-4 h-4 mr-2" />
+          {resendCountdown > 0
+            ? `Resend email in ${resendCountdown}s`
+            : isLoading ? "Sending..." : "Resend reset email"}
+        </Button>
+        <Button variant="ghost" onClick={onBack} className="w-full">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Sign In
         </Button>

@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
 import { Link } from "react-router-dom";
@@ -40,6 +41,15 @@ const benefits = [
 const ForClientsPage = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>For Letting Agents & Landlords – LISTD Property Inspections</title>
+        <meta name="description" content="Book verified inventory clerks instantly. LISTD gives letting agents and landlords tribunal-ready inspection reports, escrow-secured payments and full audit trails. No subscription required." />
+        <meta property="og:title" content="For Letting Agents & Landlords – LISTD Property Inspections" />
+        <meta property="og:description" content="Scale your inspection fulfilment without sacrificing quality. Verified clerks, structured reports, secure escrow payments." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://listd.co.uk/for-clients" />
+        <link rel="canonical" href="https://listd.co.uk/for-clients" />
+      </Helmet>
       <Header />
 
       {/* Hero */}

@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
 import { Shield, Users, Lock, Scale, AlertTriangle, CheckCircle2, Eye } from "lucide-react";
@@ -51,6 +52,15 @@ const safety = [
 const AboutPage = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>About LISTD – Our Mission & Values</title>
+        <meta name="description" content="LISTD is building the UK's most trusted property inspection platform — verified clerks, escrow-secured payments, and full audit trails to protect landlords, tenants and agents." />
+        <meta property="og:title" content="About LISTD – Our Mission & Values" />
+        <meta property="og:description" content="Learn about LISTD's mission to bring transparency, accountability and trust to the UK property inspection industry." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://listd.co.uk/about" />
+        <link rel="canonical" href="https://listd.co.uk/about" />
+      </Helmet>
       <Header />
 
       {/* Hero */}

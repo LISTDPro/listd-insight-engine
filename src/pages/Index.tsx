@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import Header from "@/components/landing/Header";
 import Hero from "@/components/landing/Hero";
 import HowItWorks from "@/components/landing/HowItWorks";
@@ -10,6 +11,15 @@ import { ArrowUp } from "lucide-react";
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>LISTD – Professional Property Inventory Services UK</title>
+        <meta name="description" content="LISTD connects UK landlords and letting agents with verified inventory clerks for check-ins, check-outs, mid-term inspections and new inventories. Tribunal-ready reports, escrow payments, instant booking." />
+        <meta property="og:title" content="LISTD – Professional Property Inventory Services UK" />
+        <meta property="og:description" content="Book verified inventory clerks online. Instant allocation, timestamped photo evidence, digital sign-off and secure escrow payments." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://listd.co.uk" />
+        <link rel="canonical" href="https://listd.co.uk" />
+      </Helmet>
       <Header />
       <Hero />
       <HowItWorks />

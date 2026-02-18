@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
 import { Link } from "react-router-dom";
@@ -61,6 +62,15 @@ const steps = [
 const HowItWorksPage = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>How LISTD Works – Book, Inspect, Report & Pay</title>
+        <meta name="description" content="See how LISTD works: create an account, post or accept jobs, complete structured inspections, and receive tribunal-ready reports with secure escrow payments — all in one platform." />
+        <meta property="og:title" content="How LISTD Works – Book, Inspect, Report & Pay" />
+        <meta property="og:description" content="From booking to report delivery in a structured workflow. Verified clerks, digital checklists, timestamped evidence and escrow-secured payments." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://listd.co.uk/how-it-works" />
+        <link rel="canonical" href="https://listd.co.uk/how-it-works" />
+      </Helmet>
       <Header />
 
       {/* Hero */}

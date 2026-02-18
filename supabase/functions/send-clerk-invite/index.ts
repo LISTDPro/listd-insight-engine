@@ -79,7 +79,7 @@ const handler = async (req: Request): Promise<Response> => {
     const safeProviderName = escapeHtml(providerName || "An inventory provider");
 
     const emailResponse = await resend.emails.send({
-      from: "LISTD <noreply@resend.dev>",
+      from: "LISTD <notifications@listd.co.uk>",
       to: [email],
       subject: `${safeProviderName} has invited you to join their team on LISTD`,
       html: `

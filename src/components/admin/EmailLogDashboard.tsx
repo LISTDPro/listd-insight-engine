@@ -31,6 +31,7 @@ const FUNCTION_LABELS: Record<string, string> = {
   "notify-job-published": "Job Published",
   "notify-pre-inspection-ack": "Pre-Inspection Ack",
   "notify-invitation-accepted": "Invitation Accepted",
+  "notify-report-submitted": "Report Submitted",
   "send-password-reset": "Password Reset",
   "notify-admin": "Admin Notification",
 };
@@ -40,6 +41,7 @@ const FUNCTION_COLORS: Record<string, string> = {
   "notify-job-published": "bg-primary/10 text-primary",
   "notify-pre-inspection-ack": "bg-success/10 text-success",
   "notify-invitation-accepted": "bg-accent/10 text-accent-foreground",
+  "notify-report-submitted": "bg-teal-100 text-teal-800",
   "send-password-reset": "bg-warning/10 text-warning",
   "notify-admin": "bg-purple-100 text-purple-800",
 };

@@ -46,14 +46,23 @@ const MarkDeliveredDialog = ({ open, onOpenChange, jobId, onSuccess }: MarkDeliv
       } as any)
       .eq("id", jobId);
 
-    setLoading(false);
-
     if (error) {
+      setLoading(false);
       toast.error("Failed to mark job as delivered");
       return;
     }
 
-    toast.success("Job marked as delivered — client notified");
+    // Notify client via edge function (looks up all details server-side)
+    supabase.functions.invoke("notify-report-submitted", {
+      body: { jobId, reportUrl },
+    }).then(({ error: notifyError }) => {
+      if (notifyError) {
+        console.error("Failed to send report notification:", notifyError);
+      }
+    });
+
+    setLoading(false);
+    toast.success("Job marked as delivered — client notified by email");
     setInventorybaseJobId("");
     setReportUrl("");
     setCompletedAt("");
@@ -71,7 +80,7 @@ const MarkDeliveredDialog = ({ open, onOpenChange, jobId, onSuccess }: MarkDeliv
             <DialogTitle>Mark as Delivered</DialogTitle>
           </div>
           <DialogDescription>
-            Bridge this job from InventoryBase. The client will be notified to review.
+            Bridge this job from InventoryBase. The client will be notified by email to review.
           </DialogDescription>
         </DialogHeader>
 
@@ -118,7 +127,7 @@ const MarkDeliveredDialog = ({ open, onOpenChange, jobId, onSuccess }: MarkDeliv
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
           <Button onClick={handleSubmit} disabled={loading || !reportUrl}>
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Update & Notify Client
+            Update &amp; Notify Client
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -10,7 +10,6 @@ import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
 import Dashboard from "./pages/Dashboard";
 import BookJob from "./pages/BookJob";
-
 import AcceptInvite from "./pages/AcceptInvite";
 import ResetPassword from "./pages/ResetPassword";
 import HowItWorksPage from "./pages/HowItWorksPage";
@@ -18,9 +17,14 @@ import ForClientsPage from "./pages/ForClientsPage";
 import ForClerksPage from "./pages/ForClerksPage";
 import ServiceTiersPage from "./pages/ServiceTiersPage";
 import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
+import TermsPage from "./pages/TermsPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import CookiesPage from "./pages/CookiesPage";
 import NotFound from "./pages/NotFound";
 import XeroCallback from "./pages/XeroCallback";
 import BackToTop from "./components/ui/BackToTop";
+import WhatsAppButton from "./components/ui/WhatsAppButton";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +43,10 @@ const App = () => (
               <Route path="/for-clerks" element={<ForClerksPage />} />
               <Route path="/service-tiers" element={<ServiceTiersPage />} />
               <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/terms" element={<TermsPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/cookies" element={<CookiesPage />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/dashboard" element={<Dashboard />} />
@@ -46,7 +54,6 @@ const App = () => (
               <Route path="/dashboard/reports/:jobId" element={<Dashboard />} />
               <Route path="/dashboard/*" element={<Dashboard />} />
               <Route path="/book" element={<BookJob />} />
-              
               <Route path="/accept-invite" element={<AcceptInvite />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/xero/callback" element={<XeroCallback />} />
@@ -54,6 +61,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             <BackToTop />
+            <WhatsAppButton />
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>
@@ -62,3 +70,4 @@ const App = () => (
 );
 
 export default App;
+

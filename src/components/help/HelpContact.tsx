@@ -1,16 +1,18 @@
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Mail, Phone } from "lucide-react";
+import { MessageCircle, Mail, Phone, Calendar } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const contacts = [
-  { icon: MessageCircle, title: "Live Chat", description: "Chat with our support team", availability: "Mon–Fri, 9am–6pm", action: "Start Chat", onClick: () => window.open("https://listd.co.uk/chat", "_blank") },
   { icon: Mail, title: "Email Support", description: "support@listd.co.uk", availability: "24–48hr response", action: "Send Email", onClick: () => { window.location.href = "mailto:support@listd.co.uk"; } },
-  { icon: Phone, title: "Phone Support", description: "Speak directly with our team", availability: "Business hours only", action: "Call Us", onClick: () => { window.location.href = "tel:+441234567890"; } },
+  { icon: MessageCircle, title: "WhatsApp", description: "+44 7413 065681", availability: "Business hours, Mon–Fri", action: "Chat Now", onClick: () => window.open("https://wa.me/447413065681", "_blank") },
+  { icon: Phone, title: "Phone", description: "+44 7413 065681", availability: "Business hours only", action: "Call Us", onClick: () => { window.location.href = "tel:+447413065681"; } },
+  { icon: Calendar, title: "Book a Walkthrough", description: "15-minute platform demo", availability: "Free, no commitment", action: "Book Now", onClick: () => window.open("https://outlook.office365.com/book/listd", "_blank") },
 ];
 
 const HelpContact = () => (
   <div>
     <h2 className="text-sm font-semibold text-foreground mb-4">Contact Support</h2>
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
       {contacts.map((c) => (
         <div key={c.title} className="rounded-xl border border-border bg-card p-5">
           <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mb-3">
@@ -25,7 +27,14 @@ const HelpContact = () => (
         </div>
       ))}
     </div>
+    <div className="rounded-xl border border-border bg-card p-5">
+      <p className="text-xs text-muted-foreground mb-2">Want to send a detailed message?</p>
+      <Link to="/contact">
+        <Button variant="accent" size="sm" className="text-xs">Open Contact Form</Button>
+      </Link>
+    </div>
   </div>
 );
 
 export default HelpContact;
+

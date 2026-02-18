@@ -23,9 +23,8 @@ import {
   CheckCircle2,
   ArrowRight,
 } from "lucide-react";
-import ClerkProgressionCard from "./ClerkProgressionCard";
 import SocialProofBadge from "./SocialProofBadge";
-import { useAuth } from "@/hooks/useAuth";
+
 
 interface ClientDashboardProps {
   clientStats: {
@@ -55,7 +54,6 @@ const PIE_COLORS = [
 
 const ClientDashboardContent = ({ clientStats }: ClientDashboardProps) => {
   const navigate = useNavigate();
-  const { profile } = useAuth();
 
   const stats = [
     {
@@ -210,7 +208,7 @@ const ClientDashboardContent = ({ clientStats }: ClientDashboardProps) => {
         </Card>
       </div>
 
-      {/* Action Cards */}
+      {/* Action Cards — client specific */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <Card className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => navigate("/book")}>
           <CardContent className="p-4">
@@ -219,10 +217,10 @@ const ClientDashboardContent = ({ clientStats }: ClientDashboardProps) => {
                 <Briefcase className="w-4.5 h-4.5 text-accent" />
               </div>
             </div>
-            <h3 className="text-sm font-semibold text-foreground mb-0.5">Available Jobs</h3>
-            <p className="text-[11px] text-muted-foreground mb-3">New inspections waiting for you</p>
+            <h3 className="text-sm font-semibold text-foreground mb-0.5">Book New Inspection</h3>
+            <p className="text-[11px] text-muted-foreground mb-3">Schedule an inventory, check-in, or check-out</p>
             <Button variant="outline" size="sm" className="w-full text-xs group">
-              View Available
+              Book Now
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </Button>
           </CardContent>
@@ -240,10 +238,10 @@ const ClientDashboardContent = ({ clientStats }: ClientDashboardProps) => {
                 </span>
               )}
             </div>
-            <h3 className="text-sm font-semibold text-foreground mb-0.5">Today's Inspections</h3>
-            <p className="text-[11px] text-muted-foreground mb-3">Jobs scheduled for today</p>
+            <h3 className="text-sm font-semibold text-foreground mb-0.5">Upcoming Jobs</h3>
+            <p className="text-[11px] text-muted-foreground mb-3">Inspections scheduled or in progress</p>
             <Button variant="outline" size="sm" className="w-full text-xs group">
-              Start Inspection
+              View Jobs
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </Button>
           </CardContent>
@@ -261,23 +259,14 @@ const ClientDashboardContent = ({ clientStats }: ClientDashboardProps) => {
                 </span>
               )}
             </div>
-            <h3 className="text-sm font-semibold text-foreground mb-0.5">Submitted Reports</h3>
-            <p className="text-[11px] text-muted-foreground mb-3">Awaiting client review</p>
+            <h3 className="text-sm font-semibold text-foreground mb-0.5">Reports to Review</h3>
+            <p className="text-[11px] text-muted-foreground mb-3">Inspection reports awaiting your sign-off</p>
             <Button variant="outline" size="sm" className="w-full text-xs group">
               View Reports
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
             </Button>
           </CardContent>
         </Card>
-      </div>
-
-      {/* Clerk Progression */}
-      <div className="mb-6">
-        <ClerkProgressionCard
-          jobsCompleted={profile?.clerk_jobs_completed || 0}
-          rating={profile?.clerk_rating || 0}
-          currentLevel={profile?.clerk_level || 1}
-        />
       </div>
     </>
   );

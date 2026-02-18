@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { useAcceptInvitation, ClerkInvitation } from "@/hooks/useClerkInvitations";
-import { supabase } from "@/integrations/supabase/client";
 
 const AcceptInvite = () => {
   const [searchParams] = useSearchParams();
@@ -16,7 +15,6 @@ const AcceptInvite = () => {
   const { getInvitationByToken, acceptInvitation } = useAcceptInvitation();
   
   const [invitation, setInvitation] = useState<ClerkInvitation | null>(null);
-  const [providerName, setProviderName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +34,7 @@ const AcceptInvite = () => {
       if (fetchError || !inv) {
         setError(
           fetchError?.message === "Invitation has expired"
-            ? "This invitation has expired. Please ask the provider to send a new invitation."
+            ? "This invitation has expired. Please contact LISTD to request a new invitation."
             : "Invalid or expired invitation link."
         );
         setLoading(false);
@@ -44,18 +42,6 @@ const AcceptInvite = () => {
       }
 
       setInvitation(inv);
-
-      // Fetch provider name
-      const { data: providerProfile } = await supabase
-        .from("profiles")
-        .select("full_name, company_name")
-        .eq("user_id", inv.provider_id)
-        .single();
-
-      if (providerProfile) {
-        setProviderName(providerProfile.company_name || providerProfile.full_name);
-      }
-
       setLoading(false);
     };
 
@@ -121,10 +107,10 @@ const AcceptInvite = () => {
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
-            <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-4" />
-            <CardTitle>Welcome to the Team!</CardTitle>
+            <CheckCircle2 className="w-12 h-12 text-success mx-auto mb-4" />
+            <CardTitle>Welcome to LISTD!</CardTitle>
             <CardDescription>
-              You've successfully joined {providerName || "the provider"}'s team.
+              You've successfully joined as an Inventory Clerk.
               Redirecting to your dashboard...
             </CardDescription>
           </CardHeader>
@@ -142,13 +128,7 @@ const AcceptInvite = () => {
             <UserPlus className="w-12 h-12 text-primary mx-auto mb-4" />
             <CardTitle>You're Invited!</CardTitle>
             <CardDescription>
-              {providerName ? (
-                <>
-                  <strong>{providerName}</strong> has invited you to join their team as an Inventory Clerk on LISTD.
-                </>
-              ) : (
-                "You've been invited to join a team as an Inventory Clerk on LISTD."
-              )}
+              You've been invited to join LISTD as an Inventory Clerk.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -175,16 +155,16 @@ const AcceptInvite = () => {
     );
   }
 
-  // Check if user is already a clerk with a provider
+  // Check if user is already a clerk
   if (role === "clerk") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
-            <XCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+            <XCircle className="w-12 h-12 text-warning mx-auto mb-4" />
             <CardTitle>Already a Clerk</CardTitle>
             <CardDescription>
-              You're already registered as a clerk. You can only be part of one provider's team at a time.
+              You're already registered as an Inventory Clerk on LISTD.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
@@ -203,7 +183,7 @@ const AcceptInvite = () => {
       <Card className="max-w-md w-full">
         <CardHeader className="text-center">
           <UserPlus className="w-12 h-12 text-primary mx-auto mb-4" />
-          <CardTitle>Join {providerName || "the Team"}</CardTitle>
+          <CardTitle>Join LISTD as an Inventory Clerk</CardTitle>
           <CardDescription>
             Accept this invitation to join as an Inventory Clerk. You'll be able to conduct inspections and submit reports.
           </CardDescription>

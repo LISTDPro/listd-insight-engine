@@ -3,11 +3,13 @@
  * Stripe-ready architecture — all amounts in GBP (pounds)
  */
 
+/**
+ * Escrow & Payout Calculation Utilities
+ * Stripe-ready architecture — all amounts in GBP (pounds)
+ */
+
 // Platform fee percentage (visible to admin only)
 export const PLATFORM_FEE_PERCENT = 0.15; // 15%
-
-// Provider cut — reserved for future SaaS expansion. Not active in Phase 1.
-export const PROVIDER_FEE_PERCENT = 0.10; // 10% of gross (inactive)
 
 // Auto-release timer in hours
 export const AUTO_RELEASE_HOURS = 48;
@@ -15,7 +17,7 @@ export const AUTO_RELEASE_HOURS = 48;
 export interface PayoutBreakdown {
   grossAmount: number;
   platformFee: number;
-  providerFee: number;
+  providerFee: number; // Always 0 — provider role not active in Phase 1
   clerkPayout: number;
 }
 
@@ -24,23 +26,20 @@ export interface PayoutBreakdown {
  * Uses fixed clerk payout from clerkPricing.ts when provided.
  * Falls back to percentage-based calculation if no fixed payout given.
  * @param grossAmount - Total job price paid by client
- * @param hasProvider - Whether a provider is involved (takes a cut)
  * @param fixedClerkPayout - Optional fixed clerk payout from clerk pricing tables
  */
 export const calculatePayoutBreakdown = (
   grossAmount: number,
-  hasProvider: boolean = false,
   fixedClerkPayout?: number
 ): PayoutBreakdown => {
-  const providerFee = hasProvider
-    ? Math.round(grossAmount * PROVIDER_FEE_PERCENT * 100) / 100
-    : 0;
-  
+  // Provider fee is always 0 — provider role reserved for future SaaS expansion
+  const providerFee = 0;
+
   // Use fixed clerk payout if provided, otherwise calculate from percentage
   const clerkPayout = fixedClerkPayout !== undefined
     ? fixedClerkPayout
-    : Math.round((grossAmount * (1 - PLATFORM_FEE_PERCENT) - providerFee) * 100) / 100;
-  
+    : Math.round((grossAmount * (1 - PLATFORM_FEE_PERCENT)) * 100) / 100;
+
   const platformFee = Math.round((grossAmount - clerkPayout - providerFee) * 100) / 100;
 
   return {

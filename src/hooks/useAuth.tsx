@@ -159,22 +159,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const completeOnboarding = async () => {
     if (!user) return { error: new Error("No user logged in") };
 
-    // Upsert to handle case where profile doesn't exist yet
+    const fullName = user.user_metadata?.full_name || null;
+
+    // Upsert to handle case where profile doesn't exist yet, always saving full_name
     const { error } = await supabase
       .from("profiles")
       .upsert(
-        { user_id: user.id, onboarding_completed: true },
+        { user_id: user.id, onboarding_completed: true, full_name: fullName },
         { onConflict: "user_id" }
       );
 
     if (!error) {
       setProfile((prev) =>
         prev
-          ? { ...prev, onboarding_completed: true }
+          ? { ...prev, onboarding_completed: true, full_name: fullName }
           : {
               id: "",
               user_id: user.id,
-              full_name: user.user_metadata?.full_name || null,
+              full_name: fullName,
               company_name: null,
               phone: null,
               avatar_url: null,

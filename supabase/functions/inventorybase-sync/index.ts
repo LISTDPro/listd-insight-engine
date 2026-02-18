@@ -189,7 +189,10 @@ serve(async (req) => {
       );
     }
 
-    const calendarUrl = `https://my.inventorybase.com/generate/calendar?key=${calendarKey}`;
+    // Support both full URL and raw key formats
+    const calendarUrl = calendarKey.startsWith("http")
+      ? calendarKey
+      : `https://my.inventorybase.com/generate/calendar?key=${calendarKey}`;
     console.log("Fetching InventoryBase calendar feed...");
 
     const calResponse = await fetch(calendarUrl);

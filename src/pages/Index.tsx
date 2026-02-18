@@ -2,6 +2,7 @@ import Header from "@/components/landing/Header";
 import Hero from "@/components/landing/Hero";
 import HowItWorks from "@/components/landing/HowItWorks";
 import Differentiation from "@/components/landing/Differentiation";
+import GoogleReviews from "@/components/landing/GoogleReviews";
 import Footer from "@/components/landing/Footer";
 import { Link } from "react-router-dom";
 import { ArrowUp } from "lucide-react";
@@ -13,6 +14,7 @@ const Index = () => {
       <Hero />
       <HowItWorks />
       <Differentiation />
+      <GoogleReviews />
 
       {/* For Clients */}
       <section id="for-clients" className="py-32 px-6 md:px-12 bg-card">

@@ -24,6 +24,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import ClerkProgressionCard from "./ClerkProgressionCard";
+import SocialProofBadge from "./SocialProofBadge";
 import { useAuth } from "@/hooks/useAuth";
 
 interface ClientDashboardProps {
@@ -89,6 +90,11 @@ const ClientDashboardContent = ({ clientStats }: ClientDashboardProps) => {
 
   return (
     <>
+      {/* Social Proof Badge */}
+      <div className="mb-4">
+        <SocialProofBadge />
+      </div>
+
       {/* Stats Row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {stats.map((s) => (

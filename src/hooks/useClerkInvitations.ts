@@ -173,7 +173,7 @@ export const useAcceptInvitation = () => {
       return { error: updateInviteError as Error };
     }
 
-    // Link clerk to provider
+    // Link clerk to provider in profile
     const { error: profileError } = await supabase
       .from("profiles")
       .update({ provider_id: invitation.provider_id })
@@ -181,6 +181,19 @@ export const useAcceptInvitation = () => {
 
     if (profileError) {
       return { error: profileError as Error };
+    }
+
+    // Assign clerk role (upsert to avoid duplicate conflicts)
+    const { error: roleError } = await supabase
+      .from("user_roles")
+      .upsert(
+        { user_id: user.id, role: "clerk" },
+        { onConflict: "user_id,role", ignoreDuplicates: true }
+      );
+
+    if (roleError) {
+      console.error("Failed to assign clerk role:", roleError);
+      // Non-fatal: profile is linked, notify admin if needed
     }
 
     // Send notification email to provider (non-blocking)

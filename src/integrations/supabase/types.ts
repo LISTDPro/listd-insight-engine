@@ -485,6 +485,7 @@ export type Database = {
           provider_job_completed_ack_at: string | null
           quoted_price: number | null
           report_url: string | null
+          review_email_sent_at: string | null
           scheduled_date: string
           service_tier: string
           special_instructions: string | null
@@ -527,6 +528,7 @@ export type Database = {
           provider_job_completed_ack_at?: string | null
           quoted_price?: number | null
           report_url?: string | null
+          review_email_sent_at?: string | null
           scheduled_date: string
           service_tier?: string
           special_instructions?: string | null
@@ -569,6 +571,7 @@ export type Database = {
           provider_job_completed_ack_at?: string | null
           quoted_price?: number | null
           report_url?: string | null
+          review_email_sent_at?: string | null
           scheduled_date?: string
           service_tier?: string
           special_instructions?: string | null
@@ -704,6 +707,30 @@ export type Database = {
           title?: string
           type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      platform_settings: {
+        Row: {
+          id: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: string | null
+        }
+        Insert: {
+          id?: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: string | null
+        }
+        Update: {
+          id?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: string | null
         }
         Relationships: []
       }

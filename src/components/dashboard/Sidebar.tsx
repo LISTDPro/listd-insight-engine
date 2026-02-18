@@ -16,6 +16,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import listdLogoWhite from "@/assets/listd-pro-green.png";
+import DashboardSocialFooter from "@/components/dashboard/DashboardSocialFooter";
 
 const mainNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", to: "/dashboard" },
@@ -135,6 +136,8 @@ const Sidebar = () => {
           {!collapsed && <span>Sign Out</span>}
         </button>
       </div>
+      {/* Social links */}
+      {!collapsed && <DashboardSocialFooter />}
     </aside>
   );
 };

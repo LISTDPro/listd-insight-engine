@@ -14,7 +14,7 @@ import {
   Users, Briefcase, ShieldCheck, AlertTriangle,
   CheckCircle2, XCircle, Clock, Search, Eye, UserCheck, Package, Zap,
   ListChecks, ExternalLink, ClipboardList, Mail, RefreshCw, Calendar,
-  PoundSterling, Download, KeyRound,
+  PoundSterling, Download, KeyRound, SlidersHorizontal,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +25,7 @@ import IssueStrikeDialog from "@/components/admin/IssueStrikeDialog";
 import DailyChecklistPayments from "@/components/admin/DailyChecklistPayments";
 import EmailLogDashboard from "@/components/admin/EmailLogDashboard";
 import AdminPasswordResetDialog from "@/components/admin/AdminPasswordResetDialog";
+import PlatformSettingsPanel from "@/components/admin/PlatformSettingsPanel";
 import { useInventoryBaseSync } from "@/hooks/useInventoryBaseSync";
 
 interface UserWithRole {
@@ -347,6 +348,9 @@ const AdminPage = () => {
           <TabsTrigger value="payouts" className="gap-2">
             <PoundSterling className="w-4 h-4" /> Payouts
           </TabsTrigger>
+          <TabsTrigger value="settings" className="gap-2">
+            <SlidersHorizontal className="w-4 h-4" /> Settings
+          </TabsTrigger>
         </TabsList>
 
         {/* Daily Checklist Tab */}
@@ -449,8 +453,8 @@ const AdminPage = () => {
           {/* Section 1: Jobs needing InventoryBase creation */}
           <div className="bg-card border border-border overflow-hidden">
             <div className="px-5 py-4 border-b border-border flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <ExternalLink className="w-4 h-4 text-blue-600" />
+              <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center">
+                <ExternalLink className="w-4 h-4 text-accent" />
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-foreground">Needs InventoryBase Job Creation</h3>
@@ -1187,6 +1191,15 @@ const AdminPage = () => {
               </div>
             )}
           </div>
+        </TabsContent>
+
+        {/* Platform Settings Tab */}
+        <TabsContent value="settings" className="space-y-6">
+          <div>
+            <h2 className="text-lg font-semibold text-foreground mb-1">Google &amp; Social Settings</h2>
+            <p className="text-sm text-muted-foreground">Configure review links, ratings, social media URLs, and email automation.</p>
+          </div>
+          <PlatformSettingsPanel />
         </TabsContent>
       </Tabs>
 

@@ -64,7 +64,7 @@ const SwipeJobCardContent = ({ job, statusBadge, showNetPayout = false }: SwipeJ
   const clerkPayoutStored = (job as any).clerk_final_payout || (job as any).clerk_payout;
   const payout = clerkPayoutStored
     ? { clerkPayout: clerkPayoutStored, platformFee: grossPrice - clerkPayoutStored, providerFee: 0, grossAmount: grossPrice }
-    : calculatePayoutBreakdown(grossPrice, !!job.provider_id);
+    : calculatePayoutBreakdown(grossPrice);
   const urgencyBadge = getUrgencyBadge();
 
   return (

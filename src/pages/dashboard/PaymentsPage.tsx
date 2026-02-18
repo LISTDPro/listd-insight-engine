@@ -115,7 +115,7 @@ const PaymentsPage = () => {
   const getAmount = (job: JobWithPayment) => {
     const gross = job.final_price || job.quoted_price || 0;
     if (isClerk) {
-      return job.clerk_final_payout || job.clerk_payout || calculatePayoutBreakdown(gross, !!job.provider_id).clerkPayout;
+      return job.clerk_final_payout || job.clerk_payout || calculatePayoutBreakdown(gross).clerkPayout;
     }
     return gross;
   };
@@ -307,7 +307,7 @@ const PaymentsPage = () => {
                   const clerkPayoutAmount = job.clerk_final_payout || job.clerk_payout || 0;
                   const payout = isClerk
                     ? { clerkPayout: clerkPayoutAmount, platformFee: 0, providerFee: 0, grossAmount: clerkPayoutAmount }
-                    : calculatePayoutBreakdown(gross, !!job.provider_id);
+                    : calculatePayoutBreakdown(gross);
                   const status = getPaymentStatus(job);
                   return (
                     <div key={job.id} className="grid grid-cols-1 md:grid-cols-2 gap-3">

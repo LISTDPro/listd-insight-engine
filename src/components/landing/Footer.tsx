@@ -22,7 +22,7 @@ const Footer = () => {
   return (
     <footer className="bg-foreground text-background py-20 px-6 md:px-12">
       <div className="max-w-[1400px] mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr] gap-16 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr] gap-12 mb-12">
           {/* Brand + Trust Signals */}
           <div>
             <img src={listdProLogo} alt="LISTD.Pro" className="h-8 w-auto mb-6 brightness-0 invert" />
@@ -53,6 +53,7 @@ const Footer = () => {
                 { label: "How It Works", to: "/how-it-works" },
                 { label: "Service Tiers", to: "/service-tiers" },
                 { label: "About", to: "/about" },
+                { label: "Contact", to: "/contact" },
               ].map((item) => (
                 <li key={item.label}>
                   <Link
@@ -88,16 +89,16 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Company Links */}
+          {/* Legal Links */}
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-[0.1em] text-background/50 mb-6">
-              Company
+              Legal
             </h4>
             <ul className="space-y-3">
               {[
-                { label: "About", to: "/about" },
-                { label: "Contact", to: "/about" },
-                { label: "Terms", to: "/about" },
+                { label: "Terms of Service", to: "/terms" },
+                { label: "Privacy Policy", to: "/privacy" },
+                { label: "Cookie Policy", to: "/cookies" },
               ].map((item) => (
                 <li key={item.label}>
                   <Link
@@ -112,8 +113,17 @@ const Footer = () => {
           </div>
         </div>
 
+        {/* Contact strip */}
+        <div className="border-t border-background/10 pt-8 mb-6 flex flex-col sm:flex-row items-start sm:items-center gap-4 text-sm text-background/50">
+          <a href="mailto:support@listd.co.uk" className="hover:text-background transition-colors">support@listd.co.uk</a>
+          <span className="hidden sm:block">·</span>
+          <a href="tel:+447413065681" className="hover:text-background transition-colors">+44 7413 065681</a>
+          <span className="hidden sm:block">·</span>
+          <span>Bristol, Bath & surrounding areas</span>
+        </div>
+
         {/* Bottom Bar */}
-        <div className="border-t border-background/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="border-t border-background/10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-sm text-background/50">
             © {new Date().getFullYear()} LISTD. Controlled infrastructure, not gig-economy chaos.
           </p>

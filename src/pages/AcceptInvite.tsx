@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router-dom";
 import { CheckCircle2, XCircle, Loader2, UserPlus, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ const AcceptInvite = () => {
   const [accepting, setAccepting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const autoAcceptFired = useRef(false);
 
   // Fetch invitation details
   useEffect(() => {
@@ -47,6 +48,19 @@ const AcceptInvite = () => {
 
     fetchInvitation();
   }, [token]);
+
+  // Auto-accept: when a logged-in clerk lands here with a valid pending invite token
+  // (e.g. after signup → onboarding → redirect back here)
+  useEffect(() => {
+    if (!user || !token || !invitation || role !== "clerk" || success || autoAcceptFired.current) return;
+    autoAcceptFired.current = true;
+    const run = async () => {
+      const clerkName = profile?.full_name || user.email;
+      await acceptInvitation(token, clerkName);
+      navigate("/dashboard");
+    };
+    run();
+  }, [user, token, invitation, role, success]);
 
   const handleAccept = async () => {
     if (!token || !user) return;
@@ -155,8 +169,20 @@ const AcceptInvite = () => {
     );
   }
 
-  // Check if user is already a clerk
-  if (role === "clerk") {
+  // If user is a clerk with a valid invitation token, show spinner while useEffect auto-accepts
+  if (role === "clerk" && invitation && !success) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary mb-4" />
+          <p className="text-muted-foreground">Finalising your invitation...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user is already a clerk with no pending invite
+  if (role === "clerk" && !invitation) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="max-w-md w-full">

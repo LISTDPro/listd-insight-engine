@@ -48,14 +48,17 @@ const Auth = () => {
   const { toast } = useToast();
   const { user, profile, role, loading: authLoading, signIn, signUp } = useAuth();
 
+  // Read redirect param so it survives through auth and onboarding
+  const redirectParam = new URLSearchParams(window.location.search).get("redirect");
+
   // Redirect if already authenticated - wait for profile/role to load
   useEffect(() => {
     if (user && !authLoading) {
       setIsRedirecting(true);
       if (profile?.onboarding_completed && role) {
-        navigate("/dashboard");
+        navigate(redirectParam || "/dashboard");
       } else {
-        navigate("/onboarding");
+        navigate(redirectParam ? `/onboarding?redirect=${encodeURIComponent(redirectParam)}` : "/onboarding");
       }
     }
   }, [user, role, profile, authLoading, navigate]);
@@ -106,7 +109,7 @@ const Auth = () => {
         title: "Account created!",
         description: "Welcome to LISTD. Let's set up your profile.",
       });
-      navigate("/onboarding");
+      navigate(redirectParam ? `/onboarding?redirect=${encodeURIComponent(redirectParam)}` : "/onboarding");
     }
   };
 

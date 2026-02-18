@@ -14,7 +14,7 @@ import {
   Users, Briefcase, ShieldCheck, AlertTriangle,
   CheckCircle2, XCircle, Clock, Search, Eye, UserCheck, Package, Zap,
   ListChecks, ExternalLink, ClipboardList, Mail, RefreshCw, Calendar,
-  PoundSterling, Download,
+  PoundSterling, Download, KeyRound,
 } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -24,6 +24,7 @@ import DisputeResolutionDialog from "@/components/admin/DisputeResolutionDialog"
 import IssueStrikeDialog from "@/components/admin/IssueStrikeDialog";
 import DailyChecklistPayments from "@/components/admin/DailyChecklistPayments";
 import EmailLogDashboard from "@/components/admin/EmailLogDashboard";
+import AdminPasswordResetDialog from "@/components/admin/AdminPasswordResetDialog";
 import { useInventoryBaseSync } from "@/hooks/useInventoryBaseSync";
 
 interface UserWithRole {
@@ -95,6 +96,7 @@ const AdminPage = () => {
   const [markDeliveredJobId, setMarkDeliveredJobId] = useState<string | null>(null);
   const [selectedDispute, setSelectedDispute] = useState<DisputeRow | null>(null);
   const [strikeTarget, setStrikeTarget] = useState<{ userId: string; name: string } | null>(null);
+  const [passwordResetTarget, setPasswordResetTarget] = useState<{ userId: string; name: string | null; email: string | null } | null>(null);
 
   useEffect(() => {
     if (role !== "admin") {
@@ -679,6 +681,16 @@ const AdminPage = () => {
                             Strike
                           </Button>
                         )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs text-warning"
+                          onClick={() => setPasswordResetTarget({ userId: u.user_id, name: u.full_name, email: u.email })}
+                          title="Send password reset link"
+                        >
+                          <KeyRound className="w-3.5 h-3.5 mr-1" />
+                          Reset
+                        </Button>
                         <Button variant="ghost" size="sm">
                           <Eye className="w-4 h-4" />
                         </Button>
@@ -1206,6 +1218,11 @@ const AdminPage = () => {
           onSuccess={fetchUsers}
         />
       )}
+
+      <AdminPasswordResetDialog
+        user={passwordResetTarget}
+        onClose={() => setPasswordResetTarget(null)}
+      />
     </div>
   );
 };

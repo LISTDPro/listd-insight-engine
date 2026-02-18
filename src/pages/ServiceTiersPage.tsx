@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
 import { Link } from "react-router-dom";
@@ -36,6 +37,15 @@ const renderCell = (val: boolean | string) => {
 const ServiceTiersPage = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Inspection Service Tiers – Flex, Core & Priority | LISTD</title>
+        <meta name="description" content="Compare LISTD service tiers — Flex, Core and Priority. Every tier includes room-by-room checklists, timestamped photo evidence and digital sign-off. Choose the right level for your portfolio." />
+        <meta property="og:title" content="Inspection Service Tiers – Flex, Core & Priority | LISTD" />
+        <meta property="og:description" content="Choose from Flex, Core or Priority inspection tiers. All plans include verified clerks, digital reports and secure escrow payments." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://listd.co.uk/service-tiers" />
+        <link rel="canonical" href="https://listd.co.uk/service-tiers" />
+      </Helmet>
       <Header />
 
       {/* Hero */}

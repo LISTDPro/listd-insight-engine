@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
 import { Link } from "react-router-dom";
@@ -48,6 +49,15 @@ const levels = [
 const ForClerksPage = () => {
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>For Inventory Clerks – Join the LISTD Network</title>
+        <meta name="description" content="Join LISTD as a professional inventory clerk. Access consistent work through a structured allocation network, progress through clerk levels, and get paid securely via escrow on every job." />
+        <meta property="og:title" content="For Inventory Clerks – Join the LISTD Network" />
+        <meta property="og:description" content="Structured work, level progression, and secure escrow payments for professional inventory clerks across the UK." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://listd.co.uk/for-clerks" />
+        <link rel="canonical" href="https://listd.co.uk/for-clerks" />
+      </Helmet>
       <Header />
 
       {/* Hero */}

@@ -3,6 +3,7 @@ import { useJobDetail } from "@/hooks/useJobDetail";
 import { useAuth } from "@/hooks/useAuth";
 import { useClerkJobs } from "@/hooks/useClerkJobs";
 import AdminPayoutControls from "@/components/admin/AdminPayoutControls";
+import ClerkJobDetailPanel from "@/components/dashboard/ClerkJobDetailPanel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -41,7 +42,8 @@ import {
   X,
   Loader2,
   ClipboardCheck,
-  CheckCircle2
+  CheckCircle2,
+  ShieldCheck
 } from "lucide-react";
 
 const STATUS_STYLES: Partial<Record<JobStatus, string>> = {
@@ -300,50 +302,57 @@ const JobDetailPage = () => {
             </Card>
           )}
 
-          {/* Property Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Home className="w-5 h-5" />
-                Property Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {job.property && (
-                <>
-                  <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="font-medium">{job.property.address_line_1}</p>
-                      {job.property.address_line_2 && (
-                        <p className="text-muted-foreground">{job.property.address_line_2}</p>
-                      )}
-                      <p className="text-muted-foreground">
-                        {job.property.city}, {job.property.postcode}
-                      </p>
-                    </div>
-                  </div>
+          {/* Clerk Job Detail Panel — scoped view for clerks only */}
+          {role === "clerk" && (
+            <ClerkJobDetailPanel job={job as any} />
+          )}
 
-                  <div className="grid grid-cols-3 gap-4 pt-2">
-                    <div className="flex items-center gap-2">
-                      <Home className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">
-                        {PROPERTY_TYPE_LABELS[job.property.property_type as PropertyType]}
-                      </span>
+          {/* Property Card — for clients and admins */}
+          {role !== "clerk" && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Home className="w-5 h-5" />
+                  Property Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {job.property && (
+                  <>
+                    <div className="flex items-start gap-3">
+                      <MapPin className="w-5 h-5 text-muted-foreground mt-0.5" />
+                      <div>
+                        <p className="font-medium">{job.property.address_line_1}</p>
+                        {job.property.address_line_2 && (
+                          <p className="text-muted-foreground">{job.property.address_line_2}</p>
+                        )}
+                        <p className="text-muted-foreground">
+                          {job.property.city}, {job.property.postcode}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <BedDouble className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">{job.property.bedrooms} Beds</span>
+
+                    <div className="grid grid-cols-3 gap-4 pt-2">
+                      <div className="flex items-center gap-2">
+                        <Home className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm">
+                          {PROPERTY_TYPE_LABELS[job.property.property_type as PropertyType]}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <BedDouble className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm">{job.property.bedrooms} Beds</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Bath className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm">{job.property.bathrooms} Baths</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Bath className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">{job.property.bathrooms} Baths</span>
-                    </div>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Schedule Card */}
           <Card>
@@ -406,6 +415,24 @@ const JobDetailPage = () => {
                     </div>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Admin: Tier Acknowledgement timestamp */}
+          {role === "admin" && (job as any).tier_acknowledged_at && (
+            <Card className="border-primary/20 bg-primary/5">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <ShieldCheck className="w-5 h-5 text-primary shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Tier Acknowledged by Client</p>
+                    <p className="text-xs text-muted-foreground">
+                      Client confirmed understanding of the <strong>{(job as any).service_tier}</strong> tier scope on{" "}
+                      {format(new Date((job as any).tier_acknowledged_at), "d MMM yyyy 'at' HH:mm")}
+                    </p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}

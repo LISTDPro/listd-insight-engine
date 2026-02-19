@@ -490,6 +490,7 @@ export type Database = {
           service_tier: string
           special_instructions: string | null
           status: Database["public"]["Enums"]["job_status"]
+          tier_acknowledged_at: string | null
           updated_at: string
         }
         Insert: {
@@ -533,6 +534,7 @@ export type Database = {
           service_tier?: string
           special_instructions?: string | null
           status?: Database["public"]["Enums"]["job_status"]
+          tier_acknowledged_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -576,6 +578,7 @@ export type Database = {
           service_tier?: string
           special_instructions?: string | null
           status?: Database["public"]["Enums"]["job_status"]
+          tier_acknowledged_at?: string | null
           updated_at?: string
         }
         Relationships: [

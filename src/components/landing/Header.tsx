@@ -10,6 +10,7 @@ const navLinks = [
   { label: "For Clients", href: "/for-clients" },
   { label: "For Clerks", href: "/for-clerks" },
   { label: "Pricing", href: "/service-tiers" },
+  { label: "Contact", href: "/contact" },
 ];
 
 const Header = () => {

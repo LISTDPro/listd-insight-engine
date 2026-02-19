@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import PropertySelector from "@/components/booking/PropertySelector";
 import InspectionTypeSelector from "@/components/booking/InspectionTypeSelector";
 import TierSelector, { ServiceTier } from "@/components/booking/TierSelector";
+import TierSummaryPanel from "@/components/booking/TierSummaryPanel";
 import PropertySizeSelector from "@/components/booking/PropertySizeSelector";
 import DateTimeSelector from "@/components/booking/DateTimeSelector";
 import BookingSummary from "@/components/booking/BookingSummary";
@@ -47,6 +48,7 @@ const BookJob = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [detailsConfirmed, setDetailsConfirmed] = useState(false);
+  const [tierAcknowledged, setTierAcknowledged] = useState(false);
   const [isCreatingProperty, setIsCreatingProperty] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -83,7 +85,7 @@ const BookJob = () => {
       case "inspection":
         return selectedInspectionTypes.length > 0;
       case "tier":
-        return !!selectedTier;
+        return !!selectedTier && tierAcknowledged;
       case "size":
         return !!selectedSize;
       case "property":
@@ -165,7 +167,8 @@ const BookJob = () => {
         special_instructions: instructions || undefined,
         quoted_price: quotedPrice,
         service_tier: selectedTier,
-      },
+        tier_acknowledged_at: tierAcknowledged ? new Date().toISOString() : undefined,
+      } as any,
       selectedProperty
         ? { address: selectedProperty.address_line_1, city: selectedProperty.city, postcode: selectedProperty.postcode, property_type: selectedProperty.property_type }
         : undefined,
@@ -257,7 +260,26 @@ const BookJob = () => {
           )}
 
           {currentStep === "tier" && (
-            <TierSelector selectedTier={selectedTier} onSelect={setSelectedTier} />
+            <div className="space-y-4">
+              <TierSelector selectedTier={selectedTier} onSelect={(t) => { setSelectedTier(t); setTierAcknowledged(false); }} />
+              <TierSummaryPanel selectedTier={selectedTier} />
+              {/* Tier acknowledgement checkbox */}
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 flex items-start gap-2.5">
+                <input
+                  type="checkbox"
+                  id="tier_ack"
+                  checked={tierAcknowledged}
+                  onChange={(e) => setTierAcknowledged(e.target.checked)}
+                  className="mt-0.5 accent-primary w-4 h-4 shrink-0 cursor-pointer"
+                />
+                <label htmlFor="tier_ack" className="text-xs text-foreground cursor-pointer leading-relaxed">
+                  <span className="font-semibold">I understand the scope and coverage of the selected tier.</span>
+                  <span className="block text-muted-foreground mt-0.5">
+                    The inspection will be carried out according to the conditions of the {selectedTier.charAt(0).toUpperCase() + selectedTier.slice(1)} tier as described above.
+                  </span>
+                </label>
+              </div>
+            </div>
           )}
 
           {currentStep === "size" && (

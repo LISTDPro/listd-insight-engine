@@ -74,19 +74,31 @@ const EarlyAccessPage = () => {
     } else {
       setSubmitted(true);
 
-      // Send confirmation email via edge function (fire and forget)
-      try {
-        await supabase.functions.invoke("send-contact-form", {
+      // Notify admin and send confirmation — fire and forget
+      Promise.allSettled([
+        // Admin notification with full lead details
+        supabase.functions.invoke("notify-admin", {
+          body: {
+            type: "waitlist_lead",
+            leadName: fullName.trim(),
+            leadEmail: email.trim(),
+            leadCompany: companyName.trim(),
+            leadPhone: phone.trim() || null,
+            leadRole: role,
+            leadPortfolioSize: portfolioSize || null,
+            leadMonthlyVolume: monthlyVolume || null,
+          },
+        }),
+        // Confirmation email to the lead
+        supabase.functions.invoke("send-contact-form", {
           body: {
             name: fullName.trim(),
             email: email.trim(),
             subject: "Early Access Request – LISTD",
             message: `Thank you for your interest in LISTD early access. We will be in touch shortly.\n\nCompany: ${companyName}\nRole: ${role}`,
           },
-        });
-      } catch (_) {
-        // Non-critical
-      }
+        }),
+      ]);
     }
   };
 

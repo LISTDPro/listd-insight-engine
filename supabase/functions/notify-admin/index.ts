@@ -19,7 +19,7 @@ function escapeHtml(unsafe: string): string {
 }
 
 interface AdminNotification {
-  type: "signup" | "job_posted" | "ib_sync";
+  type: "signup" | "job_posted" | "ib_sync" | "waitlist_lead";
   // signup
   userName?: string;
   userEmail?: string;
@@ -34,6 +34,14 @@ interface AdminNotification {
   // ib_sync
   totalEvents?: number;
   matchedCount?: number;
+  // waitlist_lead
+  leadName?: string;
+  leadEmail?: string;
+  leadCompany?: string;
+  leadPhone?: string;
+  leadRole?: string;
+  leadPortfolioSize?: string;
+  leadMonthlyVolume?: string;
 }
 
 function buildEmail(payload: AdminNotification): { subject: string; html: string } {
@@ -116,6 +124,39 @@ function buildEmail(payload: AdminNotification): { subject: string; html: string
           </div>
           <div style="text-align: center;">
             <a href="https://listd.co.uk/dashboard/admin" style="display: inline-block; background-color: #0d9488; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px;">Review Matches</a>
+          </div>
+        `),
+      };
+    }
+
+    case "waitlist_lead": {
+      const name = escapeHtml(payload.leadName || "Unknown");
+      const email = escapeHtml(payload.leadEmail || "—");
+      const company = escapeHtml(payload.leadCompany || "—");
+      const phone = escapeHtml(payload.leadPhone || "—");
+      const role = escapeHtml(payload.leadRole || "—");
+      const portfolio = escapeHtml(payload.leadPortfolioSize || "Not specified");
+      const volume = escapeHtml(payload.leadMonthlyVolume || "Not specified");
+      const submittedAt = new Date().toLocaleString("en-GB", { dateStyle: "long", timeStyle: "short" });
+      return {
+        subject: `🚀 New Early Access Request: ${payload.leadName || "Unknown"} – ${payload.leadCompany || ""}`,
+        html: wrap("New Early Access Request", `
+          <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+            <p style="margin: 0; color: #15803d; font-size: 13px; font-weight: 600;">⚡ New waitlist lead submitted on ${escapeHtml(submittedAt)}</p>
+          </div>
+          <div style="background-color: #f4f4f5; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr><td style="padding: 7px 0; color: #71717a; font-size: 13px; width: 40%;">Name:</td><td style="padding: 7px 0; color: #18181b; font-size: 13px; font-weight: 600;">${name}</td></tr>
+              <tr><td style="padding: 7px 0; color: #71717a; font-size: 13px;">Company:</td><td style="padding: 7px 0; color: #18181b; font-size: 13px; font-weight: 600;">${company}</td></tr>
+              <tr><td style="padding: 7px 0; color: #71717a; font-size: 13px;">Email:</td><td style="padding: 7px 0; color: #18181b; font-size: 13px;"><a href="mailto:${email}" style="color: #0d9488;">${email}</a></td></tr>
+              <tr><td style="padding: 7px 0; color: #71717a; font-size: 13px;">Phone:</td><td style="padding: 7px 0; color: #18181b; font-size: 13px;">${phone}</td></tr>
+              <tr><td style="padding: 7px 0; color: #71717a; font-size: 13px;">Role:</td><td style="padding: 7px 0; color: #18181b; font-size: 13px;">${role}</td></tr>
+              <tr><td style="padding: 7px 0; color: #71717a; font-size: 13px;">Portfolio Size:</td><td style="padding: 7px 0; color: #18181b; font-size: 13px;">${portfolio}</td></tr>
+              <tr><td style="padding: 7px 0; color: #71717a; font-size: 13px;">Monthly Volume:</td><td style="padding: 7px 0; color: #18181b; font-size: 13px;">${volume}</td></tr>
+            </table>
+          </div>
+          <div style="text-align: center;">
+            <a href="https://listd.co.uk/dashboard/admin" style="display: inline-block; background-color: #0d9488; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px;">View Waitlist in Admin Panel</a>
           </div>
         `),
       };

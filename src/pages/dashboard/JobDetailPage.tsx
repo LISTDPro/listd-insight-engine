@@ -3,6 +3,7 @@ import { useJobDetail } from "@/hooks/useJobDetail";
 import { useAuth } from "@/hooks/useAuth";
 import { useClerkJobs } from "@/hooks/useClerkJobs";
 import AdminPayoutControls from "@/components/admin/AdminPayoutControls";
+import CancellationFeeCard from "@/components/admin/CancellationFeeCard";
 import ClerkJobDetailPanel from "@/components/dashboard/ClerkJobDetailPanel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -435,6 +436,19 @@ const JobDetailPage = () => {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* Admin: Cancellation Fee Card — shown for cancelled jobs or active jobs */}
+          {role === "admin" && (job.status === "cancelled" || ["pending", "published", "accepted", "assigned", "in_progress"].includes(job.status)) && (
+            <CancellationFeeCard
+              jobId={job.id}
+              scheduledDate={job.scheduled_date}
+              quotedPrice={job.final_price || job.quoted_price || 0}
+              currentCancellationFee={(job as any).cancellation_fee || 0}
+              status={job.status}
+              cancelledAt={(job as any).cancelled_at}
+              onUpdate={refetch}
+            />
           )}
 
           {/* Admin Payout Controls */}

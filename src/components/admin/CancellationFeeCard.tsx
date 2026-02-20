@@ -7,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { differenceInHours } from "date-fns";
-import { AlertTriangle, Clock, PoundSterling, Save, Loader2, ShieldOff, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, Clock, PoundSterling, Save, Loader2, ShieldOff, CheckCircle2, XCircle } from "lucide-react";
+import AdminCancelJobDialog from "@/components/admin/AdminCancelJobDialog";
 
 interface CancellationFeeCardProps {
   jobId: string;
@@ -41,6 +42,7 @@ const CancellationFeeCard = ({
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [overrideFee, setOverrideFee] = useState(currentCancellationFee.toString());
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
   // Calculate hours until inspection from NOW (or from cancellation time if already cancelled)
   const referenceTime = cancelledAt ? new Date(cancelledAt) : new Date();
@@ -185,7 +187,7 @@ const CancellationFeeCard = ({
             size="sm"
             variant="outline"
             onClick={handleSaveOverride}
-            disabled={saving}
+            disabled={saving || isCancelled}
             className="gap-1.5 flex-1"
           >
             {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
@@ -210,6 +212,36 @@ const CancellationFeeCard = ({
               ? "Fee will be waived (admin discretion)"
               : `Override: £${overrideFeeNum.toFixed(2)} (policy: £${calculatedFee.toFixed(2)})`}
           </p>
+        )}
+
+        {/* Cancel Job — only for active jobs */}
+        {!isCancelled && (
+          <>
+            <div className="border-t border-border pt-3">
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => setCancelDialogOpen(true)}
+                className="w-full gap-1.5"
+              >
+                <XCircle className="w-3.5 h-3.5" />
+                Cancel Job
+              </Button>
+              <p className="text-[10px] text-muted-foreground text-center mt-1.5">
+                Auto-calculates fee · Sets status to Cancelled
+              </p>
+            </div>
+
+            <AdminCancelJobDialog
+              open={cancelDialogOpen}
+              onOpenChange={setCancelDialogOpen}
+              jobId={jobId}
+              scheduledDate={scheduledDate}
+              quotedPrice={quotedPrice}
+              status={status}
+              onSuccess={onUpdate}
+            />
+          </>
         )}
       </CardContent>
     </Card>

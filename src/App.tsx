@@ -23,6 +23,7 @@ import PrivacyPage from "./pages/PrivacyPage";
 import CookiesPage from "./pages/CookiesPage";
 import NotFound from "./pages/NotFound";
 import XeroCallback from "./pages/XeroCallback";
+import EarlyAccessPage from "./pages/EarlyAccessPage";
 import BackToTop from "./components/ui/BackToTop";
 import WhatsAppButton from "./components/ui/WhatsAppButton";
 
@@ -57,6 +58,7 @@ const App = () => (
               <Route path="/accept-invite" element={<AcceptInvite />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/xero/callback" element={<XeroCallback />} />
+              <Route path="/early-access" element={<EarlyAccessPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      clerk_incidents: {
+        Row: {
+          clerk_id: string
+          created_at: string
+          id: string
+          incident_type: string
+          job_id: string | null
+          logged_by: string | null
+          notes: string | null
+          restrict_priority: boolean
+          severity: string
+        }
+        Insert: {
+          clerk_id: string
+          created_at?: string
+          id?: string
+          incident_type: string
+          job_id?: string | null
+          logged_by?: string | null
+          notes?: string | null
+          restrict_priority?: boolean
+          severity?: string
+        }
+        Update: {
+          clerk_id?: string
+          created_at?: string
+          id?: string
+          incident_type?: string
+          job_id?: string | null
+          logged_by?: string | null
+          notes?: string | null
+          restrict_priority?: boolean
+          severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clerk_incidents_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clerk_invitations: {
         Row: {
           accepted_at: string | null
@@ -478,6 +522,7 @@ export type Database = {
           inspection_type: Database["public"]["Enums"]["inspection_type"]
           inventorybase_job_id: string | null
           margin: number | null
+          policy_acknowledged_at: string | null
           preferred_time_slot: string | null
           property_id: string
           provider_id: string | null
@@ -488,6 +533,7 @@ export type Database = {
           review_email_sent_at: string | null
           scheduled_date: string
           service_tier: string
+          short_notice_surcharge_applied: boolean
           special_instructions: string | null
           status: Database["public"]["Enums"]["job_status"]
           tier_acknowledged_at: string | null
@@ -522,6 +568,7 @@ export type Database = {
           inspection_type: Database["public"]["Enums"]["inspection_type"]
           inventorybase_job_id?: string | null
           margin?: number | null
+          policy_acknowledged_at?: string | null
           preferred_time_slot?: string | null
           property_id: string
           provider_id?: string | null
@@ -532,6 +579,7 @@ export type Database = {
           review_email_sent_at?: string | null
           scheduled_date: string
           service_tier?: string
+          short_notice_surcharge_applied?: boolean
           special_instructions?: string | null
           status?: Database["public"]["Enums"]["job_status"]
           tier_acknowledged_at?: string | null
@@ -566,6 +614,7 @@ export type Database = {
           inspection_type?: Database["public"]["Enums"]["inspection_type"]
           inventorybase_job_id?: string | null
           margin?: number | null
+          policy_acknowledged_at?: string | null
           preferred_time_slot?: string | null
           property_id?: string
           provider_id?: string | null
@@ -576,6 +625,7 @@ export type Database = {
           review_email_sent_at?: string | null
           scheduled_date?: string
           service_tier?: string
+          short_notice_surcharge_applied?: boolean
           special_instructions?: string | null
           status?: Database["public"]["Enums"]["job_status"]
           tier_acknowledged_at?: string | null
@@ -967,6 +1017,45 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      waitlist_leads: {
+        Row: {
+          company_name: string
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          monthly_volume: string | null
+          notes: string | null
+          phone: string | null
+          portfolio_size: string | null
+          role: string
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          email: string
+          full_name: string
+          id?: string
+          monthly_volume?: string | null
+          notes?: string | null
+          phone?: string | null
+          portfolio_size?: string | null
+          role: string
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          monthly_volume?: string | null
+          notes?: string | null
+          phone?: string | null
+          portfolio_size?: string | null
+          role?: string
         }
         Relationships: []
       }

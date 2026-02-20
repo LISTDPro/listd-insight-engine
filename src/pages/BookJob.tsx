@@ -12,7 +12,7 @@ import TierSelector, { ServiceTier } from "@/components/booking/TierSelector";
 import TierSummaryPanel from "@/components/booking/TierSummaryPanel";
 import PropertySizeSelector from "@/components/booking/PropertySizeSelector";
 import DateTimeSelector from "@/components/booking/DateTimeSelector";
-import BookingSummary from "@/components/booking/BookingSummary";
+import BookingSummary, { isShortNotice, SHORT_NOTICE_SURCHARGE } from "@/components/booking/BookingSummary";
 import { PropertyFormData } from "@/components/booking/PropertyForm";
 import { calculateJobPrice, serviceRequiresTier } from "@/utils/pricing";
 import { format } from "date-fns";
@@ -48,9 +48,11 @@ const BookJob = () => {
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [specialInstructions, setSpecialInstructions] = useState("");
   const [detailsConfirmed, setDetailsConfirmed] = useState(false);
+  const [policyAcknowledged, setPolicyAcknowledged] = useState(false);
   const [tierAcknowledged, setTierAcknowledged] = useState(false);
   const [isCreatingProperty, setIsCreatingProperty] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   // Redirect non-clients
   useEffect(() => {
@@ -93,7 +95,7 @@ const BookJob = () => {
       case "date":
         return !!selectedDate;
       case "review":
-        return detailsConfirmed;
+        return detailsConfirmed && policyAcknowledged;
       default:
         return false;
     }
@@ -130,7 +132,7 @@ const BookJob = () => {
   };
 
   const handleSubmit = async () => {
-    if (!selectedPropertyId || selectedInspectionTypes.length === 0 || !selectedDate || !detailsConfirmed) {
+    if (!selectedPropertyId || selectedInspectionTypes.length === 0 || !selectedDate || !detailsConfirmed || !policyAcknowledged) {
       toast({ title: "Missing Information", description: "Please complete all required fields.", variant: "destructive" });
       return;
     }
@@ -150,13 +152,14 @@ const BookJob = () => {
       instructions = instructions ? `${tierNote}\n\n${instructions}` : tierNote;
     }
 
-    // Build a virtual property for pricing using selected size/furnishing
     const pricingProperty = {
       property_type: selectedSize,
       furnished_status: selectedFurnishing,
     } as any;
 
-    const quotedPrice = calculateJobPrice(pricingProperty, selectedInspectionTypes, selectedTier);
+    const basePrice = calculateJobPrice(pricingProperty, selectedInspectionTypes, selectedTier);
+    const shortNotice = isShortNotice(selectedDate);
+    const quotedPrice = basePrice + (shortNotice ? SHORT_NOTICE_SURCHARGE : 0);
 
     const { error } = await createJob(
       {
@@ -168,6 +171,8 @@ const BookJob = () => {
         quoted_price: quotedPrice,
         service_tier: selectedTier,
         tier_acknowledged_at: tierAcknowledged ? new Date().toISOString() : undefined,
+        short_notice_surcharge_applied: shortNotice,
+        policy_acknowledged_at: new Date().toISOString(),
       } as any,
       selectedProperty
         ? { address: selectedProperty.address_line_1, city: selectedProperty.city, postcode: selectedProperty.postcode, property_type: selectedProperty.property_type }
@@ -323,6 +328,8 @@ const BookJob = () => {
               onInstructionsChange={setSpecialInstructions}
               detailsConfirmed={detailsConfirmed}
               onDetailsConfirmedChange={setDetailsConfirmed}
+              policyAcknowledged={policyAcknowledged}
+              onPolicyAcknowledgedChange={setPolicyAcknowledged}
               selectedSize={selectedSize}
               selectedFurnishing={selectedFurnishing}
             />

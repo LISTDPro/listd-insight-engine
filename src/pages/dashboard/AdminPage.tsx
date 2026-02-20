@@ -26,6 +26,8 @@ import DailyChecklistPayments from "@/components/admin/DailyChecklistPayments";
 import EmailLogDashboard from "@/components/admin/EmailLogDashboard";
 import AdminPasswordResetDialog from "@/components/admin/AdminPasswordResetDialog";
 import PlatformSettingsPanel from "@/components/admin/PlatformSettingsPanel";
+import ClerkReliabilityPanel from "@/components/admin/ClerkReliabilityPanel";
+import WaitlistLeadsPanel from "@/components/admin/WaitlistLeadsPanel";
 import { useInventoryBaseSync } from "@/hooks/useInventoryBaseSync";
 
 interface UserWithRole {
@@ -350,6 +352,12 @@ const AdminPage = () => {
           </TabsTrigger>
           <TabsTrigger value="settings" className="gap-2">
             <SlidersHorizontal className="w-4 h-4" /> Settings
+          </TabsTrigger>
+          <TabsTrigger value="reliability" className="gap-2">
+            <AlertTriangle className="w-4 h-4" /> Reliability
+          </TabsTrigger>
+          <TabsTrigger value="waitlist" className="gap-2">
+            <Users className="w-4 h-4" /> Waitlist
           </TabsTrigger>
         </TabsList>
 
@@ -1200,6 +1208,16 @@ const AdminPage = () => {
             <p className="text-sm text-muted-foreground">Configure review links, ratings, social media URLs, and email automation.</p>
           </div>
           <PlatformSettingsPanel />
+        </TabsContent>
+
+        {/* Reliability Tab */}
+        <TabsContent value="reliability" className="space-y-4">
+          <ClerkReliabilityPanel />
+        </TabsContent>
+
+        {/* Waitlist Tab */}
+        <TabsContent value="waitlist" className="space-y-4">
+          <WaitlistLeadsPanel />
         </TabsContent>
       </Tabs>
 

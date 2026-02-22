@@ -19,8 +19,8 @@ const DEFAULT_SETTINGS: PlatformSettings = {
   google_review_count: "",
   google_reviews_embed_code: "",
   google_reviews_enabled: "true",
-  instagram_url: "https://instagram.com/listd.pro",
-  facebook_url: "https://facebook.com/listd.pro",
+  instagram_url: "https://www.instagram.com/thee_inventory_guy?igsh=MTllc2tvNTNqbG95aQ%3D%3D&utm_source=qr",
+  facebook_url: "https://www.facebook.com/share/1Cj3tD4Zre/?mibextid=wwXIfr",
   review_email_enabled: "true",
   tenancies_completed_override: "",
 };

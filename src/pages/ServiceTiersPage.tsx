@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet-async";
 import Header from "@/components/landing/Header";
 import Footer from "@/components/landing/Footer";
 import { Link } from "react-router-dom";
-import { Check, X, Shield, Zap, Crown, ArrowRight, TreePine } from "lucide-react";
+import { Shield, Zap, Crown, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const tiers = [
@@ -11,27 +11,21 @@ const tiers = [
   { key: "priority", name: "Priority", icon: Crown, price: 100 },
 ];
 
-type FeatureRow = { label: string; flex: boolean | string; core: boolean | string; priority: boolean | string };
+type FeatureRow = { label: string; flex: string; core: string; priority: string };
 
 const features: FeatureRow[] = [
-  { label: "Room-by-room checklist", flex: true, core: true, priority: true },
-  { label: "Timestamped photo evidence", flex: true, core: true, priority: true },
-  { label: "Condition ratings per item", flex: true, core: true, priority: true },
-  { label: "Digital sign-off & audit trail", flex: true, core: true, priority: true },
-  { label: "Meter readings & keys", flex: true, core: true, priority: true },
-  { label: "Exterior overview photo", flex: false, core: true, priority: true },
-  { label: "Exterior description", flex: false, core: true, priority: true },
-  { label: "Full external documentation", flex: false, core: false, priority: true },
-  { label: "Close-up exterior photos", flex: false, core: false, priority: true },
-  { label: "Tribunal-grade evidence", flex: false, core: false, priority: true },
-  { label: "Turnaround", flex: "Standard", core: "Faster", priority: "Priority" },
-  { label: "Outdoor coverage", flex: "None / single", core: "1 landscape", priority: "Full + close-ups" },
+  { label: "Recommended for", flex: "Standard ASTs / lower dispute probability", core: "Professional agencies managing mixed portfolios", priority: "High-value properties / dispute-sensitive tenancies / corporate landlords" },
+  { label: "Written condition detail", flex: "Essential written notes", core: "Structured condition ratings per item", priority: "Detailed narrative alignment" },
+  { label: "Photo evidence density", flex: "Full room context photography", core: "Context + damage framing photography", priority: "Context + macro-level detailing" },
+  { label: "Damage scale verification", flex: "Standard damage capture", core: "Finger-scale damage reference", priority: "Finger-scale + macro close-up documentation" },
+  { label: "Exterior documentation", flex: "Overview exterior documentation", core: "Landscape exterior coverage", priority: "Multi-angle exterior + close-up coverage" },
+  { label: "Meter location documentation", flex: "Basic meter context capture", core: "Structured meter location noted", priority: "Multi-angle + clear meter location documentation" },
+  { label: "Turnaround", flex: "36–72 hours", core: "24–36 hours", priority: "Same day" },
+  { label: "Sign-off window", flex: "Standard 7-day sign-off window", core: "Reminder notifications within 7-day sign window", priority: "Accelerated sign-off (same day where tenant details provided)" },
 ];
 
-const renderCell = (val: boolean | string) => {
-  if (val === true) return <Check className="w-4 h-4 text-primary mx-auto" />;
-  if (val === false) return <X className="w-4 h-4 text-muted-foreground/40 mx-auto" />;
-  return <span className="text-xs text-foreground">{val}</span>;
+const renderCell = (val: string, isRecommended?: boolean) => {
+  return <span className={`text-xs ${isRecommended ? "font-medium text-foreground" : "text-muted-foreground"}`}>{val}</span>;
 };
 
 const ServiceTiersPage = () => {
@@ -122,19 +116,19 @@ const ServiceTiersPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {features.map((row) => (
-                  <tr key={row.label} className="border-b border-border/50">
-                    <td className="py-3 pr-4 text-muted-foreground">{row.label}</td>
-                    <td className="py-3 px-4 text-center">{renderCell(row.flex)}</td>
-                    <td className="py-3 px-4 text-center">{renderCell(row.core)}</td>
-                    <td className="py-3 px-4 text-center">{renderCell(row.priority)}</td>
+                {features.map((row, i) => (
+                  <tr key={row.label} className={`border-b border-border/50 ${i === 0 ? "bg-muted/30" : ""}`}>
+                    <td className={`py-3 pr-4 ${i === 0 ? "font-semibold text-foreground" : "text-muted-foreground"}`}>{row.label}</td>
+                    <td className="py-3 px-4 text-center">{renderCell(row.flex, i === 0)}</td>
+                    <td className="py-3 px-4 text-center">{renderCell(row.core, i === 0)}</td>
+                    <td className="py-3 px-4 text-center">{renderCell(row.priority, i === 0)}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
           <p className="text-center text-xs text-muted-foreground mt-8">
-            Studio starting prices shown. Every tier scales by property size, furnishing level, and additional areas.
+            All tiers are tribunal-ready, digitally signed, audit-trailed, and legally defensible. Studio starting prices shown — every tier scales by property size, furnishing level, and additional areas.
           </p>
         </div>
       </section>

@@ -9,86 +9,81 @@ import { cn } from "@/lib/utils";
 const TIER_SCOPE: Record<ServiceTier, { bullets: string[]; documentation: string; external: string; turnaround: string }> = {
   flex: {
     bullets: [
-      "Room-by-room checklist",
-      "Timestamped photo evidence",
-      "Digital sign-off & audit trail",
-      "Standard turnaround",
-      "Limited external documentation",
-      "No close-up exterior photography",
+      "Essential written notes",
+      "Full room context photography",
+      "Standard damage capture",
+      "Overview exterior documentation",
+      "Basic meter context capture",
+      "36–72 hour turnaround",
+      "Standard 7-day sign-off window",
     ],
-    documentation: "Standard",
-    external: "No outdoor or single overview only",
-    turnaround: "Standard",
+    documentation: "Structured Compliance",
+    external: "Overview exterior documentation",
+    turnaround: "36–72 hours",
   },
   core: {
     bullets: [
-      "Everything in Flex",
-      "Condition ratings per item",
-      "Exterior overview photo",
-      "Expanded documentation",
-      "Faster turnaround",
+      "Structured condition ratings per item",
+      "Context + damage framing photography",
+      "Finger-scale damage reference",
+      "Landscape exterior coverage",
+      "Structured meter location noted",
+      "24–36 hour turnaround",
+      "Reminder notifications within 7-day sign window",
     ],
-    documentation: "Enhanced",
-    external: "One landscape image + description",
-    turnaround: "Faster",
+    documentation: "Enhanced Professional",
+    external: "Landscape exterior coverage",
+    turnaround: "24–36 hours",
   },
   priority: {
     bullets: [
-      "Everything in Core",
-      "Full external documentation",
-      "Close-up exterior photos",
-      "Tribunal-grade documentation standard",
-      "Priority turnaround",
+      "Detailed narrative alignment",
+      "Context + macro-level detailing",
+      "Finger-scale + macro close-up documentation",
+      "Multi-angle exterior + close-up coverage",
+      "Multi-angle + clear meter location documentation",
+      "Same day turnaround",
+      "Accelerated sign-off (same day where tenant details provided)",
     ],
-    documentation: "Comprehensive",
-    external: "Full external documentation + close-ups",
-    turnaround: "Priority",
+    documentation: "High Accountability",
+    external: "Multi-angle exterior + close-up coverage",
+    turnaround: "Same day",
   },
 };
 
 const COMPARISON_ROWS = [
   {
-    label: "Room-by-room checklist",
-    flex: true, core: true, priority: true,
+    label: "Written condition detail",
+    flex: "Essential written notes", core: "Structured condition ratings per item", priority: "Detailed narrative alignment",
   },
   {
-    label: "Timestamped photo evidence",
-    flex: true, core: true, priority: true,
+    label: "Photo evidence density",
+    flex: "Full room context photography", core: "Context + damage framing photography", priority: "Context + macro-level detailing",
   },
   {
-    label: "Digital sign-off & audit trail",
-    flex: true, core: true, priority: true,
+    label: "Damage scale verification",
+    flex: "Standard damage capture", core: "Finger-scale damage reference", priority: "Finger-scale + macro close-up documentation",
   },
   {
-    label: "Condition ratings per item",
-    flex: false, core: true, priority: true,
+    label: "Exterior documentation",
+    flex: "Overview exterior documentation", core: "Landscape exterior coverage", priority: "Multi-angle exterior + close-up coverage",
   },
   {
-    label: "Exterior overview photo",
-    flex: false, core: true, priority: true,
-  },
-  {
-    label: "Expanded documentation",
-    flex: false, core: true, priority: true,
-  },
-  {
-    label: "Full external documentation",
-    flex: false, core: false, priority: true,
-  },
-  {
-    label: "Close-up exterior photos",
-    flex: false, core: false, priority: true,
-  },
-  {
-    label: "Tribunal-grade evidence standard",
-    flex: false, core: false, priority: true,
+    label: "Meter location documentation",
+    flex: "Basic meter context capture", core: "Structured meter location noted", priority: "Multi-angle + clear meter location documentation",
   },
 ];
 
 const TURNAROUND_ROW = {
-  flex: "Standard",
-  core: "Faster",
-  priority: "Priority",
+  flex: "36–72 hours",
+  core: "24–36 hours",
+  priority: "Same day",
+};
+
+const SIGNOFF_ROW = {
+  flex: "Standard 7-day sign-off window",
+  core: "Reminder notifications within 7-day sign window",
+  priority: "Accelerated sign-off (same day where tenant details provided)",
 };
 
 interface TierSummaryPanelProps {
@@ -202,17 +197,11 @@ const TierSummaryPanel = ({ selectedTier }: TierSummaryPanelProps) => {
                     i % 2 === 0 ? "bg-background" : "bg-muted/20"
                   )}
                 >
-                  <p className="text-[11px] text-foreground col-span-1">{row.label}</p>
+                  <p className="text-[11px] font-semibold text-foreground col-span-1">{row.label}</p>
                   {(["flex", "core", "priority"] as ServiceTier[]).map((tier) => (
-                    <div key={tier} className="flex justify-center">
-                      {row[tier] ? (
-                        <Check className="w-3.5 h-3.5 text-primary" />
-                      ) : (
-                        <span className="w-3.5 h-3.5 flex items-center justify-center">
-                          <span className="text-muted-foreground/40 text-[10px]">—</span>
-                        </span>
-                      )}
-                    </div>
+                    <p key={tier} className="text-[10px] text-center text-muted-foreground">
+                      {row[tier]}
+                    </p>
                   ))}
                 </div>
               ))}
@@ -225,19 +214,19 @@ const TierSummaryPanel = ({ selectedTier }: TierSummaryPanelProps) => {
                   </p>
                 ))}
               </div>
-              {/* External coverage row */}
+              {/* Sign-off row */}
               <div className="px-3 py-2.5 grid grid-cols-4 gap-2 items-center bg-background">
-                <p className="text-[11px] font-semibold text-foreground col-span-1">Outdoor Coverage</p>
-                {SERVICE_TIERS.map((tier) => (
-                  <p key={tier.value} className="text-[10px] text-center text-muted-foreground">
-                    {tier.outdoorCoverage}
+                <p className="text-[11px] font-semibold text-foreground col-span-1">Sign-off Window</p>
+                {(["flex", "core", "priority"] as ServiceTier[]).map((tier) => (
+                  <p key={tier} className="text-[10px] text-center text-muted-foreground">
+                    {SIGNOFF_ROW[tier]}
                   </p>
                 ))}
               </div>
             </div>
 
             <p className="text-[10px] text-muted-foreground border-t pt-3">
-              All tiers include human-led inspections with timestamped, digitally signed reports. 
+              All tiers are tribunal-ready, digitally signed, audit-trailed, and legally defensible.
               Tier selection determines the scope and depth of documentation, not the inspection process itself.
             </p>
           </div>

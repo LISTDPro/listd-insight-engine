@@ -21,8 +21,10 @@ import {
   JobStatus
 } from "@/types/database";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import RescheduleRequestDialog from "@/components/dashboard/RescheduleRequestDialog";
 import { 
   ArrowLeft, 
   MapPin, 
@@ -72,6 +74,26 @@ const JobDetailPage = () => {
   const [ackDialogOpen, setAckDialogOpen] = useState(false);
   const [ackType, setAckType] = useState<"pre_inspection" | "report_acceptance">("pre_inspection");
   const [accepting, setAccepting] = useState(false);
+  const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const [tenantDetails, setTenantDetails] = useState<any[]>([]);
+
+  // Fetch tenant details for this job
+  useEffect(() => {
+    if (!jobId) return;
+    supabase
+      .from("tenant_details")
+      .select("*")
+      .eq("job_id", jobId)
+      .order("tenant_order", { ascending: true })
+      .then(({ data }) => {
+        if (data) setTenantDetails(data);
+      });
+  }, [jobId]);
+
+  // Reschedule eligibility: client only, not completed/cancelled/in_progress+
+  const canRequestReschedule = role === "client" && 
+    job && ['published', 'accepted', 'assigned'].includes(job.status) &&
+    !(job as any).reschedule_status;
 
   if (loading) {
     return (
@@ -246,6 +268,22 @@ const JobDetailPage = () => {
                 <FileText className="w-4 h-4" />
                 View Report
               </Button>
+            )}
+            {canRequestReschedule && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => setRescheduleOpen(true)}
+              >
+                <Calendar className="w-4 h-4" />
+                Request Reschedule
+              </Button>
+            )}
+            {(job as any).reschedule_status === "pending" && (
+              <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">
+                Reschedule Pending
+              </Badge>
             )}
           </div>
         )}
@@ -465,6 +503,128 @@ const JobDetailPage = () => {
               onUpdate={refetch}
             />
           )}
+
+          {/* Tenant Details Card */}
+          {tenantDetails.length > 0 && (role === "client" || role === "admin") && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="w-5 h-5" />
+                  Tenant Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {tenantDetails.map((t: any) => (
+                  <div key={t.id} className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {t.full_name || "—"}
+                        {t.tenant_order === 2 && <span className="text-xs text-muted-foreground ml-1">(Second Tenant)</span>}
+                      </p>
+                      {t.email && <p className="text-xs text-muted-foreground">{t.email}</p>}
+                      {t.phone && <p className="text-xs text-muted-foreground">{t.phone}</p>}
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Reschedule Status Card (admin) */}
+          {role === "admin" && (job as any).reschedule_status === "pending" && (
+            <Card className="border-warning/30 bg-warning/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-warning">
+                  <Calendar className="w-5 h-5" />
+                  Reschedule Request Pending
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="text-sm">
+                  <p className="text-muted-foreground">Requested new date:</p>
+                  <p className="font-medium text-foreground">
+                    {(job as any).reschedule_requested_date && format(new Date((job as any).reschedule_requested_date), "EEEE, d MMMM yyyy")}
+                    {(job as any).reschedule_requested_time_slot && ` · ${(job as any).reschedule_requested_time_slot}`}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className="bg-success text-success-foreground hover:bg-success/90 gap-1"
+                    onClick={async () => {
+                      const { error } = await supabase
+                        .from("jobs")
+                        .update({
+                          scheduled_date: (job as any).reschedule_requested_date,
+                          preferred_time_slot: (job as any).reschedule_requested_time_slot,
+                          reschedule_status: "approved",
+                          reschedule_resolved_at: new Date().toISOString(),
+                        } as any)
+                        .eq("id", job.id);
+                      if (!error) {
+                        await supabase.from("notifications").insert({
+                          user_id: job.client_id,
+                          type: "job",
+                          title: "Reschedule Approved",
+                          message: `Your reschedule request has been approved. New date: ${(job as any).reschedule_requested_date}`,
+                          link: `/dashboard/jobs/${job.id}`,
+                        });
+                        if (job.clerk_id) {
+                          await supabase.from("notifications").insert({
+                            user_id: job.clerk_id,
+                            type: "job",
+                            title: "Job Rescheduled",
+                            message: `A job has been rescheduled to ${(job as any).reschedule_requested_date}`,
+                            link: `/dashboard/jobs/${job.id}`,
+                          });
+                        }
+                        toast.success("Reschedule approved");
+                        refetch();
+                      } else {
+                        toast.error("Failed to approve reschedule");
+                      }
+                    }}
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    Approve
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-destructive border-destructive/30 gap-1"
+                    onClick={async () => {
+                      const { error } = await supabase
+                        .from("jobs")
+                        .update({
+                          reschedule_status: "rejected",
+                          reschedule_resolved_at: new Date().toISOString(),
+                        } as any)
+                        .eq("id", job.id);
+                      if (!error) {
+                        await supabase.from("notifications").insert({
+                          user_id: job.client_id,
+                          type: "job",
+                          title: "Reschedule Declined",
+                          message: "Your reschedule request has been declined. The original date remains unchanged.",
+                          link: `/dashboard/jobs/${job.id}`,
+                        });
+                        toast.success("Reschedule rejected");
+                        refetch();
+                      } else {
+                        toast.error("Failed to reject reschedule");
+                      }
+                    }}
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    Reject
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Right column - Timeline + Messaging */}
@@ -515,6 +675,16 @@ const JobDetailPage = () => {
           onSuccess={refetch}
         />
       )}
+
+      {/* Reschedule Dialog */}
+      <RescheduleRequestDialog
+        open={rescheduleOpen}
+        onOpenChange={setRescheduleOpen}
+        jobId={job.id}
+        currentDate={job.scheduled_date}
+        currentTimeSlot={job.preferred_time_slot}
+        onSuccess={refetch}
+      />
     </div>
   );
 };

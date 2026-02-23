@@ -13,14 +13,16 @@ import TierSummaryPanel from "@/components/booking/TierSummaryPanel";
 import PropertySizeSelector from "@/components/booking/PropertySizeSelector";
 import DateTimeSelector from "@/components/booking/DateTimeSelector";
 import BookingSummary, { isShortNotice, SHORT_NOTICE_SURCHARGE } from "@/components/booking/BookingSummary";
+import TenantDetailsForm, { TenantData } from "@/components/booking/TenantDetailsForm";
 import { PropertyFormData } from "@/components/booking/PropertyForm";
 import { calculateJobPrice, serviceRequiresTier } from "@/utils/pricing";
 import { format } from "date-fns";
 import { ArrowLeft, ArrowRight, Check, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
+import { supabase } from "@/integrations/supabase/client";
 
-type BookingStep = "inspection" | "tier" | "size" | "property" | "date" | "review";
+type BookingStep = "inspection" | "tier" | "size" | "property" | "date" | "tenant" | "review";
 
 const ALL_STEPS: { key: BookingStep; label: string }[] = [
   { key: "inspection", label: "Service" },
@@ -28,6 +30,7 @@ const ALL_STEPS: { key: BookingStep; label: string }[] = [
   { key: "size", label: "Size" },
   { key: "property", label: "Property" },
   { key: "date", label: "Schedule" },
+  { key: "tenant", label: "Tenant" },
   { key: "review", label: "Review" },
 ];
 
@@ -52,7 +55,8 @@ const BookJob = () => {
   const [tierAcknowledged, setTierAcknowledged] = useState(false);
   const [isCreatingProperty, setIsCreatingProperty] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [primaryTenant, setPrimaryTenant] = useState<TenantData>({ full_name: "", email: "", phone: "" });
+  const [secondaryTenant, setSecondaryTenant] = useState<TenantData | null>(null);
 
   // Redirect non-clients
   useEffect(() => {
@@ -67,10 +71,20 @@ const BookJob = () => {
     [selectedInspectionTypes],
   );
 
-  // Build active steps — skip "tier" when not needed
+  // Determine if tenant step is needed (check_in only)
+  const needsTenant = useMemo(
+    () => selectedInspectionTypes.includes("check_in"),
+    [selectedInspectionTypes],
+  );
+
+  // Build active steps — skip "tier" when not needed, skip "tenant" when not needed
   const STEPS = useMemo(
-    () => (needsTier ? ALL_STEPS : ALL_STEPS.filter((s) => s.key !== "tier")),
-    [needsTier],
+    () => ALL_STEPS.filter((s) => {
+      if (s.key === "tier" && !needsTier) return false;
+      if (s.key === "tenant" && !needsTenant) return false;
+      return true;
+    }),
+    [needsTier, needsTenant],
   );
 
   const currentStepIndex = STEPS.findIndex((s) => s.key === currentStep);
@@ -94,6 +108,10 @@ const BookJob = () => {
         return !!selectedPropertyId;
       case "date":
         return !!selectedDate;
+      case "tenant":
+        // For check_in, primary tenant name is required
+        if (needsTenant) return primaryTenant.full_name.trim().length > 0;
+        return true;
       case "review":
         return detailsConfirmed && policyAcknowledged;
       default:
@@ -161,7 +179,7 @@ const BookJob = () => {
     const shortNotice = isShortNotice(selectedDate);
     const quotedPrice = basePrice + (shortNotice ? SHORT_NOTICE_SURCHARGE : 0);
 
-    const { error } = await createJob(
+    const { error, data: newJob } = await createJob(
       {
         property_id: selectedPropertyId,
         inspection_type: primaryType,
@@ -178,6 +196,19 @@ const BookJob = () => {
         ? { address: selectedProperty.address_line_1, city: selectedProperty.city, postcode: selectedProperty.postcode, property_type: selectedProperty.property_type }
         : undefined,
     );
+
+    // Save tenant details if provided
+    if (!error && newJob?.id && (primaryTenant.full_name || primaryTenant.email || primaryTenant.phone)) {
+      const tenantsToInsert: any[] = [
+        { job_id: newJob.id, tenant_order: 1, full_name: primaryTenant.full_name || null, email: primaryTenant.email || null, phone: primaryTenant.phone || null },
+      ];
+      if (secondaryTenant && (secondaryTenant.full_name || secondaryTenant.email || secondaryTenant.phone)) {
+        tenantsToInsert.push({
+          job_id: newJob.id, tenant_order: 2, full_name: secondaryTenant.full_name || null, email: secondaryTenant.email || null, phone: secondaryTenant.phone || null,
+        });
+      }
+      await supabase.from("tenant_details").insert(tenantsToInsert);
+    }
 
     setIsSubmitting(false);
 
@@ -314,6 +345,16 @@ const BookJob = () => {
               selectedTimeSlot={selectedTimeSlot}
               onDateChange={setSelectedDate}
               onTimeSlotChange={setSelectedTimeSlot}
+            />
+          )}
+
+          {currentStep === "tenant" && (
+            <TenantDetailsForm
+              primaryTenant={primaryTenant}
+              secondaryTenant={secondaryTenant}
+              onPrimaryChange={setPrimaryTenant}
+              onSecondaryChange={setSecondaryTenant}
+              isCheckIn={selectedInspectionTypes.includes("check_in")}
             />
           )}
 

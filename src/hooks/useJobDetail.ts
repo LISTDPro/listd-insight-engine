@@ -252,6 +252,41 @@ export const useJobDetail = (jobId: string | undefined) => {
       });
     }
 
+    // Reschedule events
+    if ((job as any).reschedule_requested_at && (job as any).reschedule_status) {
+      events.push({
+        id: "reschedule_requested",
+        type: "communication",
+        title: "Reschedule Requested",
+        description: `Client requested to reschedule to ${(job as any).reschedule_requested_date || "a new date"}`,
+        timestamp: (job as any).reschedule_requested_at,
+        icon: "calendar",
+        actor: "Client",
+      });
+
+      if ((job as any).reschedule_status === "approved" && (job as any).reschedule_resolved_at) {
+        events.push({
+          id: "reschedule_approved",
+          type: "status",
+          title: "Reschedule Approved",
+          description: "The reschedule request was approved by an admin",
+          timestamp: (job as any).reschedule_resolved_at,
+          icon: "check-circle",
+          actor: "Admin",
+        });
+      } else if ((job as any).reschedule_status === "rejected" && (job as any).reschedule_resolved_at) {
+        events.push({
+          id: "reschedule_rejected",
+          type: "status",
+          title: "Reschedule Declined",
+          description: "The reschedule request was declined. Original date remains.",
+          timestamp: (job as any).reschedule_resolved_at,
+          icon: "x-circle",
+          actor: "Admin",
+        });
+      }
+    }
+
     // Sort by timestamp descending (newest first)
     return events.sort((a, b) => 
       new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()

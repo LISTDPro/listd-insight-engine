@@ -530,6 +530,12 @@ export type Database = {
           provider_job_completed_ack_at: string | null
           quoted_price: number | null
           report_url: string | null
+          reschedule_requested_at: string | null
+          reschedule_requested_date: string | null
+          reschedule_requested_time_slot: string | null
+          reschedule_resolved_at: string | null
+          reschedule_resolved_by: string | null
+          reschedule_status: string | null
           review_email_sent_at: string | null
           scheduled_date: string
           service_tier: string
@@ -576,6 +582,12 @@ export type Database = {
           provider_job_completed_ack_at?: string | null
           quoted_price?: number | null
           report_url?: string | null
+          reschedule_requested_at?: string | null
+          reschedule_requested_date?: string | null
+          reschedule_requested_time_slot?: string | null
+          reschedule_resolved_at?: string | null
+          reschedule_resolved_by?: string | null
+          reschedule_status?: string | null
           review_email_sent_at?: string | null
           scheduled_date: string
           service_tier?: string
@@ -622,6 +634,12 @@ export type Database = {
           provider_job_completed_ack_at?: string | null
           quoted_price?: number | null
           report_url?: string | null
+          reschedule_requested_at?: string | null
+          reschedule_requested_date?: string | null
+          reschedule_requested_time_slot?: string | null
+          reschedule_resolved_at?: string | null
+          reschedule_resolved_by?: string | null
+          reschedule_status?: string | null
           review_email_sent_at?: string | null
           scheduled_date?: string
           service_tier?: string
@@ -998,6 +1016,47 @@ export type Database = {
           severity?: number
         }
         Relationships: []
+      }
+      tenant_details: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          job_id: string
+          phone: string | null
+          tenant_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          job_id: string
+          phone?: string | null
+          tenant_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          job_id?: string
+          phone?: string | null
+          tenant_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_details_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

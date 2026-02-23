@@ -202,7 +202,7 @@ const JobDetailPage = () => {
         </div>
 
         {/* Action buttons */}
-        {(needsPreAck || needsReportAcceptance || isClerkAvailableJob || isClerkAcceptedJob || isClerkInProgressJob) && (
+        {(needsPreAck || needsReportAcceptance || isClerkAvailableJob || isClerkAcceptedJob || isClerkInProgressJob || canRequestReschedule || (job as any).reschedule_status === "pending") && (
           <div className="flex gap-2">
             {isClerkAvailableJob && (
               <>

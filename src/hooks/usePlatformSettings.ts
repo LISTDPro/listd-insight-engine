@@ -7,6 +7,9 @@ export interface PlatformSettings {
   google_review_count: string;
   google_reviews_embed_code: string;
   google_reviews_enabled: string;
+  trustpilot_enabled: string;
+  trustpilot_embed_code: string;
+  trustpilot_review_link: string;
   instagram_url: string;
   facebook_url: string;
   review_email_enabled: string;
@@ -19,6 +22,9 @@ const DEFAULT_SETTINGS: PlatformSettings = {
   google_review_count: "",
   google_reviews_embed_code: "",
   google_reviews_enabled: "true",
+  trustpilot_enabled: "false",
+  trustpilot_embed_code: "",
+  trustpilot_review_link: "",
   instagram_url: "https://www.instagram.com/thee_inventory_guy?igsh=MTllc2tvNTNqbG95aQ%3D%3D&utm_source=qr",
   facebook_url: "https://www.facebook.com/share/1Cj3tD4Zre/?mibextid=wwXIfr",
   review_email_enabled: "true",

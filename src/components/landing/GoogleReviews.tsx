@@ -119,10 +119,10 @@ const TrustpilotSection = ({ settings }: { settings: any }) => {
 
   useEffect(() => {
     if (trustpilotEnabled && trustpilotEmbed && containerRef.current) {
-      // Re-init Trustpilot widgets after embed code is injected
+      const widget = containerRef.current.querySelector('.trustpilot-widget');
       const win = window as any;
-      if (win.Trustpilot) {
-        win.Trustpilot.loadFromElement(containerRef.current, true);
+      if (widget && win.Trustpilot) {
+        win.Trustpilot.loadFromElement(widget, true);
       }
     }
   }, [trustpilotEnabled, trustpilotEmbed]);

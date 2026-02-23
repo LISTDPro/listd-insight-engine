@@ -1,44 +1,85 @@
 
+## Property Details -- Safe Edits with Audit Trail and Notifications
 
-## Fix: "Request Reschedule" Button Not Visible to Clients
+### What This Adds
 
-### Root Cause
+When a client edits a property, the system will:
+1. Log every change in a new `property_change_logs` table (audit trail)
+2. Notify admins and assigned clerks that property details changed
+3. Flag if the change may impact pricing (room counts, property type, furnished status)
+4. Show the change history in the Job Detail Activity Timeline
 
-In `JobDetailPage.tsx` (line 205), the action buttons area is wrapped in a condition:
+No changes to pricing engine, booking workflow, room presets, or any existing logic.
 
-```
-{(needsPreAck || needsReportAcceptance || isClerkAvailableJob || isClerkAcceptedJob || isClerkInProgressJob) && (
-  <div className="flex gap-2">
-    ...
-    {canRequestReschedule && ( <Button>Request Reschedule</Button> )}
-    ...
-  </div>
-)}
-```
+---
 
-The outer condition does not include `canRequestReschedule`, so when a client views a confirmed job where pre-inspection is already acknowledged and the report hasn't been submitted yet, the entire action bar is hidden -- along with the reschedule button.
+### Database Changes (1 migration)
 
-### Fix
+**New table: `property_change_logs`**
 
-Add `canRequestReschedule` and the pending-reschedule badge condition to the outer guard:
+| Column | Type | Notes |
+|--------|------|-------|
+| id | uuid, PK | auto-generated |
+| property_id | uuid, not null | references properties |
+| changed_by | uuid, not null | the user who made the edit |
+| changes | jsonb, not null | object mapping field names to `{old, new}` values |
+| may_affect_pricing | boolean, default false | true if room counts, property_type, or furnished_status changed |
+| created_at | timestamptz, default now() | when the change was made |
 
-```
-{(needsPreAck || needsReportAcceptance || isClerkAvailableJob || isClerkAcceptedJob || isClerkInProgressJob || canRequestReschedule || (job as any).reschedule_status === "pending") && (
-```
+RLS policies:
+- Clients can insert and view logs for their own properties
+- Admins can view all logs
+- Clerks can view logs for properties linked to their jobs
 
-This is a one-line change. No other files, logic, or layout are modified.
+---
 
-### What Was Already Implemented (Confirmed Working)
+### Frontend Changes
 
-All three features from the original plan are already in the codebase:
+**1. `useProperties.ts` -- Enhanced `updateProperty` function**
 
-1. **Request Reschedule** -- `RescheduleRequestDialog.tsx` exists, database columns are in place, admin approve/reject UI is in `JobDetailPage.tsx` (admin section). Only the visibility bug above prevents clients from seeing the button.
+After a successful property update, the hook will:
+- Compare old vs new values to build a `changes` diff object
+- Determine `may_affect_pricing` (true if any of: bedrooms, bathrooms, kitchens, living_rooms, dining_areas, utility_rooms, storage_rooms, hallways_stairs, gardens, communal_areas, property_type, furnished_status, heavily_furnished changed)
+- Insert a row into `property_change_logs`
+- Look up any active jobs for this property and insert notifications for assigned admins and clerks
 
-2. **Tenant Details** -- `TenantDetailsForm.tsx` exists, the "Tenant" step is wired into `BookJob.tsx` for check-in jobs, and tenant data is saved to the `tenant_details` table.
+The hook will need to store properties in a way that the old values are available for comparison. Currently `fetchProperties` already stores the full property list, so the old property can be found by ID before saving.
 
-3. **Tenant Email Notification** -- The `notify-tenant-checkin` edge function is deployed and triggered from `useClerkJobs.ts` when a clerk accepts a check-in job.
+**2. `JobDetailPage.tsx` -- Show property edit events in timeline**
+
+In `useJobDetail.ts`, after building the timeline, fetch `property_change_logs` for the job's property_id (created after the job was created). Add timeline entries like:
+- Title: "Property Details Updated"
+- Description: lists changed fields, e.g. "Bedrooms: 2 -> 3, Bathrooms: 1 -> 2"
+- If `may_affect_pricing` is true, append: "This change may affect pricing -- flagged for review."
+- Actor: "Client"
+
+**3. `JobDetailPage.tsx` -- "Edit Property" button on Property Details card**
+
+Add a pencil/edit icon button on the Property Details card (visible to clients only, for non-completed/cancelled jobs). Clicking opens the existing `PropertyForm` in a dialog, pre-filled with the current property data. On submit, calls `updateProperty` from `useProperties` and refetches the job.
+
+**4. Notification insertion (in `useProperties.ts`)**
+
+After logging the change, the `updateProperty` function will:
+- Query `jobs` for any active jobs (status not in completed, paid, cancelled) linked to this property
+- For each such job, insert a notification for all admins (queried from `user_roles` where role = admin) with title "Property Details Changed" and a message listing what changed, linking to the job
+- If a clerk is assigned, insert a notification for them too
+- If `may_affect_pricing` is true, the notification message will include "Pricing review may be required"
+
+---
 
 ### Files Changed
 
-- `src/pages/dashboard/JobDetailPage.tsx` -- Add `canRequestReschedule` and reschedule-pending check to the outer rendering condition on line 205.
+| File | Change |
+|------|--------|
+| Migration SQL | Create `property_change_logs` table with RLS |
+| `src/hooks/useProperties.ts` | Add diff logic, insert change log, insert notifications on update |
+| `src/hooks/useJobDetail.ts` | Fetch property change logs, add to timeline |
+| `src/pages/dashboard/JobDetailPage.tsx` | Add "Edit Property" button on Property Details card with dialog |
 
+### What Stays Unchanged
+
+- Pricing engine (no automatic recalculation)
+- Room presets in PropertyForm
+- Booking workflow and submission logic
+- Clerk assignment logic
+- All existing notifications, reports, and admin controls

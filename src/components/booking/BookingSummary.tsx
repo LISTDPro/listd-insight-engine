@@ -30,6 +30,7 @@ interface BookingSummaryProps {
   onPolicyAcknowledgedChange: (value: boolean) => void;
   selectedSize: PropertyType;
   selectedFurnishing: FurnishedStatus;
+  tenantName?: string;
 }
 
 const TIME_SLOT_LABELS: Record<string, string> = {
@@ -52,6 +53,7 @@ const BookingSummary = ({
   onPolicyAcknowledgedChange,
   selectedSize,
   selectedFurnishing,
+  tenantName,
 }: BookingSummaryProps) => {
   const showTier = inspectionTypes.some((t) => serviceRequiresTier(t));
   const shortNotice = isShortNotice(scheduledDate);
@@ -177,6 +179,19 @@ const BookingSummary = ({
                     {TIME_SLOT_LABELS[timeSlot]}
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Tenant */}
+          {tenantName && (
+            <div className="flex gap-2.5">
+              <div className="w-7 h-7 rounded bg-muted flex items-center justify-center shrink-0">
+                <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
+              </div>
+              <div>
+                <div className="text-xs font-medium text-foreground">Tenant</div>
+                <div className="text-[10px] text-muted-foreground">{tenantName}</div>
               </div>
             </div>
           )}

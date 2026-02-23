@@ -130,17 +130,30 @@ export const useClerkJobs = () => {
   const acceptJob = async (jobId: string) => {
     if (!user) return { error: new Error("Not authenticated") };
 
-    const { error: updateError } = await supabase
+    const { data: jobData, error: updateError } = await supabase
       .from("jobs")
       .update({
         clerk_id: user.id,
         status: "accepted" as JobStatus,
       })
       .eq("id", jobId)
-      .eq("status", "published");
+      .eq("status", "published")
+      .select("inspection_type")
+      .single();
 
-    if (!updateError) {
+    if (!updateError && jobData) {
       await refreshJobs();
+
+      // Trigger tenant notification for check-in jobs
+      if (jobData.inspection_type === "check_in") {
+        try {
+          await supabase.functions.invoke("notify-tenant-checkin", {
+            body: { jobId },
+          });
+        } catch (e) {
+          console.error("Failed to notify tenant:", e);
+        }
+      }
     }
 
     return { error: updateError as Error | null };

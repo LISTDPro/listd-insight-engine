@@ -15,7 +15,8 @@ import {
   CheckCircle2,
   XCircle,
   MessageCircle,
-  Clock
+  Clock,
+  CalendarDays
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -34,6 +35,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   "check-circle-2": CheckCircle2,
   "x-circle": XCircle,
   "message-circle": MessageCircle,
+  "calendar": CalendarDays,
 };
 
 const typeStyles: Record<string, string> = {

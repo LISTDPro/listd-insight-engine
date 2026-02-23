@@ -940,6 +940,41 @@ export type Database = {
         }
         Relationships: []
       }
+      property_change_logs: {
+        Row: {
+          changed_by: string
+          changes: Json
+          created_at: string
+          id: string
+          may_affect_pricing: boolean
+          property_id: string
+        }
+        Insert: {
+          changed_by: string
+          changes: Json
+          created_at?: string
+          id?: string
+          may_affect_pricing?: boolean
+          property_id: string
+        }
+        Update: {
+          changed_by?: string
+          changes?: Json
+          created_at?: string
+          id?: string
+          may_affect_pricing?: boolean
+          property_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_change_logs_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           clerk_response: string | null

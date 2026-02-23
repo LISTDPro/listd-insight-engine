@@ -15,7 +15,7 @@ interface CreateJobInput {
 }
 
 export const useJobs = () => {
-  const { user } = useAuth();
+  const { user, organisationId } = useAuth();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,11 +26,19 @@ export const useJobs = () => {
     setLoading(true);
     setError(null);
 
-    const { data, error: fetchError } = await supabase
+    // Org-aware: fetch by organisation_id if user belongs to an org, otherwise by client_id
+    let query = supabase
       .from("jobs")
       .select("*")
-      .eq("client_id", user.id)
       .order("created_at", { ascending: false });
+
+    if (organisationId) {
+      query = query.eq("organisation_id", organisationId);
+    } else {
+      query = query.eq("client_id", user.id);
+    }
+
+    const { data, error: fetchError } = await query;
 
     if (fetchError) {
       setError(fetchError.message);
@@ -61,11 +69,13 @@ export const useJobs = () => {
       .insert({
         ...input,
         client_id: user.id,
+        created_by_user_id: user.id,
+        organisation_id: organisationId || undefined,
         status: "published" as JobStatus,
         clerk_payout: clerkPay,
         clerk_final_payout: clerkPay,
         margin,
-      })
+      } as any)
       .select()
       .single();
 

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 // Provider role reserved for future SaaS expansion. Not active in Phase 1.
 type AppRole = "client" | "provider" | "clerk" | "admin";
+type OrgRole = "owner" | "staff" | null;
 
 interface Profile {
   id: string;
@@ -25,6 +26,8 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   role: AppRole | null;
+  orgRole: OrgRole;
+  organisationId: string | null;
   loading: boolean;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -41,6 +44,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [role, setRoleState] = useState<AppRole | null>(null);
+  const [orgRole, setOrgRole] = useState<OrgRole>(null);
+  const [organisationId, setOrganisationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
@@ -65,6 +70,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (roleData) {
       setRoleState(roleData.role as AppRole);
     }
+
+    // Fetch organisation membership
+    const { data: orgData } = await supabase
+      .from("organisation_members" as any)
+      .select("organisation_id, org_role")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .limit(1)
+      .maybeSingle();
+
+    if (orgData) {
+      setOrganisationId((orgData as any).organisation_id);
+      setOrgRole((orgData as any).org_role as OrgRole);
+    } else {
+      setOrganisationId(null);
+      setOrgRole(null);
+    }
   };
 
   useEffect(() => {
@@ -82,11 +104,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         } else {
           setProfile(null);
           setRoleState(null);
+          setOrgRole(null);
+          setOrganisationId(null);
         }
 
         if (event === "SIGNED_OUT") {
           setProfile(null);
           setRoleState(null);
+          setOrgRole(null);
+          setOrganisationId(null);
         }
 
         setLoading(false);
@@ -140,6 +166,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setSession(null);
     setProfile(null);
     setRoleState(null);
+    setOrgRole(null);
+    setOrganisationId(null);
   };
 
   const setRole = async (newRole: AppRole) => {
@@ -206,6 +234,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         session,
         profile,
         role,
+        orgRole,
+        organisationId,
         loading,
         signUp,
         signIn,

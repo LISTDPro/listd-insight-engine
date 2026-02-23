@@ -58,7 +58,7 @@ const BookJob = () => {
   const [primaryTenant, setPrimaryTenant] = useState<TenantData>({ full_name: "", email: "", phone: "" });
   const [secondaryTenant, setSecondaryTenant] = useState<TenantData | null>(null);
 
-  // Redirect non-clients
+  // Redirect non-clients (allow staff org members who have client role)
   useEffect(() => {
     if (!authLoading && (!user || role !== "client")) {
       navigate("/dashboard");

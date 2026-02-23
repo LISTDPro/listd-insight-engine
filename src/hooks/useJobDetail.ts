@@ -112,12 +112,24 @@ export const useJobDetail = (jobId: string | undefined) => {
 
       // Provider role reserved for future SaaS expansion. Not active in Phase 1.
 
+      // Fetch creator profile if created_by_user_id exists
+      let creatorName: string | null = null;
+      if (jobData.created_by_user_id) {
+        const { data: creatorData } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("user_id", jobData.created_by_user_id)
+          .maybeSingle();
+        creatorName = creatorData?.full_name || null;
+      }
+
       const fullJob: JobWithDetails = {
         ...jobData,
         property: jobData.property,
         clerk_profile: clerkProfile,
         provider_profile: null,
-      };
+        creator_name: creatorName,
+      } as any;
 
       setJob(fullJob);
       setTimeline(buildTimeline(fullJob));
@@ -139,6 +151,7 @@ export const useJobDetail = (jobId: string | undefined) => {
       description: "Inspection job was booked and published",
       timestamp: job.created_at,
       icon: "plus-circle",
+      actor: (job as any).creator_name || undefined,
     });
 
     // Client pre-inspection acknowledgement

@@ -8,7 +8,8 @@ import {
   HelpCircle,
   LogOut,
   ChevronLeft,
-  Shield
+  Shield,
+  Users
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ const bottomNavItems = [
 const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
-  const { signOut, role } = useAuth();
+  const { signOut, role, orgRole } = useAuth();
 
   const handleSignOut = async () => {
     await signOut();
@@ -55,6 +56,19 @@ const Sidebar = () => {
       return mainNavItems
         .filter(item => ["Dashboard", "Jobs", "Reports", "Payments"].includes(item.label))
         .map(item => item.label === "Payments" ? { ...item, label: "Earnings" } : item);
+    }
+    // Client role: add Team tab for owners, hide Payments for staff
+    if (role === "client") {
+      let items = [...mainNavItems];
+      if (orgRole === "owner") {
+        // Insert Team after Properties
+        const propsIdx = items.findIndex(i => i.label === "Properties");
+        items.splice(propsIdx + 1, 0, { icon: Users, label: "Team", to: "/dashboard/team" });
+      }
+      if (orgRole === "staff") {
+        items = items.filter(i => i.label !== "Payments");
+      }
+      return items;
     }
     // Provider role reserved for future SaaS expansion. Not active in Phase 1.
     return mainNavItems;

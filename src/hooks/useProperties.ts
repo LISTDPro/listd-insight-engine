@@ -32,7 +32,7 @@ const PRICING_FIELDS = [
 
 
 export const useProperties = () => {
-  const { user } = useAuth();
+  const { user, organisationId } = useAuth();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,11 +43,18 @@ export const useProperties = () => {
     setLoading(true);
     setError(null);
 
-    const { data, error: fetchError } = await supabase
+    let query = supabase
       .from("properties")
       .select("*")
-      .eq("client_id", user.id)
       .order("created_at", { ascending: false });
+
+    if (organisationId) {
+      query = query.eq("organisation_id", organisationId);
+    } else {
+      query = query.eq("client_id", user.id);
+    }
+
+    const { data, error: fetchError } = await query;
 
     if (fetchError) {
       setError(fetchError.message);
@@ -70,7 +77,8 @@ export const useProperties = () => {
       .insert({
         ...input,
         client_id: user.id,
-      })
+        organisation_id: organisationId || undefined,
+      } as any)
       .select()
       .single();
 

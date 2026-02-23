@@ -204,9 +204,12 @@ const JobDetailPage = () => {
                 {JOB_STATUS_LABELS[job.status as JobStatus]}
               </Badge>
             </div>
-            <p className="text-muted-foreground flex items-center gap-2">
+            <p className="text-muted-foreground flex items-center gap-2 flex-wrap">
               {INSPECTION_TYPE_LABELS[job.inspection_type as keyof typeof INSPECTION_TYPE_LABELS]} • 
               Created {format(new Date(job.created_at), "MMM d, yyyy")}
+              {(job as any).creator_name && (
+                <span className="text-xs">• Created by: {(job as any).creator_name}</span>
+              )}
               <TierBadge tier={job.service_tier} />
             </p>
           </div>

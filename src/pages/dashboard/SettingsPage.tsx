@@ -294,26 +294,14 @@ const SettingsPage = () => {
 
                 <Separator />
 
-                {/* In-App Notifications */}
+                {/* In-App Notifications — Always On */}
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Bell className="w-4 h-4 text-muted-foreground" />
                       <h3 className="text-sm font-semibold text-foreground">In-App Notifications</h3>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground">Mute all</span>
-                      <Switch
-                        checked={inappRows.every(r => !prefs[r.key])}
-                        onCheckedChange={(muted) => {
-                          setPrefs(prev => {
-                            const next = { ...prev };
-                            inappRows.forEach(r => { next[r.key] = !muted; });
-                            return next;
-                          });
-                        }}
-                      />
-                    </div>
+                    <Badge variant="secondary" className="text-xs">Always On</Badge>
                   </div>
                   <div className="space-y-3">
                     {inappRows.map(row => (
@@ -323,8 +311,8 @@ const SettingsPage = () => {
                           <p className="text-xs text-muted-foreground">{row.description}</p>
                         </div>
                         <Switch
-                          checked={prefs[row.key]}
-                          onCheckedChange={() => togglePref(row.key)}
+                          checked={true}
+                          disabled
                         />
                       </div>
                     ))}

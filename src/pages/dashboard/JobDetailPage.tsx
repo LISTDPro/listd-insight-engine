@@ -25,6 +25,14 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import RescheduleRequestDialog from "@/components/dashboard/RescheduleRequestDialog";
+import { useProperties } from "@/hooks/useProperties";
+import PropertyForm, { PropertyFormData } from "@/components/booking/PropertyForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   ArrowLeft, 
   MapPin, 
@@ -46,7 +54,8 @@ import {
   Loader2,
   ClipboardCheck,
   CheckCircle2,
-  ShieldCheck
+  ShieldCheck,
+  Pencil
 } from "lucide-react";
 
 const STATUS_STYLES: Partial<Record<JobStatus, string>> = {
@@ -76,7 +85,9 @@ const JobDetailPage = () => {
   const [accepting, setAccepting] = useState(false);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [tenantDetails, setTenantDetails] = useState<any[]>([]);
-
+  const [editPropertyOpen, setEditPropertyOpen] = useState(false);
+  const [editPropertyLoading, setEditPropertyLoading] = useState(false);
+  const { updateProperty } = useProperties();
   // Fetch tenant details for this job
   useEffect(() => {
     if (!jobId) return;
@@ -350,9 +361,21 @@ const JobDetailPage = () => {
           {role !== "clerk" && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Home className="w-5 h-5" />
-                  Property Details
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <Home className="w-5 h-5" />
+                    Property Details
+                  </span>
+                  {role === "client" && !["completed", "paid", "cancelled"].includes(job.status) && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setEditPropertyOpen(true)}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -685,6 +708,54 @@ const JobDetailPage = () => {
         currentTimeSlot={job.preferred_time_slot}
         onSuccess={refetch}
       />
+
+      {/* Edit Property Dialog */}
+      {job.property && (
+        <Dialog open={editPropertyOpen} onOpenChange={setEditPropertyOpen}>
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Property Details</DialogTitle>
+            </DialogHeader>
+            <PropertyForm
+              initialData={{
+                address_line_1: job.property.address_line_1,
+                address_line_2: job.property.address_line_2 || "",
+                city: job.property.city,
+                postcode: job.property.postcode,
+                property_type: job.property.property_type as any,
+                bedrooms: job.property.bedrooms,
+                bathrooms: job.property.bathrooms,
+                kitchens: (job.property as any).kitchens ?? 1,
+                living_rooms: (job.property as any).living_rooms ?? 1,
+                dining_areas: (job.property as any).dining_areas ?? 0,
+                utility_rooms: (job.property as any).utility_rooms ?? 0,
+                storage_rooms: (job.property as any).storage_rooms ?? 0,
+                hallways_stairs: (job.property as any).hallways_stairs ?? 0,
+                gardens: (job.property as any).gardens ?? 0,
+                communal_areas: (job.property as any).communal_areas ?? 0,
+                furnished_status: (job.property as any).furnished_status ?? "unfurnished",
+                heavily_furnished: (job.property as any).heavily_furnished ?? false,
+                notes: (job.property as any).notes ?? "",
+              }}
+              onSubmit={async (data: PropertyFormData) => {
+                setEditPropertyLoading(true);
+                const { error } = await updateProperty(job.property_id, data);
+                setEditPropertyLoading(false);
+                if (error) {
+                  toast.error("Failed to update property");
+                } else {
+                  toast.success("Property details updated");
+                  setEditPropertyOpen(false);
+                  refetch();
+                }
+              }}
+              onCancel={() => setEditPropertyOpen(false)}
+              isLoading={editPropertyLoading}
+              submitLabel="Save Changes"
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

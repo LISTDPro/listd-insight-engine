@@ -36,6 +36,17 @@ export interface JobWithDetails {
     property_type: string;
     bedrooms: number;
     bathrooms: number;
+    kitchens: number;
+    living_rooms: number;
+    dining_areas: number;
+    utility_rooms: number;
+    storage_rooms: number;
+    hallways_stairs: number;
+    gardens: number;
+    communal_areas: number;
+    furnished_status: string;
+    heavily_furnished: boolean;
+    notes: string | null;
   };
   clerk_profile?: {
     full_name: string | null;
@@ -76,15 +87,7 @@ export const useJobDetail = (jobId: string | undefined) => {
         .from("jobs")
         .select(`
           *,
-          property:properties(
-            address_line_1,
-            address_line_2,
-            city,
-            postcode,
-            property_type,
-            bedrooms,
-            bathrooms
-          )
+          property:properties(*)
         `)
         .eq("id", jobId)
         .maybeSingle();
@@ -293,9 +296,70 @@ export const useJobDetail = (jobId: string | undefined) => {
     );
   };
 
+  const fetchPropertyChangeLogs = async (propertyId: string, jobCreatedAt: string): Promise<TimelineEvent[]> => {
+    const { data } = await supabase
+      .from("property_change_logs" as any)
+      .select("*")
+      .eq("property_id", propertyId)
+      .gte("created_at", jobCreatedAt)
+      .order("created_at", { ascending: false });
+
+    if (!data || data.length === 0) return [];
+
+    return (data as any[]).map((log) => {
+      const changes = log.changes as Record<string, { old: any; new: any }>;
+      const fieldLabels: Record<string, string> = {
+        address_line_1: "Address", address_line_2: "Address Line 2",
+        city: "City", postcode: "Postcode", property_type: "Property Type",
+        bedrooms: "Bedrooms", bathrooms: "Bathrooms", kitchens: "Kitchens",
+        living_rooms: "Living Rooms", dining_areas: "Dining Areas",
+        utility_rooms: "Utility Rooms", storage_rooms: "Storage Rooms",
+        hallways_stairs: "Hallways", gardens: "Gardens",
+        communal_areas: "Communal Areas", furnished_status: "Furnished Status",
+        heavily_furnished: "Heavily Furnished", notes: "Notes",
+      };
+
+      const desc = Object.entries(changes)
+        .map(([field, vals]) => `${fieldLabels[field] || field}: ${vals.old} → ${vals.new}`)
+        .join(", ");
+
+      const pricingFlag = log.may_affect_pricing
+        ? " ⚠️ This change may affect pricing — flagged for review."
+        : "";
+
+      return {
+        id: `property_change_${log.id}`,
+        type: "communication" as const,
+        title: "Property Details Updated",
+        description: `${desc}${pricingFlag}`,
+        timestamp: log.created_at,
+        icon: "building",
+        actor: "Client",
+      };
+    });
+  };
+
   useEffect(() => {
-    fetchJob();
+    const loadAll = async () => {
+      await fetchJob();
+    };
+    loadAll();
   }, [user, jobId]);
+
+  // Fetch property change logs after job is loaded and merge into timeline
+  useEffect(() => {
+    if (!job) return;
+    fetchPropertyChangeLogs(job.property_id, job.created_at).then((changeEvents) => {
+      if (changeEvents.length > 0) {
+        setTimeline((prev) => {
+          // Remove old property_change_ events to avoid duplicates
+          const filtered = prev.filter((e) => !e.id.startsWith("property_change_"));
+          const merged = [...filtered, ...changeEvents];
+          return merged.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        });
+      }
+    });
+  }, [job?.id]);
 
   return {
     job,

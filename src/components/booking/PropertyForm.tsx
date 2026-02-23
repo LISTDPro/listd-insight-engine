@@ -26,6 +26,21 @@ import {
 import { Building2, MapPin, Home, Loader2, Info } from "lucide-react";
 import PropertyPricingPreview from "./PropertyPricingPreview";
 
+type RoomPreset = Pick<PropertyFormData, "bedrooms" | "bathrooms" | "kitchens" | "living_rooms" | "dining_areas" | "utility_rooms" | "storage_rooms" | "hallways_stairs" | "gardens" | "communal_areas">;
+
+const PROPERTY_TYPE_PRESETS: Record<PropertyType, RoomPreset> = {
+  studio:  { bedrooms: 0, bathrooms: 1, kitchens: 1, living_rooms: 1, dining_areas: 0, utility_rooms: 0, storage_rooms: 0, hallways_stairs: 0, gardens: 0, communal_areas: 0 },
+  "1_bed": { bedrooms: 1, bathrooms: 1, kitchens: 1, living_rooms: 1, dining_areas: 0, utility_rooms: 0, storage_rooms: 0, hallways_stairs: 0, gardens: 0, communal_areas: 0 },
+  "2_bed": { bedrooms: 2, bathrooms: 1, kitchens: 1, living_rooms: 1, dining_areas: 0, utility_rooms: 0, storage_rooms: 0, hallways_stairs: 0, gardens: 0, communal_areas: 0 },
+  "3_bed": { bedrooms: 3, bathrooms: 1, kitchens: 1, living_rooms: 1, dining_areas: 0, utility_rooms: 0, storage_rooms: 0, hallways_stairs: 0, gardens: 0, communal_areas: 0 },
+  "4_bed": { bedrooms: 4, bathrooms: 1, kitchens: 1, living_rooms: 1, dining_areas: 0, utility_rooms: 0, storage_rooms: 0, hallways_stairs: 0, gardens: 0, communal_areas: 0 },
+  "5_bed": { bedrooms: 5, bathrooms: 1, kitchens: 1, living_rooms: 1, dining_areas: 0, utility_rooms: 0, storage_rooms: 0, hallways_stairs: 0, gardens: 0, communal_areas: 0 },
+  "6_bed": { bedrooms: 6, bathrooms: 1, kitchens: 1, living_rooms: 1, dining_areas: 0, utility_rooms: 0, storage_rooms: 0, hallways_stairs: 0, gardens: 0, communal_areas: 0 },
+  "7_bed": { bedrooms: 7, bathrooms: 1, kitchens: 1, living_rooms: 1, dining_areas: 0, utility_rooms: 0, storage_rooms: 0, hallways_stairs: 0, gardens: 0, communal_areas: 0 },
+  "8_bed": { bedrooms: 8, bathrooms: 1, kitchens: 1, living_rooms: 1, dining_areas: 0, utility_rooms: 0, storage_rooms: 0, hallways_stairs: 0, gardens: 0, communal_areas: 0 },
+  "9_bed": { bedrooms: 9, bathrooms: 1, kitchens: 1, living_rooms: 1, dining_areas: 0, utility_rooms: 0, storage_rooms: 0, hallways_stairs: 0, gardens: 0, communal_areas: 0 },
+};
+
 const ROOM_TOOLTIPS = {
   bedrooms: "Any room designed for sleeping, including master bedrooms, guest rooms, and box rooms used as bedrooms.",
   bathrooms: "Full bathrooms with bath/shower, en-suites, and separate WCs/toilets. Count each as one.",
@@ -107,6 +122,13 @@ const PropertyForm = ({ onSubmit, onCancel, isLoading, initialData, submitLabel 
   });
 
   const handleChange = (field: keyof PropertyFormData, value: string | number | boolean) => {
+    if (field === "property_type") {
+      const preset = PROPERTY_TYPE_PRESETS[value as PropertyType];
+      if (preset) {
+        setFormData((prev) => ({ ...prev, property_type: value as PropertyType, ...preset }));
+        return;
+      }
+    }
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 

@@ -19,6 +19,9 @@ const PlatformSettingsPanel = () => {
     google_review_count: "",
     google_reviews_embed_code: "",
     google_reviews_enabled: "true",
+    trustpilot_enabled: "false",
+    trustpilot_embed_code: "",
+    trustpilot_review_link: "",
     instagram_url: "",
     facebook_url: "",
     review_email_enabled: "true",
@@ -168,6 +171,69 @@ const PlatformSettingsPanel = () => {
                 Only real reviews from your Google Business Profile. Widget script tag must be added separately if required.
               </p>
               <Button size="sm" variant="outline" onClick={() => handleSave("google_reviews_embed_code")}>
+                <Save className="w-3.5 h-3.5 mr-1" /> Save embed
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Trustpilot */}
+      <div className="bg-card border border-border overflow-hidden">
+        <div className="px-5 py-4 border-b border-border flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+            <Star className="w-4 h-4 text-emerald-500" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Trustpilot</h3>
+            <p className="text-xs text-muted-foreground">Embed your Trustpilot widget — real reviews only</p>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Display on site</span>
+            <Switch
+              checked={form.trustpilot_enabled !== "false"}
+              onCheckedChange={(checked) => {
+                const value = checked ? "true" : "false";
+                setForm((f) => ({ ...f, trustpilot_enabled: value }));
+                updateSetting.mutate({ key: "trustpilot_enabled", value });
+              }}
+            />
+          </div>
+        </div>
+        <div className="p-5 space-y-4">
+          <div className="space-y-1.5">
+            <Label className="text-xs">Trustpilot Profile URL</Label>
+            <div className="flex gap-2">
+              <Input
+                value={form.trustpilot_review_link}
+                onChange={(e) => setForm((f) => ({ ...f, trustpilot_review_link: e.target.value }))}
+                placeholder="https://www.trustpilot.com/review/..."
+                className="text-sm"
+              />
+              <Button size="sm" variant="outline" onClick={() => handleSave("trustpilot_review_link")}>
+                <Save className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground">Used for the "Leave a review" link</p>
+          </div>
+
+          <div className="space-y-1.5 pt-2 border-t border-border">
+            <div className="flex items-center gap-2 mb-1">
+              <Code className="w-3.5 h-3.5 text-muted-foreground" />
+              <Label className="text-xs">Trustpilot Widget Embed Code</Label>
+            </div>
+            <Textarea
+              value={form.trustpilot_embed_code}
+              onChange={(e) => setForm((f) => ({ ...f, trustpilot_embed_code: e.target.value }))}
+              placeholder='Paste your Trustpilot widget embed code here&#10;&#10;Example: <div class="trustpilot-widget" data-locale="en-GB" ...></div>'
+              className="text-xs font-mono min-h-[100px]"
+              rows={5}
+            />
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] text-muted-foreground">
+                Only real reviews from your Trustpilot Business Profile.
+              </p>
+              <Button size="sm" variant="outline" onClick={() => handleSave("trustpilot_embed_code")}>
                 <Save className="w-3.5 h-3.5 mr-1" /> Save embed
               </Button>
             </div>

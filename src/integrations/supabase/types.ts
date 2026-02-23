@@ -516,12 +516,14 @@ export type Database = {
           client_signature_at: string | null
           client_signature_url: string | null
           created_at: string
+          created_by_user_id: string | null
           delivered_at: string | null
           final_price: number | null
           id: string
           inspection_type: Database["public"]["Enums"]["inspection_type"]
           inventorybase_job_id: string | null
           margin: number | null
+          organisation_id: string | null
           policy_acknowledged_at: string | null
           preferred_time_slot: string | null
           property_id: string
@@ -568,12 +570,14 @@ export type Database = {
           client_signature_at?: string | null
           client_signature_url?: string | null
           created_at?: string
+          created_by_user_id?: string | null
           delivered_at?: string | null
           final_price?: number | null
           id?: string
           inspection_type: Database["public"]["Enums"]["inspection_type"]
           inventorybase_job_id?: string | null
           margin?: number | null
+          organisation_id?: string | null
           policy_acknowledged_at?: string | null
           preferred_time_slot?: string | null
           property_id: string
@@ -620,12 +624,14 @@ export type Database = {
           client_signature_at?: string | null
           client_signature_url?: string | null
           created_at?: string
+          created_by_user_id?: string | null
           delivered_at?: string | null
           final_price?: number | null
           id?: string
           inspection_type?: Database["public"]["Enums"]["inspection_type"]
           inventorybase_job_id?: string | null
           margin?: number | null
+          organisation_id?: string | null
           policy_acknowledged_at?: string | null
           preferred_time_slot?: string | null
           property_id?: string
@@ -781,6 +787,77 @@ export type Database = {
         }
         Relationships: []
       }
+      organisation_members: {
+        Row: {
+          created_at: string
+          id: string
+          invite_token: string | null
+          invited_at: string | null
+          invited_email: string | null
+          last_active_at: string | null
+          org_role: string
+          organisation_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invite_token?: string | null
+          invited_at?: string | null
+          invited_email?: string | null
+          last_active_at?: string | null
+          org_role?: string
+          organisation_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invite_token?: string | null
+          invited_at?: string | null
+          invited_email?: string | null
+          last_active_at?: string | null
+          org_role?: string
+          organisation_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organisation_members_organisation_id_fkey"
+            columns: ["organisation_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organisations: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       platform_settings: {
         Row: {
           id: string
@@ -884,6 +961,7 @@ export type Database = {
           kitchens: number
           living_rooms: number
           notes: string | null
+          organisation_id: string | null
           postcode: string
           property_type: Database["public"]["Enums"]["property_type"]
           storage_rooms: number
@@ -908,6 +986,7 @@ export type Database = {
           kitchens?: number
           living_rooms?: number
           notes?: string | null
+          organisation_id?: string | null
           postcode: string
           property_type?: Database["public"]["Enums"]["property_type"]
           storage_rooms?: number
@@ -932,6 +1011,7 @@ export type Database = {
           kitchens?: number
           living_rooms?: number
           notes?: string | null
+          organisation_id?: string | null
           postcode?: string
           property_type?: Database["public"]["Enums"]["property_type"]
           storage_rooms?: number
@@ -1197,6 +1277,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      backfill_org_data: {
+        Args: { _org_id: string; _user_id: string }
+        Returns: undefined
+      }
       get_invitation_by_token: {
         Args: { _token: string }
         Returns: {
@@ -1210,6 +1294,8 @@ export type Database = {
           token: string
         }[]
       }
+      get_user_org_id: { Args: { _user_id: string }; Returns: string }
+      get_user_org_role: { Args: { _user_id: string }; Returns: string }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]

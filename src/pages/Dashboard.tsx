@@ -12,6 +12,7 @@ import PaymentsPage from "@/pages/dashboard/PaymentsPage";
 import SettingsPage from "@/pages/dashboard/SettingsPage";
 import HelpPage from "@/pages/dashboard/HelpPage";
 import AdminPage from "@/pages/dashboard/AdminPage";
+import TeamPage from "@/pages/dashboard/TeamPage";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -59,6 +60,9 @@ const Dashboard = () => {
     }
     if (path === "/dashboard/payments") {
       return <PaymentsPage />;
+    }
+    if (path === "/dashboard/team") {
+      return <TeamPage />;
     }
     if (path === "/dashboard/settings") {
       return <SettingsPage />;

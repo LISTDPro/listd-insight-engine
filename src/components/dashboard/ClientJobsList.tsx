@@ -174,6 +174,12 @@ const ClientJobsList = () => {
                     <MapPin className="w-3.5 h-3.5" />
                     {property.city}, {property.postcode}
                   </div>
+                  {/* Creator Badge */}
+                  {(job as any).created_by_user_id && (
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Created by: {(job as any).creator_name || "You"}
+                    </div>
+                  )}
                 </>
               ) : (
                 <h4 className="font-medium text-foreground">Property Loading...</h4>

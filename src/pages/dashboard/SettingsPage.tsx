@@ -56,6 +56,10 @@ const defaultPrefs: NotificationPrefs = {
 const SettingsPage = () => {
   const { profile, role, user } = useAuth();
   const { toast } = useToast();
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
   const [prefs, setPrefs] = useState<NotificationPrefs>(defaultPrefs);
   const [prefsLoading, setPrefLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -65,6 +69,36 @@ const SettingsPage = () => {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [changingPw, setChangingPw] = useState(false);
+
+  useEffect(() => {
+    if (profile) {
+      setFullName(profile.full_name || "");
+      setPhone(profile.phone || "");
+      setCompanyName(profile.company_name || "");
+    }
+  }, [profile]);
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setSavingProfile(true);
+    const updates: Record<string, string> = {
+      full_name: fullName.trim(),
+      phone: phone.trim(),
+    };
+    if (role === "client") {
+      updates.company_name = companyName.trim();
+    }
+    const { error } = await supabase
+      .from("profiles")
+      .update(updates)
+      .eq("user_id", user.id);
+    setSavingProfile(false);
+    if (error) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Profile updated" });
+    }
+  };
 
   const handleChangePassword = async () => {
     if (newPassword.length < 6) {
@@ -209,7 +243,8 @@ const SettingsPage = () => {
                 <Label htmlFor="fullName">Full Name</Label>
                 <Input 
                   id="fullName" 
-                  defaultValue={profile?.full_name || ""} 
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   placeholder="Enter your name"
                 />
               </div>
@@ -217,7 +252,8 @@ const SettingsPage = () => {
                 <Label htmlFor="phone">Phone Number</Label>
                 <Input 
                   id="phone" 
-                  defaultValue={profile?.phone || ""} 
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   placeholder="Enter phone number"
                 />
               </div>
@@ -226,7 +262,8 @@ const SettingsPage = () => {
                   <Label htmlFor="company">Company Name</Label>
                   <Input 
                     id="company" 
-                    defaultValue={profile?.company_name || ""} 
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
                     placeholder="Enter company name"
                   />
                 </div>
@@ -234,7 +271,10 @@ const SettingsPage = () => {
             </div>
 
             <div className="flex justify-end">
-              <Button>Save Changes</Button>
+              <Button onClick={handleSaveProfile} disabled={savingProfile}>
+                {savingProfile && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Save Changes
+              </Button>
             </div>
           </CardContent>
         </Card>

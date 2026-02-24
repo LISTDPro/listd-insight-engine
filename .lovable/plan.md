@@ -1,14 +1,42 @@
 
 
-## Save Trustpilot Widget Embed Code
+## Fix: Allow Multiple Team Invites
 
-No code changes needed. This is a data update to store your Trustpilot widget embed code and enable it on the site.
+### Problem
+The `organisation_members` table has a unique constraint on `(organisation_id, user_id)`. Since all invited members share the same placeholder UUID `00000000-...`, the second invite to the same org fails.
 
-### Actions
+### Solution
 
-1. **Update `trustpilot_embed_code`** with the Review Collector widget HTML you provided
-2. **Update `trustpilot_review_link`** to `https://uk.trustpilot.com/review/listd.co.uk` (extracted from the widget)
-3. **Set `trustpilot_enabled`** to `"true"` so it renders on the landing page
+**1. Database migration**
 
-All three updates go into the existing `platform_settings` rows — no schema or code changes required. The Trustpilot bootstrap script is already in `index.html`, and the `GoogleReviews.tsx` component already conditionally renders the Trustpilot section when enabled.
+- Drop the existing `organisation_members_organisation_id_user_id_key` unique constraint
+- Add a **partial** unique index on `(organisation_id, user_id)` that excludes rows where `status = 'invited'` — this keeps real-user uniqueness intact while allowing multiple pending invites
+- Add a unique index on `(organisation_id, invited_email)` where `invited_email IS NOT NULL` — prevents duplicate invites to the same email
+
+```sql
+-- Drop old constraint
+ALTER TABLE organisation_members
+  DROP CONSTRAINT organisation_members_organisation_id_user_id_key;
+
+-- Real users: still unique per org
+CREATE UNIQUE INDEX organisation_members_org_active_user_unique
+  ON organisation_members (organisation_id, user_id)
+  WHERE status != 'invited';
+
+-- Invited emails: unique per org
+CREATE UNIQUE INDEX organisation_members_org_invited_email_unique
+  ON organisation_members (organisation_id, invited_email)
+  WHERE invited_email IS NOT NULL;
+```
+
+**2. `src/pages/dashboard/TeamPage.tsx`**
+
+Change the placeholder `user_id` from a hardcoded zero-UUID to `crypto.randomUUID()` so each invite row gets its own unique UUID. This is a one-line change in the `handleInvite` function.
+
+### What stays unchanged
+- All existing member records
+- Owner/staff role logic
+- RLS policies
+- Invite email sending
+- Booking, pricing, notification systems
 

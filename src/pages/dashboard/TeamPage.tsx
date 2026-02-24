@@ -194,7 +194,7 @@ const TeamPage = () => {
       .from("organisation_members")
       .insert({
         organisation_id: orgId,
-        user_id: "00000000-0000-0000-0000-000000000000", // placeholder
+        user_id: crypto.randomUUID(), // unique placeholder per invite
         org_role: "staff",
         status: "invited",
         invited_email: inviteEmail.trim().toLowerCase(),

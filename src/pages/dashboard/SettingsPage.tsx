@@ -221,16 +221,16 @@ const SettingsPage = () => {
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center">
                 <span className="text-xl font-semibold text-accent-foreground">
-                  {profile?.full_name
-                    ?.split(" ")
+                  {(fullName || profile?.full_name || "U")
+                    .split(" ")
                     .map((n) => n[0])
                     .join("")
                     .toUpperCase()
-                    .slice(0, 2) || "U"}
+                    .slice(0, 2)}
                 </span>
               </div>
               <div>
-                <h3 className="font-medium text-foreground">{profile?.full_name || "User"}</h3>
+                <h3 className="font-medium text-foreground">{fullName || profile?.full_name || "User"}</h3>
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
                 <div className="mt-1">{getRoleBadge()}</div>
               </div>

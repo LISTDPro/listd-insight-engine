@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Job, InspectionType, JobStatus } from "@/types/database";
-import { getClerkPayout, calculateMargin } from "@/utils/clerkPricing";
+import { Job, InspectionType, JobStatus, Property } from "@/types/database";
+import { getFullClerkPayout, calculateMargin } from "@/utils/clerkPricing";
 
 interface CreateJobInput {
   property_id: string;
@@ -26,7 +26,6 @@ export const useJobs = () => {
     setLoading(true);
     setError(null);
 
-    // Org-aware: fetch by organisation_id if user belongs to an org, otherwise by client_id
     let query = supabase
       .from("jobs")
       .select("*")
@@ -53,15 +52,46 @@ export const useJobs = () => {
     fetchJobs();
   }, [user]);
 
-  const createJob = async (input: CreateJobInput, propertyDetails?: { address: string; city: string; postcode: string; property_type?: string }) => {
+  const createJob = async (
+    input: CreateJobInput,
+    propertyDetails?: { address: string; city: string; postcode: string; property_type?: string },
+    property?: Property | null,
+  ) => {
     if (!user) return { error: new Error("Not authenticated"), data: null };
 
-    // Calculate clerk payout and margin automatically
-    const clerkPay = propertyDetails?.property_type
-      ? getClerkPayout(input.inspection_type, propertyDetails.property_type)
-      : 0;
+    // Calculate clerk payout using centralised config
+    let clerkPay = 0;
+    let payoutBreakdown: Record<string, unknown> = {};
+    let margin = 0;
+
+    try {
+      if (propertyDetails?.property_type) {
+        const result = getFullClerkPayout(
+          input.inspection_type,
+          propertyDetails.property_type,
+          property ?? null,
+          input.service_tier,
+        );
+        clerkPay = result.total;
+        payoutBreakdown = {
+          base: result.base,
+          addOns: result.addOns,
+          addOnsTotal: result.addOnsTotal,
+          tier: result.tier,
+          size: result.size,
+          inspectionType: result.inspectionType,
+        };
+      } else {
+        // No property type available — cannot calculate payout safely
+        return { error: new Error("Property type is required to calculate clerk payout"), data: null };
+      }
+    } catch (err) {
+      // Pricing lookup failed — abort job creation
+      return { error: err instanceof Error ? err : new Error(String(err)), data: null };
+    }
+
     const clientPrice = input.quoted_price ?? 0;
-    const margin = calculateMargin(clientPrice, clerkPay);
+    margin = calculateMargin(clientPrice, clerkPay);
 
     // Auto-publish jobs so providers can see them immediately
     const { data, error: insertError } = await supabase
@@ -74,6 +104,8 @@ export const useJobs = () => {
         status: "published" as JobStatus,
         clerk_payout: clerkPay,
         clerk_final_payout: clerkPay,
+        clerk_payout_breakdown: payoutBreakdown,
+        clerk_payout_log: [{ timestamp: new Date().toISOString(), reason: "job_created", payout: clerkPay }],
         margin,
       } as any)
       .select()

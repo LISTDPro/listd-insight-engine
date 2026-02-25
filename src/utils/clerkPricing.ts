@@ -3,30 +3,42 @@
  * 
  * IMPORTANT: These values must NEVER be exposed to clients.
  * Only clerks see their own payout; admins see both client price + clerk pay.
+ * 
+ * Single master configuration — all clerk payouts live here.
  */
 
 import { InspectionType, Property } from "@/types/database";
 import type { ServiceTier } from "./pricing";
 
-// ─── Inventory clerk pay (unfurnished base) ───
-const INVENTORY_CLERK_PAY: number[] = [25, 30, 35, 40, 45, 55, 75, 85, 95, 110];
-
-// ─── Check-Out clerk pay ───
-const CHECKOUT_CLERK_PAY: number[] = [25, 30, 35, 40, 45, 50, 65, 75, 85, 100];
-
-// ─── Check-In clerk pay (flat) ───
-const CHECKIN_CLERK_PAY: number[] = [20, 20, 20, 20, 20, 20, 20, 20, 20, 20];
-
-// ─── Interim clerk pay (flat) ───
-const INTERIM_CLERK_PAY: number[] = [25, 25, 25, 25, 25, 25, 25, 25, 25, 25];
-
-// ─── Mid-Term clerk pay (same as interim) ───
-const MIDTERM_CLERK_PAY: number[] = [25, 25, 25, 25, 25, 25, 25, 25, 25, 25];
-
+// ─── Property size index ───
 const PROPERTY_SIZES = [
   "studio", "1_bed", "2_bed", "3_bed", "4_bed",
   "5_bed", "6_bed", "7_bed", "8_bed", "9_bed",
 ] as const;
+
+type PropertySize = (typeof PROPERTY_SIZES)[number];
+
+// ─── Master Clerk Payout Configuration ───
+// Tiered arrays: index maps to PROPERTY_SIZES
+// Flat services: single value per tier
+const CLERK_PAYOUT_CONFIG: Record<
+  InspectionType,
+  Record<ServiceTier, number[] | number>
+> = {
+  new_inventory: {
+    flex:     [25, 30, 35, 40, 45, 55, 75, 85, 95, 110],
+    core:     [25, 30, 35, 40, 45, 55, 75, 85, 95, 110],
+    priority: [25, 30, 35, 40, 45, 55, 75, 85, 95, 110],
+  },
+  check_out: {
+    flex:     [25, 30, 35, 40, 45, 50, 65, 75, 85, 100],
+    core:     [25, 30, 35, 40, 45, 50, 65, 75, 85, 100],
+    priority: [25, 30, 35, 40, 45, 50, 65, 75, 85, 100],
+  },
+  check_in: { flex: 20, core: 20, priority: 20 },
+  interim:  { flex: 25, core: 25, priority: 25 },
+  mid_term: { flex: 25, core: 25, priority: 25 },
+};
 
 // ─── Clerk Add-On Rates (per extra room beyond base) ───
 export const CLERK_ADD_ON_PRICES = {
@@ -40,34 +52,58 @@ export const CLERK_ADD_ON_PRICES = {
   storageRoom: 5,
   garden: 10,
   communalArea: 5,
-  heavilyFurnished: 15,
+  heavilyFurnished: 5,
 };
 
+// ─── Helpers ───
+
+function getSizeIndex(propertyType: string): number {
+  const idx = (PROPERTY_SIZES as readonly string[]).indexOf(propertyType);
+  if (idx === -1) {
+    throw new Error(`Unknown property size: "${propertyType}". Valid sizes: ${PROPERTY_SIZES.join(", ")}`);
+  }
+  return idx;
+}
+
+function resolveTier(tier?: string): ServiceTier {
+  if (!tier || !["flex", "core", "priority"].includes(tier)) {
+    return "flex"; // default tier
+  }
+  return tier as ServiceTier;
+}
+
+// ─── Public API ───
+
 /**
- * Get the clerk payout for a job.
- * Clerk pay does NOT vary by tier — it's always a fixed amount per service/size.
+ * Get the base clerk payout for a job.
+ * Throws if property size is invalid — never returns silent £0.
  */
 export const getClerkPayout = (
   inspectionType: InspectionType,
   propertyType: string,
+  tier?: string,
 ): number => {
-  const idx = (PROPERTY_SIZES as readonly string[]).indexOf(propertyType);
-  if (idx === -1) return 0;
+  const resolvedTier = resolveTier(tier);
+  const config = CLERK_PAYOUT_CONFIG[inspectionType];
 
-  switch (inspectionType) {
-    case "new_inventory":
-      return INVENTORY_CLERK_PAY[idx] ?? 0;
-    case "check_out":
-      return CHECKOUT_CLERK_PAY[idx] ?? 0;
-    case "check_in":
-      return CHECKIN_CLERK_PAY[idx] ?? 0;
-    case "interim":
-      return INTERIM_CLERK_PAY[idx] ?? 0;
-    case "mid_term":
-      return MIDTERM_CLERK_PAY[idx] ?? 0;
-    default:
-      return 0;
+  if (!config) {
+    throw new Error(`Unknown inspection type: "${inspectionType}"`);
   }
+
+  const tierConfig = config[resolvedTier];
+
+  if (typeof tierConfig === "number") {
+    // Flat rate service (check_in, interim, mid_term) — size doesn't matter
+    return tierConfig;
+  }
+
+  // Array-based service — look up by size index
+  const idx = getSizeIndex(propertyType);
+  const value = tierConfig[idx];
+  if (value === undefined) {
+    throw new Error(`No clerk payout for ${inspectionType} / ${propertyType} / ${resolvedTier}`);
+  }
+  return value;
 };
 
 /**
@@ -87,7 +123,7 @@ export const calculateClerkAddOns = (property: Property | null): ClerkAddOnItem[
   const addOns: ClerkAddOnItem[] = [];
 
   // Extra bedrooms beyond property type
-  const baseBedrooms = PROPERTY_SIZES.indexOf(property.property_type as any);
+  const baseBedrooms = (PROPERTY_SIZES as readonly string[]).indexOf(property.property_type as string);
   const extraBedrooms = Math.max(0, (property.bedrooms ?? baseBedrooms) - Math.max(baseBedrooms, 0));
   if (extraBedrooms > 0) {
     addOns.push({ label: "Additional Bedroom", quantity: extraBedrooms, unitPrice: CLERK_ADD_ON_PRICES.additionalBedroom, total: extraBedrooms * CLERK_ADD_ON_PRICES.additionalBedroom });
@@ -145,29 +181,52 @@ export const calculateClerkAddOns = (property: Property | null): ClerkAddOnItem[
   return addOns;
 };
 
+export interface FullClerkPayoutResult {
+  base: number;
+  addOns: ClerkAddOnItem[];
+  addOnsTotal: number;
+  total: number;
+  tier: string;
+  size: string;
+  inspectionType: string;
+}
+
 /**
  * Get total clerk payout including base + add-ons from property.
+ * Returns a storable breakdown object.
  */
 export const getFullClerkPayout = (
   inspectionType: InspectionType,
   propertyType: string,
   property: Property | null,
-): { base: number; addOns: ClerkAddOnItem[]; addOnsTotal: number; total: number } => {
-  const base = getClerkPayout(inspectionType, propertyType);
+  tier?: string,
+): FullClerkPayoutResult => {
+  const resolvedTier = resolveTier(tier);
+  const base = getClerkPayout(inspectionType, propertyType, resolvedTier);
   const addOns = calculateClerkAddOns(property);
   const addOnsTotal = addOns.reduce((sum, a) => sum + a.total, 0);
-  return { base, addOns, addOnsTotal, total: base + addOnsTotal };
+  return {
+    base,
+    addOns,
+    addOnsTotal,
+    total: base + addOnsTotal,
+    tier: resolvedTier,
+    size: propertyType,
+    inspectionType,
+  };
 };
 
 /**
- * Calculate aborted visit payout (50% of base clerk job pay).
+ * Calculate aborted visit payout: (base + addOns) / 2
  */
 export const calculateAbortedVisitPayout = (
   inspectionType: InspectionType,
   propertyType: string,
+  property: Property | null = null,
+  tier?: string,
 ): number => {
-  const base = getClerkPayout(inspectionType, propertyType);
-  return Math.round((base * 0.5) * 100) / 100;
+  const { total } = getFullClerkPayout(inspectionType, propertyType, property, tier);
+  return Math.round(total * 0.5 * 100) / 100;
 };
 
 /**
@@ -189,4 +248,51 @@ export const calculateFinalClerkPayout = (
   bonus: number = 0,
 ): number => {
   return Math.round((basePayout + bonus) * 100) / 100;
+};
+
+// ─── Bundle Support ───
+
+export interface BundleServiceBreakdown {
+  type: string;
+  base: number;
+  addOns: ClerkAddOnItem[];
+  addOnsTotal: number;
+  total: number;
+}
+
+export interface BundleClerkPayoutResult {
+  services: BundleServiceBreakdown[];
+  grandTotal: number;
+  tier: string;
+  size: string;
+}
+
+/**
+ * Calculate clerk payout for a bundle of services.
+ * Decomposes into per-service breakdowns with a grand total.
+ */
+export const calculateBundleClerkPayout = (
+  inspectionTypes: InspectionType[],
+  propertyType: string,
+  property: Property | null,
+  tier?: string,
+): BundleClerkPayoutResult => {
+  const resolvedTier = resolveTier(tier);
+  const services: BundleServiceBreakdown[] = inspectionTypes.map((type) => {
+    const result = getFullClerkPayout(type, propertyType, property, resolvedTier);
+    return {
+      type,
+      base: result.base,
+      addOns: result.addOns,
+      addOnsTotal: result.addOnsTotal,
+      total: result.total,
+    };
+  });
+
+  return {
+    services,
+    grandTotal: services.reduce((sum, s) => sum + s.total, 0),
+    tier: resolvedTier,
+    size: propertyType,
+  };
 };

@@ -504,7 +504,9 @@ export type Database = {
           clerk_level_at_job: number | null
           clerk_payment_date: string | null
           clerk_payout: number | null
+          clerk_payout_breakdown: Json | null
           clerk_payout_locked: boolean | null
+          clerk_payout_log: Json | null
           clerk_report_submitted_ack: boolean | null
           clerk_report_submitted_ack_at: string | null
           client_id: string
@@ -558,7 +560,9 @@ export type Database = {
           clerk_level_at_job?: number | null
           clerk_payment_date?: string | null
           clerk_payout?: number | null
+          clerk_payout_breakdown?: Json | null
           clerk_payout_locked?: boolean | null
+          clerk_payout_log?: Json | null
           clerk_report_submitted_ack?: boolean | null
           clerk_report_submitted_ack_at?: string | null
           client_id: string
@@ -612,7 +616,9 @@ export type Database = {
           clerk_level_at_job?: number | null
           clerk_payment_date?: string | null
           clerk_payout?: number | null
+          clerk_payout_breakdown?: Json | null
           clerk_payout_locked?: boolean | null
+          clerk_payout_log?: Json | null
           clerk_report_submitted_ack?: boolean | null
           clerk_report_submitted_ack_at?: string | null
           client_id?: string

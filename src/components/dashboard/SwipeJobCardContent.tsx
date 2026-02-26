@@ -80,6 +80,13 @@ const SwipeJobCardContent = ({ job, statusBadge, showNetPayout = false }: SwipeJ
           {urgencyBadge}
         </div>
 
+        {/* Created by */}
+        {(job as any).created_by_name && (
+          <p className="text-xs text-muted-foreground">
+            Created by: <span className="font-medium text-foreground">{(job as any).created_by_name}</span>
+          </p>
+        )}
+
         {/* Address */}
         {property && (
           <div>

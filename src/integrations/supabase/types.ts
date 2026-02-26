@@ -496,6 +496,7 @@ export type Database = {
         Row: {
           accepted_at: string | null
           assigned_by: string | null
+          assigned_by_name: string | null
           cancellation_fee: number | null
           cancelled_at: string | null
           cancelled_by: string | null
@@ -519,6 +520,7 @@ export type Database = {
           client_signature_at: string | null
           client_signature_url: string | null
           created_at: string
+          created_by_name: string | null
           created_by_user_id: string | null
           delivered_at: string | null
           final_price: number | null
@@ -554,6 +556,7 @@ export type Database = {
         Insert: {
           accepted_at?: string | null
           assigned_by?: string | null
+          assigned_by_name?: string | null
           cancellation_fee?: number | null
           cancelled_at?: string | null
           cancelled_by?: string | null
@@ -577,6 +580,7 @@ export type Database = {
           client_signature_at?: string | null
           client_signature_url?: string | null
           created_at?: string
+          created_by_name?: string | null
           created_by_user_id?: string | null
           delivered_at?: string | null
           final_price?: number | null
@@ -612,6 +616,7 @@ export type Database = {
         Update: {
           accepted_at?: string | null
           assigned_by?: string | null
+          assigned_by_name?: string | null
           cancellation_fee?: number | null
           cancelled_at?: string | null
           cancelled_by?: string | null
@@ -635,6 +640,7 @@ export type Database = {
           client_signature_at?: string | null
           client_signature_url?: string | null
           created_at?: string
+          created_by_name?: string | null
           created_by_user_id?: string | null
           delivered_at?: string | null
           final_price?: number | null

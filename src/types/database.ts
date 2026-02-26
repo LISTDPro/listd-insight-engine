@@ -55,6 +55,8 @@ export interface Job {
   clerk_payment_date?: string | null;
   clerk_level_at_job?: number;
   margin?: number;
+  created_by_name?: string | null;
+  assigned_by_name?: string | null;
   created_at: string;
   updated_at: string;
 }

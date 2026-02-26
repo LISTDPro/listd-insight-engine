@@ -810,6 +810,7 @@ const AdminPage = () => {
                   <TableHead>Type</TableHead>
                   <TableHead>Tier</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Created By</TableHead>
                   <TableHead>Scheduled</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -818,7 +819,7 @@ const AdminPage = () => {
               <TableBody>
                 {filteredJobs.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
+                     <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                       No jobs found
                     </TableCell>
                   </TableRow>
@@ -833,6 +834,9 @@ const AdminPage = () => {
                       </TableCell>
                       <TableCell className="capitalize">{job.service_tier}</TableCell>
                       <TableCell>{getStatusBadge(job.status)}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {(job as any).created_by_name || "—"}
+                      </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {new Date(job.scheduled_date).toLocaleDateString()}
                       </TableCell>

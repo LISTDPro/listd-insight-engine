@@ -96,7 +96,8 @@ const JobDetailPage = () => {
       .select("*")
       .eq("job_id", jobId)
       .order("tenant_order", { ascending: true })
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) console.error("Failed to fetch tenant details:", error);
         if (data) setTenantDetails(data);
       });
   }, [jobId]);
@@ -357,7 +358,7 @@ const JobDetailPage = () => {
 
           {/* Clerk Job Detail Panel — scoped view for clerks only */}
           {role === "clerk" && (
-            <ClerkJobDetailPanel job={job as any} />
+            <ClerkJobDetailPanel job={job as any} tenantDetails={tenantDetails} />
           )}
 
           {/* Property Card — for clients and admins */}

@@ -1,4 +1,4 @@
-import { Check, Building, Layers, Clock } from "lucide-react";
+import { Check, Building, Layers, Clock, User, Mail, Phone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SERVICE_TIERS, ServiceTier } from "@/components/booking/TierSelector";
 import { INSPECTION_TYPE_LABELS, PROPERTY_TYPE_LABELS, FURNISHED_STATUS_LABELS, PropertyType, FurnishedStatus } from "@/types/database";
@@ -7,6 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { JobWithDetails } from "@/hooks/useJobDetail";
 import { format } from "date-fns";
 import PayoutBreakdown from "./PayoutBreakdown";
+
+interface TenantDetail {
+  id: string;
+  full_name: string | null;
+  email: string | null;
+  phone: string | null;
+  tenant_order: number;
+}
 
 interface ClerkJobDetailPanelProps {
   job: JobWithDetails & {
@@ -28,6 +36,7 @@ interface ClerkJobDetailPanelProps {
       furnished_status?: string;
     };
   };
+  tenantDetails?: TenantDetail[];
 }
 
 // Turnaround label per tier
@@ -101,7 +110,7 @@ function getClerkPayoutDisplay(job: any): number | null {
   return null;
 }
 
-const ClerkJobDetailPanel = ({ job }: ClerkJobDetailPanelProps) => {
+const ClerkJobDetailPanel = ({ job, tenantDetails = [] }: ClerkJobDetailPanelProps) => {
   const tier = resolveServiceTier(job.service_tier);
   const tierConfig = SERVICE_TIERS.find((t) => t.value === tier)!;
   const TierIcon = tierConfig.icon;
@@ -214,6 +223,49 @@ const ClerkJobDetailPanel = ({ job }: ClerkJobDetailPanelProps) => {
           {/* Clerk Payout Breakdown */}
           {clerkPayout != null && (
             <PayoutBreakdown breakdown={(job as any).clerk_payout_breakdown} fallbackTotal={clerkPayout} />
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Tenant Details */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <User className="w-4 h-4" />
+            Tenant Details
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {tenantDetails.length > 0 ? (
+            <div className="space-y-3">
+              {tenantDetails.map((t) => (
+                <div key={t.id} className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                    <User className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-sm font-medium text-foreground">
+                      {t.full_name || "—"}
+                      {t.tenant_order === 2 && (
+                        <span className="text-xs text-muted-foreground ml-1">(Second Tenant)</span>
+                      )}
+                    </p>
+                    {t.email && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Mail className="w-3 h-3" /> {t.email}
+                      </p>
+                    )}
+                    {t.phone && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Phone className="w-3 h-3" /> {t.phone}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground italic">No tenant details provided.</p>
           )}
         </CardContent>
       </Card>

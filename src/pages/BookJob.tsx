@@ -338,6 +338,8 @@ const BookJob = () => {
               onSelect={setSelectedPropertyId}
               onCreateProperty={handleCreateProperty}
               isCreating={isCreatingProperty}
+              defaultSize={selectedSize}
+              defaultFurnishing={selectedFurnishing}
             />
           )}
 

@@ -6,6 +6,7 @@ import TierBadge from "@/components/ui/tier-badge";
 import { Badge } from "@/components/ui/badge";
 import { JobWithDetails } from "@/hooks/useJobDetail";
 import { format } from "date-fns";
+import PayoutBreakdown from "./PayoutBreakdown";
 
 interface ClerkJobDetailPanelProps {
   job: JobWithDetails & {
@@ -210,12 +211,9 @@ const ClerkJobDetailPanel = ({ job }: ClerkJobDetailPanelProps) => {
             </div>
           </div>
 
-          {/* Clerk Payout */}
+          {/* Clerk Payout Breakdown */}
           {clerkPayout != null && (
-            <div className="bg-accent/5 border border-accent/20 rounded-lg p-3 flex items-center justify-between mt-3">
-              <span className="text-xs text-muted-foreground font-medium">Your Payout</span>
-              <span className="text-lg font-bold text-accent">£{clerkPayout.toFixed(2)}</span>
-            </div>
+            <PayoutBreakdown breakdown={(job as any).clerk_payout_breakdown} fallbackTotal={clerkPayout} />
           )}
         </CardContent>
       </Card>

@@ -495,6 +495,7 @@ export type Database = {
       jobs: {
         Row: {
           accepted_at: string | null
+          assigned_by: string | null
           cancellation_fee: number | null
           cancelled_at: string | null
           cancelled_by: string | null
@@ -523,6 +524,7 @@ export type Database = {
           final_price: number | null
           id: string
           inspection_type: Database["public"]["Enums"]["inspection_type"]
+          inspection_types: string[] | null
           inventorybase_job_id: string | null
           margin: number | null
           organisation_id: string | null
@@ -551,6 +553,7 @@ export type Database = {
         }
         Insert: {
           accepted_at?: string | null
+          assigned_by?: string | null
           cancellation_fee?: number | null
           cancelled_at?: string | null
           cancelled_by?: string | null
@@ -579,6 +582,7 @@ export type Database = {
           final_price?: number | null
           id?: string
           inspection_type: Database["public"]["Enums"]["inspection_type"]
+          inspection_types?: string[] | null
           inventorybase_job_id?: string | null
           margin?: number | null
           organisation_id?: string | null
@@ -607,6 +611,7 @@ export type Database = {
         }
         Update: {
           accepted_at?: string | null
+          assigned_by?: string | null
           cancellation_fee?: number | null
           cancelled_at?: string | null
           cancelled_by?: string | null
@@ -635,6 +640,7 @@ export type Database = {
           final_price?: number | null
           id?: string
           inspection_type?: Database["public"]["Enums"]["inspection_type"]
+          inspection_types?: string[] | null
           inventorybase_job_id?: string | null
           margin?: number | null
           organisation_id?: string | null

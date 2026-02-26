@@ -2,11 +2,12 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Job, InspectionType, JobStatus, Property } from "@/types/database";
-import { getFullClerkPayout, calculateMargin } from "@/utils/clerkPricing";
+import { getFullClerkPayout, calculateMargin, calculateBundleClerkPayout } from "@/utils/clerkPricing";
 
 interface CreateJobInput {
   property_id: string;
   inspection_type: InspectionType;
+  inspection_types?: InspectionType[];
   scheduled_date: string;
   preferred_time_slot?: string;
   special_instructions?: string;
@@ -64,29 +65,51 @@ export const useJobs = () => {
     let payoutBreakdown: Record<string, unknown> = {};
     let margin = 0;
 
+    const allTypes = input.inspection_types && input.inspection_types.length > 0
+      ? input.inspection_types
+      : [input.inspection_type];
+
     try {
       if (propertyDetails?.property_type) {
-        const result = getFullClerkPayout(
-          input.inspection_type,
-          propertyDetails.property_type,
-          property ?? null,
-          input.service_tier,
-        );
-        clerkPay = result.total;
-        payoutBreakdown = {
-          base: result.base,
-          addOns: result.addOns,
-          addOnsTotal: result.addOnsTotal,
-          tier: result.tier,
-          size: result.size,
-          inspectionType: result.inspectionType,
-        };
+        if (allTypes.length > 1) {
+          // Bundle: multiple services
+          const bundleResult = calculateBundleClerkPayout(
+            allTypes,
+            propertyDetails.property_type,
+            property ?? null,
+            input.service_tier,
+          );
+          clerkPay = bundleResult.grandTotal;
+          payoutBreakdown = {
+            bundle: true,
+            services: bundleResult.services,
+            grandTotal: bundleResult.grandTotal,
+            tier: bundleResult.tier,
+            size: bundleResult.size,
+          };
+        } else {
+          // Single service
+          const result = getFullClerkPayout(
+            input.inspection_type,
+            propertyDetails.property_type,
+            property ?? null,
+            input.service_tier,
+          );
+          clerkPay = result.total;
+          payoutBreakdown = {
+            bundle: false,
+            base: result.base,
+            addOns: result.addOns,
+            addOnsTotal: result.addOnsTotal,
+            tier: result.tier,
+            size: result.size,
+            inspectionType: result.inspectionType,
+          };
+        }
       } else {
-        // No property type available — cannot calculate payout safely
         return { error: new Error("Property type is required to calculate clerk payout"), data: null };
       }
     } catch (err) {
-      // Pricing lookup failed — abort job creation
       return { error: err instanceof Error ? err : new Error(String(err)), data: null };
     }
 

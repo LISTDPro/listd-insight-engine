@@ -1,8 +1,9 @@
-import { Check, BedDouble, Bath, UtensilsCrossed, Sofa, Trees, Building, Layers, Clock } from "lucide-react";
+import { Check, Building, Layers, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SERVICE_TIERS, ServiceTier } from "@/components/booking/TierSelector";
 import { INSPECTION_TYPE_LABELS, PROPERTY_TYPE_LABELS, FURNISHED_STATUS_LABELS, PropertyType, FurnishedStatus } from "@/types/database";
 import TierBadge from "@/components/ui/tier-badge";
+import { Badge } from "@/components/ui/badge";
 import { JobWithDetails } from "@/hooks/useJobDetail";
 import { format } from "date-fns";
 
@@ -72,12 +73,43 @@ function resolveServiceTier(tier: string | null | undefined): ServiceTier {
   return "flex";
 }
 
+/** Parse bundled services from clerk_payout_breakdown or special_instructions */
+function parseBundledServices(job: any): string[] {
+  const breakdown = job.clerk_payout_breakdown;
+  
+  // Check breakdown for bundle info
+  if (breakdown && typeof breakdown === "object" && breakdown.bundle === true && Array.isArray(breakdown.services)) {
+    return breakdown.services.map((s: any) => s.type as string);
+  }
+
+  // Fallback: parse special_instructions for "[Additional services: ...]"
+  const instructions = job.special_instructions || "";
+  const match = instructions.match(/\[Additional services:\s*(.+?)\]/);
+  if (match) {
+    const additionalTypes = match[1].split(",").map((s: string) => s.trim());
+    return [job.inspection_type, ...additionalTypes];
+  }
+
+  return [job.inspection_type];
+}
+
+/** Get clerk payout from breakdown or fall back to clerk_payout */
+function getClerkPayoutDisplay(job: any): number | null {
+  if (job.clerk_payout != null && job.clerk_payout > 0) return job.clerk_payout;
+  if (job.clerk_final_payout != null && job.clerk_final_payout > 0) return job.clerk_final_payout;
+  return null;
+}
+
 const ClerkJobDetailPanel = ({ job }: ClerkJobDetailPanelProps) => {
   const tier = resolveServiceTier(job.service_tier);
   const tierConfig = SERVICE_TIERS.find((t) => t.value === tier)!;
   const TierIcon = tierConfig.icon;
   const bullets = TIER_SCOPE_BULLETS[tier];
   const property = job.property;
+
+  const bundledServices = parseBundledServices(job);
+  const isBundle = bundledServices.length > 1;
+  const clerkPayout = getClerkPayoutDisplay(job);
 
   // Build included areas list from property data
   const includedAreas: string[] = [];
@@ -130,11 +162,24 @@ const ClerkJobDetailPanel = ({ job }: ClerkJobDetailPanelProps) => {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-0.5">Service Type</p>
-              <p className="text-sm font-medium text-foreground">
-                {INSPECTION_TYPE_LABELS[job.inspection_type as keyof typeof INSPECTION_TYPE_LABELS]}
-              </p>
+            <div className="col-span-2">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">Service Type</p>
+              {isBundle ? (
+                <div className="space-y-1">
+                  <div className="flex flex-wrap gap-1.5">
+                    {bundledServices.map((type) => (
+                      <Badge key={type} variant="secondary" className="text-xs">
+                        {INSPECTION_TYPE_LABELS[type as keyof typeof INSPECTION_TYPE_LABELS] || type.replace(/_/g, " ")}
+                      </Badge>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">Bundle — all services included in this visit</p>
+                </div>
+              ) : (
+                <p className="text-sm font-medium text-foreground">
+                  {INSPECTION_TYPE_LABELS[job.inspection_type as keyof typeof INSPECTION_TYPE_LABELS]}
+                </p>
+              )}
             </div>
             <div>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-0.5">Tier</p>
@@ -164,6 +209,14 @@ const ClerkJobDetailPanel = ({ job }: ClerkJobDetailPanelProps) => {
               </p>
             </div>
           </div>
+
+          {/* Clerk Payout */}
+          {clerkPayout != null && (
+            <div className="bg-accent/5 border border-accent/20 rounded-lg p-3 flex items-center justify-between mt-3">
+              <span className="text-xs text-muted-foreground font-medium">Your Payout</span>
+              <span className="text-lg font-bold text-accent">£{clerkPayout.toFixed(2)}</span>
+            </div>
+          )}
         </CardContent>
       </Card>
 

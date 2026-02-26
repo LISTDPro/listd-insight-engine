@@ -135,7 +135,9 @@ export const useClerkJobs = () => {
       .update({
         clerk_id: user.id,
         status: "accepted" as JobStatus,
-      })
+        assigned_by: user.id,
+        accepted_at: new Date().toISOString(),
+      } as any)
       .eq("id", jobId)
       .eq("status", "published")
       .select("inspection_type")

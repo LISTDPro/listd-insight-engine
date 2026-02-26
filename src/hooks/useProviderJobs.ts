@@ -137,7 +137,8 @@ export const useProviderJobs = () => {
       .update({
         clerk_id: clerkId,
         status: "assigned" as JobStatus,
-      })
+        assigned_by: user.id,
+      } as any)
       .eq("id", jobId)
       .eq("provider_id", user.id);
 

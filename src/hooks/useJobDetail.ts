@@ -123,13 +123,28 @@ export const useJobDetail = (jobId: string | undefined) => {
         creatorName = creatorData?.full_name || null;
       }
 
+      // Fetch assigner profile if assigned_by exists
+      let assignerName: string | null = null;
+      if ((jobData as any).assigned_by) {
+        const { data: assignerData } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("user_id", (jobData as any).assigned_by)
+          .maybeSingle();
+        assignerName = assignerData?.full_name || null;
+      }
+
       const fullJob: JobWithDetails = {
         ...jobData,
         property: jobData.property,
         clerk_profile: clerkProfile,
         provider_profile: null,
         creator_name: creatorName,
+        assigner_name: assignerName,
       } as any;
+
+      setJob(fullJob);
+      setTimeline(buildTimeline(fullJob));
 
       setJob(fullJob);
       setTimeline(buildTimeline(fullJob));
@@ -171,16 +186,32 @@ export const useJobDetail = (jobId: string | undefined) => {
 
     // Clerk assignment
     if (job.clerk_id) {
+      const assignerName = (job as any).assigner_name;
+      const clerkName = job.clerk_profile?.full_name;
+      const isSelfAssigned = (job as any).assigned_by === job.clerk_id;
+      
+      let assignDescription: string;
+      let assignActor: string;
+      
+      if (assignerName && !isSelfAssigned) {
+        assignDescription = `${clerkName || "A clerk"} was assigned by ${assignerName}`;
+        assignActor = assignerName;
+      } else if (isSelfAssigned) {
+        assignDescription = `${clerkName || "Clerk"} self-assigned this job`;
+        assignActor = clerkName || "Clerk";
+      } else {
+        assignDescription = `${clerkName || "A clerk"} was assigned to this job`;
+        assignActor = clerkName || "Clerk";
+      }
+
       events.push({
         id: "clerk_assigned",
         type: "assignment",
         title: "Clerk Assigned",
-        description: job.clerk_profile?.full_name
-          ? `${job.clerk_profile.full_name} was assigned to this job`
-          : "A clerk was assigned to this job",
-        timestamp: job.updated_at,
+        description: assignDescription,
+        timestamp: (job as any).accepted_at || job.updated_at,
         icon: "user-check",
-        actor: job.clerk_profile?.full_name || "Clerk",
+        actor: assignActor,
       });
     }
 

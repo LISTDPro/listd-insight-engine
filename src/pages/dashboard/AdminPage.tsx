@@ -29,6 +29,7 @@ import PlatformSettingsPanel from "@/components/admin/PlatformSettingsPanel";
 import ClerkReliabilityPanel from "@/components/admin/ClerkReliabilityPanel";
 import WaitlistLeadsPanel from "@/components/admin/WaitlistLeadsPanel";
 import { useInventoryBaseSync } from "@/hooks/useInventoryBaseSync";
+import FixBundlePayoutsTool from "@/components/admin/FixBundlePayoutsTool";
 
 interface UserWithRole {
   id: string;
@@ -991,6 +992,9 @@ const AdminPage = () => {
               </div>
             );
           })()}
+
+          {/* Fix Bundle Payouts Tool */}
+          <FixBundlePayoutsTool jobs={jobs} onFixed={fetchJobs} />
 
           {/* Filters + Export */}
           <div className="flex flex-wrap gap-3 items-end">

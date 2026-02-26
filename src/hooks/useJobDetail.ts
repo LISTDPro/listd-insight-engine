@@ -112,27 +112,9 @@ export const useJobDetail = (jobId: string | undefined) => {
 
       // Provider role reserved for future SaaS expansion. Not active in Phase 1.
 
-      // Fetch creator profile if created_by_user_id exists
-      let creatorName: string | null = null;
-      if (jobData.created_by_user_id) {
-        const { data: creatorData } = await supabase
-          .from("profiles")
-          .select("full_name")
-          .eq("user_id", jobData.created_by_user_id)
-          .maybeSingle();
-        creatorName = creatorData?.full_name || null;
-      }
-
-      // Fetch assigner profile if assigned_by exists
-      let assignerName: string | null = null;
-      if ((jobData as any).assigned_by) {
-        const { data: assignerData } = await supabase
-          .from("profiles")
-          .select("full_name")
-          .eq("user_id", (jobData as any).assigned_by)
-          .maybeSingle();
-        assignerName = assignerData?.full_name || null;
-      }
+      // Use snapshot columns for creator/assigner names (no cross-user profile lookups needed)
+      const creatorName = (jobData as any).created_by_name || null;
+      const assignerName = (jobData as any).assigned_by_name || null;
 
       const fullJob: JobWithDetails = {
         ...jobData,
@@ -142,9 +124,6 @@ export const useJobDetail = (jobId: string | undefined) => {
         creator_name: creatorName,
         assigner_name: assignerName,
       } as any;
-
-      setJob(fullJob);
-      setTimeline(buildTimeline(fullJob));
 
       setJob(fullJob);
       setTimeline(buildTimeline(fullJob));

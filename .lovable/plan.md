@@ -1,40 +1,44 @@
 
 
-## Add Payout Breakdown to Clerk Job Detail
+## Diagnosis
 
-### Current state
-The clerk payout section in `ClerkJobDetailPanel.tsx` (lines 213-219) shows a single "Your Payout: £X.XX" box with no breakdown. The data for a detailed breakdown already exists in `clerk_payout_breakdown` stored on the job row -- it contains per-service `type`, `base`, `addOnsTotal`, and `total` when it's a bundle, or a single service result otherwise.
+The tenant details card on `JobDetailPage.tsx` already has the correct role condition (line 534 includes `role === "clerk"`), and the RLS policy allows clerks to read tenant details for their assigned jobs. However, two issues remain:
 
-### What changes
+1. **Silent query failure**: The tenant_details fetch in `JobDetailPage.tsx` (lines 92-101) uses `.then(({ data })` without checking for errors. If the query fails for any reason, the error is swallowed and `tenantDetails` stays as an empty array, hiding the card entirely.
 
-**File: `src/components/dashboard/ClerkJobDetailPanel.tsx`**
+2. **Missing from ClerkJobDetailPanel**: The `ClerkJobDetailPanel` component — the primary clerk view — does not display tenant details at all. Clerks see the Job Overview, Included Areas, and Tier Scope Summary cards, but no tenant information. The tenant card is only placed lower in the page layout, after admin-only sections, making it easy to miss even when it renders.
 
-Replace the simple payout box (lines 213-219) with a detailed breakdown card:
+## Implementation Plan
 
-- **For bundles** (breakdown.bundle === true with services array):
-  - Show each service on its own line: e.g. "New Inventory — £35.00", "Check-In — £20.00"
-  - If any service has add-ons, show them indented below that service line
-  - Separator line, then **Total: £55.00** in bold
+### 1. Add tenant details directly into `ClerkJobDetailPanel.tsx`
 
-- **For single services** (non-bundle):
-  - Parse breakdown for `base` and `addOnsTotal`
-  - If add-ons exist, show "Base — £X" then each add-on line, then total
-  - If no add-ons, show just the single total as today (no regression)
+This is the clerk's primary job view — tenant info should be right here, not buried below admin controls.
 
-- **Fallback**: If no breakdown JSON exists (legacy jobs), show the current simple "Your Payout: £X.XX" display unchanged
+- Accept `tenantDetails` as a prop (or fetch it within the component using the `jobId`)
+- Add a new "Tenant Details" card after the Job Overview card
+- Show each tenant's name, email, and phone
+- Show "(Second Tenant)" label for `tenant_order === 2`
+- Show "No tenant details provided" empty state when the array is empty (for check-in jobs)
 
-The `INSPECTION_TYPE_LABELS` map already imported will be used to render human-readable service names.
+### 2. Pass tenant details from `JobDetailPage.tsx` to `ClerkJobDetailPanel`
 
-### Technical detail
+- Pass `tenantDetails` state as a prop to `<ClerkJobDetailPanel>`
+- Add error logging to the tenant fetch so silent failures are caught
 
-The `clerk_payout_breakdown` JSON has two shapes:
+### 3. Add error handling to tenant fetch
 
-```text
-Bundle:  { bundle: true, services: [{ type, base, addOns[], addOnsTotal, total }, ...], grandTotal, tier, size }
-Single:  { base, addOns: [], addOnsTotal, total, tier, size, inspectionType }
+Update the `useEffect` at lines 92-101 to log errors:
+```typescript
+.then(({ data, error }) => {
+  if (error) console.error("Failed to fetch tenant details:", error);
+  if (data) setTenantDetails(data);
+});
 ```
 
-A helper function `parsePayoutBreakdownLines()` will extract an array of `{ label, amount }` line items plus a total from either shape, keeping the render logic clean.
+This ensures any RLS-related failures are visible in the console for debugging.
 
-No pricing logic changes. No new database queries. Pure UI enhancement reading existing stored data.
+### Files to change
+
+- **`src/components/dashboard/ClerkJobDetailPanel.tsx`**: Add tenant details card, accept `tenantDetails` prop
+- **`src/pages/dashboard/JobDetailPage.tsx`**: Pass `tenantDetails` to `ClerkJobDetailPanel`, add error handling to tenant fetch
 

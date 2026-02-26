@@ -183,6 +183,7 @@ const BookJob = () => {
       {
         property_id: selectedPropertyId,
         inspection_type: primaryType,
+        inspection_types: selectedInspectionTypes,
         scheduled_date: format(selectedDate, "yyyy-MM-dd"),
         preferred_time_slot: selectedTimeSlot || undefined,
         special_instructions: instructions || undefined,
@@ -195,6 +196,7 @@ const BookJob = () => {
       selectedProperty
         ? { address: selectedProperty.address_line_1, city: selectedProperty.city, postcode: selectedProperty.postcode, property_type: selectedProperty.property_type }
         : undefined,
+      selectedProperty as any,
     );
 
     // Save tenant details if provided

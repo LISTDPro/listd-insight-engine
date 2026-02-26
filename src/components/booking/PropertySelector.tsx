@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Property, PROPERTY_TYPE_LABELS, FURNISHED_STATUS_LABELS } from "@/types/database";
+import { Property, PropertyType, FurnishedStatus, PROPERTY_TYPE_LABELS, FURNISHED_STATUS_LABELS } from "@/types/database";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,6 +18,8 @@ interface PropertySelectorProps {
   onSelect: (propertyId: string) => void;
   onCreateProperty: (data: PropertyFormData) => Promise<void>;
   isCreating?: boolean;
+  defaultSize?: string;
+  defaultFurnishing?: string;
 }
 
 const PropertySelector = ({
@@ -26,8 +28,16 @@ const PropertySelector = ({
   onSelect,
   onCreateProperty,
   isCreating,
+  defaultSize,
+  defaultFurnishing,
 }: PropertySelectorProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Build initial data overrides for new property form based on size step selections
+  const formInitialOverrides = {
+    property_type: (defaultSize || "2_bed") as PropertyType,
+    furnished_status: (defaultFurnishing || "unfurnished") as FurnishedStatus,
+  };
 
   const handleCreateProperty = async (data: PropertyFormData) => {
     await onCreateProperty(data);
@@ -56,6 +66,26 @@ const PropertySelector = ({
               onSubmit={handleCreateProperty}
               onCancel={() => setDialogOpen(false)}
               isLoading={isCreating}
+              initialData={{
+                address_line_1: "",
+                address_line_2: "",
+                city: "",
+                postcode: "",
+                property_type: formInitialOverrides.property_type,
+                bedrooms: parseInt(formInitialOverrides.property_type.replace("_bed", "")) || 0,
+                bathrooms: 1,
+                kitchens: 1,
+                living_rooms: 1,
+                dining_areas: 0,
+                utility_rooms: 0,
+                storage_rooms: 0,
+                hallways_stairs: 0,
+                gardens: 0,
+                communal_areas: 0,
+                furnished_status: formInitialOverrides.furnished_status,
+                heavily_furnished: false,
+                notes: "",
+              }}
             />
           </DialogContent>
         </Dialog>

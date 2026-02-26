@@ -1,9 +1,9 @@
 import { format, isToday, isTomorrow, differenceInHours } from "date-fns";
-import { MapPin, Calendar, Clock, Home, Bed, Bath, PoundSterling, AlertTriangle } from "lucide-react";
+import { MapPin, Calendar, Clock, Home, Bed, Bath, PoundSterling, AlertTriangle, Sofa } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import TierBadge from "@/components/ui/tier-badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { INSPECTION_TYPE_LABELS, PROPERTY_TYPE_LABELS } from "@/types/database";
+import { INSPECTION_TYPE_LABELS, PROPERTY_TYPE_LABELS, FURNISHED_STATUS_LABELS, FurnishedStatus } from "@/types/database";
 import { calculatePayoutBreakdown } from "@/utils/escrow";
 
 interface SwipeJobCardContentProps {
@@ -26,6 +26,8 @@ interface SwipeJobCardContentProps {
       bedrooms: number;
       bathrooms: number;
       property_type: string;
+      furnished_status?: string;
+      notes?: string | null;
     } | null;
   };
   statusBadge?: React.ReactNode;
@@ -110,6 +112,12 @@ const SwipeJobCardContent = ({ job, statusBadge, showNetPayout = false }: SwipeJ
               <Home className="w-3.5 h-3.5" />
               {propertyTypeLabel}
             </span>
+            {property.furnished_status && (
+              <span className="flex items-center gap-1">
+                <Sofa className="w-3.5 h-3.5" />
+                {FURNISHED_STATUS_LABELS[property.furnished_status as FurnishedStatus] || property.furnished_status}
+              </span>
+            )}
             <span className="flex items-center gap-1">
               <Bed className="w-3.5 h-3.5" />
               {property.bedrooms} bed

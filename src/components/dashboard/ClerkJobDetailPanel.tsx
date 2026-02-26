@@ -1,4 +1,4 @@
-import { Check, Building, Layers, Clock, User, Mail, Phone } from "lucide-react";
+import { Check, Building, Layers, Clock, User, Mail, Phone, StickyNote, Home } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SERVICE_TIERS, ServiceTier } from "@/components/booking/TierSelector";
 import { INSPECTION_TYPE_LABELS, PROPERTY_TYPE_LABELS, FURNISHED_STATUS_LABELS, PropertyType, FurnishedStatus } from "@/types/database";
@@ -34,9 +34,19 @@ interface ClerkJobDetailPanelProps {
       storage_rooms?: number;
       communal_areas?: number;
       furnished_status?: string;
+      notes?: string | null;
     };
   };
   tenantDetails?: TenantDetail[];
+}
+
+/** Strip internal metadata tags from special_instructions */
+function cleanSpecialInstructions(raw: string | null | undefined): string {
+  if (!raw) return "";
+  return raw
+    .replace(/\[Additional services:\s*.+?\]\n*/g, "")
+    .replace(/\[Service tier:\s*.+?\]\n*/g, "")
+    .trim();
 }
 
 // Turnaround label per tier
@@ -160,6 +170,10 @@ const ClerkJobDetailPanel = ({ job, tenantDetails = [] }: ClerkJobDetailPanelPro
     ? FURNISHED_STATUS_LABELS[(property as any).furnished_status as FurnishedStatus]
     : null;
 
+  const cleanedInstructions = cleanSpecialInstructions(job.special_instructions);
+  const propertyNotes = property?.notes || "";
+  const hasClientNotes = !!(cleanedInstructions || propertyNotes);
+
   return (
     <div className="space-y-4">
       {/* Job Overview */}
@@ -269,6 +283,32 @@ const ClerkJobDetailPanel = ({ job, tenantDetails = [] }: ClerkJobDetailPanelPro
           )}
         </CardContent>
       </Card>
+
+      {/* Client Notes */}
+      {hasClientNotes && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <StickyNote className="w-4 h-4" />
+              Client Notes
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {cleanedInstructions && (
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">Special Instructions</p>
+                <p className="text-sm text-foreground whitespace-pre-line">{cleanedInstructions}</p>
+              </div>
+            )}
+            {propertyNotes && (
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mb-1">Property Notes</p>
+                <p className="text-sm text-foreground whitespace-pre-line">{propertyNotes}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Included Areas */}
       <Card>

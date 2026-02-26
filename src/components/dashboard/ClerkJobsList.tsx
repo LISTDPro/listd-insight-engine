@@ -1,7 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useClerkJobs } from "@/hooks/useClerkJobs";
-import { INSPECTION_TYPE_LABELS } from "@/types/database";
+import { INSPECTION_TYPE_LABELS, PROPERTY_TYPE_LABELS, FURNISHED_STATUS_LABELS, PropertyType, FurnishedStatus } from "@/types/database";
 import { Card, CardContent } from "@/components/ui/card";
+import { calculatePayoutBreakdown } from "@/utils/escrow";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import TierBadge from "@/components/ui/tier-badge";
@@ -167,7 +168,13 @@ const ClerkJobsList = () => {
               </CardContent>
             </Card>
           ) : (
-            todayJobs.map((job) => (
+            todayJobs.map((job) => {
+              const grossPrice = (job as any).final_price || (job as any).quoted_price || 0;
+              const clerkPayoutStored = (job as any).clerk_final_payout || (job as any).clerk_payout;
+              const payout = clerkPayoutStored ? clerkPayoutStored : calculatePayoutBreakdown(grossPrice).clerkPayout;
+              const propType = job.property?.property_type ? PROPERTY_TYPE_LABELS[job.property.property_type as PropertyType] : null;
+              const furnished = (job.property as any)?.furnished_status ? FURNISHED_STATUS_LABELS[(job.property as any).furnished_status as FurnishedStatus] : null;
+              return (
               <Card 
                 key={job.id}
                 className="cursor-pointer hover:border-primary/50 transition-colors"
@@ -176,11 +183,13 @@ const ClerkJobsList = () => {
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
                         <Badge variant="outline" className="text-xs">
                           {INSPECTION_TYPE_LABELS[job.inspection_type as keyof typeof INSPECTION_TYPE_LABELS]}
                         </Badge>
                         <TierBadge tier={(job as any).service_tier} size="sm" />
+                        {propType && <Badge variant="secondary" className="text-[10px]">{propType}</Badge>}
+                        {furnished && <Badge variant="secondary" className="text-[10px]">{furnished}</Badge>}
                         {job.status === "in_progress" && (
                           <Badge className="bg-warning text-warning-foreground text-xs">
                             In Progress
@@ -202,6 +211,12 @@ const ClerkJobsList = () => {
                           {job.preferred_time_slot === "evening" && "17:00 - 20:00"}
                         </div>
                       )}
+                      {payout > 0 && (
+                        <div className="flex items-center gap-1 text-sm text-accent font-semibold mt-1">
+                          <PoundSterling className="w-3.5 h-3.5" />
+                          {payout.toFixed(0)} payout
+                        </div>
+                      )}
                     </div>
                     <Button size="sm" variant="accent" className="ml-4 gap-1">
                       {job.status === "in_progress" ? "Continue" : "Start"}
@@ -210,7 +225,8 @@ const ClerkJobsList = () => {
                   </div>
                 </CardContent>
               </Card>
-            ))
+              );
+            })
           )}
         </TabsContent>
 
@@ -236,7 +252,13 @@ const ClerkJobsList = () => {
                     Today ({todayJobs.length})
                   </h3>
                   <div className="space-y-3">
-                    {todayJobs.map((job) => (
+                    {todayJobs.map((job) => {
+                      const grossPrice = (job as any).final_price || (job as any).quoted_price || 0;
+                      const clerkPayoutStored = (job as any).clerk_final_payout || (job as any).clerk_payout;
+                      const payout = clerkPayoutStored ? clerkPayoutStored : calculatePayoutBreakdown(grossPrice).clerkPayout;
+                      const propType = job.property?.property_type ? PROPERTY_TYPE_LABELS[job.property.property_type as PropertyType] : null;
+                      const furnished = (job.property as any)?.furnished_status ? FURNISHED_STATUS_LABELS[(job.property as any).furnished_status as FurnishedStatus] : null;
+                      return (
                       <Card 
                         key={job.id}
                         className="cursor-pointer hover:border-primary/50 transition-colors"
@@ -245,11 +267,13 @@ const ClerkJobsList = () => {
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
                                 <Badge variant="outline" className="text-xs">
                                   {INSPECTION_TYPE_LABELS[job.inspection_type as keyof typeof INSPECTION_TYPE_LABELS]}
                                 </Badge>
                                 <TierBadge tier={(job as any).service_tier} size="sm" />
+                                {propType && <Badge variant="secondary" className="text-[10px]">{propType}</Badge>}
+                                {furnished && <Badge variant="secondary" className="text-[10px]">{furnished}</Badge>}
                                 {job.status === "in_progress" && (
                                   <Badge className="bg-warning text-warning-foreground text-xs">
                                     In Progress
@@ -268,12 +292,19 @@ const ClerkJobsList = () => {
                                   Created by: <span className="font-medium">{(job as any).created_by_name}</span>
                                 </p>
                               )}
+                              {payout > 0 && (
+                                <div className="flex items-center gap-1 text-sm text-accent font-semibold mt-1">
+                                  <PoundSterling className="w-3.5 h-3.5" />
+                                  {payout.toFixed(0)} payout
+                                </div>
+                              )}
                             </div>
                             <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -286,7 +317,13 @@ const ClerkJobsList = () => {
                     Upcoming ({upcomingJobs.length})
                   </h3>
                   <div className="space-y-3">
-                    {upcomingJobs.map((job) => (
+                    {upcomingJobs.map((job) => {
+                      const grossPrice = (job as any).final_price || (job as any).quoted_price || 0;
+                      const clerkPayoutStored = (job as any).clerk_final_payout || (job as any).clerk_payout;
+                      const payout = clerkPayoutStored ? clerkPayoutStored : calculatePayoutBreakdown(grossPrice).clerkPayout;
+                      const propType = job.property?.property_type ? PROPERTY_TYPE_LABELS[job.property.property_type as PropertyType] : null;
+                      const furnished = (job.property as any)?.furnished_status ? FURNISHED_STATUS_LABELS[(job.property as any).furnished_status as FurnishedStatus] : null;
+                      return (
                       <Card 
                         key={job.id}
                         className="cursor-pointer hover:border-primary/50 transition-colors"
@@ -295,13 +332,16 @@ const ClerkJobsList = () => {
                         <CardContent className="p-4">
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-2">
+                              <div className="flex items-center gap-2 mb-2 flex-wrap">
                                 <span className={cn("text-xs font-medium", getDateColor(job.scheduled_date))}>
                                   {getDateLabel(job.scheduled_date)}
                                 </span>
                                 <Badge variant="outline" className="text-xs">
                                   {INSPECTION_TYPE_LABELS[job.inspection_type as keyof typeof INSPECTION_TYPE_LABELS]}
                                 </Badge>
+                                <TierBadge tier={(job as any).service_tier} size="sm" />
+                                {propType && <Badge variant="secondary" className="text-[10px]">{propType}</Badge>}
+                                {furnished && <Badge variant="secondary" className="text-[10px]">{furnished}</Badge>}
                               </div>
                               <h4 className="font-medium text-foreground mb-1">
                                 {job.property?.address_line_1 || "Address pending"}
@@ -331,10 +371,11 @@ const ClerkJobsList = () => {
                                     {job.preferred_time_slot === "evening" && "17:00 - 20:00"}
                                   </div>
                                 )}
-                                {job.property?.bedrooms !== undefined && (
-                                  <span className="text-muted-foreground/80">
-                                    {job.property.bedrooms} bed • {job.property.bathrooms} bath
-                                  </span>
+                                {payout > 0 && (
+                                  <div className="flex items-center gap-1 text-accent font-semibold">
+                                    <PoundSterling className="w-3 h-3" />
+                                    {payout.toFixed(0)}
+                                  </div>
                                 )}
                               </div>
                             </div>
@@ -342,7 +383,8 @@ const ClerkJobsList = () => {
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}

@@ -1,44 +1,43 @@
 
 
-## Diagnosis
+## Plan: Property size auto-sync, notes visibility, and enhanced job cards
 
-The tenant details card on `JobDetailPage.tsx` already has the correct role condition (line 534 includes `role === "clerk"`), and the RLS policy allows clerks to read tenant details for their assigned jobs. However, two issues remain:
+### Issues identified
 
-1. **Silent query failure**: The tenant_details fetch in `JobDetailPage.tsx` (lines 92-101) uses `.then(({ data })` without checking for errors. If the query fails for any reason, the error is swallowed and `tenantDetails` stays as an empty array, hiding the card entirely.
+1. **Property size not auto-filling**: When a client selects property size/furnishing in Step 3 (Size), the PropertyForm dialog in Step 4 (Property) does NOT pre-populate with those selections. The `PropertySelector` and `PropertyForm` components don't receive `selectedSize` or `selectedFurnishing` from BookJob. The `handleCreateProperty` override (line 137-139) only applies AFTER form submission, not during form rendering.
 
-2. **Missing from ClerkJobDetailPanel**: The `ClerkJobDetailPanel` component — the primary clerk view — does not display tenant details at all. Clerks see the Job Overview, Included Areas, and Tier Scope Summary cards, but no tenant information. The tenant card is only placed lower in the page layout, after admin-only sections, making it easy to miss even when it renders.
+2. **Notes not visible to clerks**: Property notes and job special instructions are partially shown. `ClerkJobDetailPanel` doesn't display `special_instructions` or property `notes` at all — only `SwipeJobCardContent` shows special instructions (truncated).
 
-## Implementation Plan
+3. **Job cards need more visible info**: Clerk job cards in the list view (My Jobs/Today) lack payout, furnished status, and property type visibility.
 
-### 1. Add tenant details directly into `ClerkJobDetailPanel.tsx`
+### Changes
 
-This is the clerk's primary job view — tenant info should be right here, not buried below admin controls.
+**1. `src/pages/BookJob.tsx`**
+- Pass `selectedSize` and `selectedFurnishing` to `PropertySelector` so the form can pre-fill.
 
-- Accept `tenantDetails` as a prop (or fetch it within the component using the `jobId`)
-- Add a new "Tenant Details" card after the Job Overview card
-- Show each tenant's name, email, and phone
-- Show "(Second Tenant)" label for `tenant_order === 2`
-- Show "No tenant details provided" empty state when the array is empty (for check-in jobs)
+**2. `src/components/booking/PropertySelector.tsx`**
+- Accept `defaultSize` and `defaultFurnishing` props, pass them to `PropertyForm` as `initialData` overrides so the form opens with the correct size/furnishing pre-selected.
 
-### 2. Pass tenant details from `JobDetailPage.tsx` to `ClerkJobDetailPanel`
+**3. `src/components/dashboard/ClerkJobDetailPanel.tsx`**
+- Add a "Client Notes" card showing:
+  - `special_instructions` (cleaned of internal `[Additional services: ...]` and `[Service tier: ...]` tags)
+  - Property `notes` (e.g. access instructions, parking details)
+- Display both in a readable format with appropriate icons.
 
-- Pass `tenantDetails` state as a prop to `<ClerkJobDetailPanel>`
-- Add error logging to the tenant fetch so silent failures are caught
+**4. `src/components/dashboard/ClerkJobsList.tsx`**
+- Enhance job cards (My Jobs + Today tabs) to show:
+  - Property type label (e.g. "2 Bed")
+  - Furnished status
+  - Clerk payout amount
+  - Tier badge (already on some cards but missing from others)
+- Make cards more information-dense without clutter.
 
-### 3. Add error handling to tenant fetch
+**5. `src/components/dashboard/SwipeJobCardContent.tsx`**
+- Add furnished status display alongside property type.
+- Show property notes if available.
 
-Update the `useEffect` at lines 92-101 to log errors:
-```typescript
-.then(({ data, error }) => {
-  if (error) console.error("Failed to fetch tenant details:", error);
-  if (data) setTenantDetails(data);
-});
-```
+### Technical notes
 
-This ensures any RLS-related failures are visible in the console for debugging.
-
-### Files to change
-
-- **`src/components/dashboard/ClerkJobDetailPanel.tsx`**: Add tenant details card, accept `tenantDetails` prop
-- **`src/pages/dashboard/JobDetailPage.tsx`**: Pass `tenantDetails` to `ClerkJobDetailPanel`, add error handling to tenant fetch
+- The `handleCreateProperty` in BookJob already overrides `property_type` and `furnished_status` on submit (lines 137-139), but the form itself starts with defaults. Fix: pass initial overrides so the form renders with correct values.
+- Special instructions contain embedded metadata tags (`[Additional services: ...]`, `[Service tier: ...]`). A small helper will strip these before displaying to clerks, showing only the human-written notes.
 

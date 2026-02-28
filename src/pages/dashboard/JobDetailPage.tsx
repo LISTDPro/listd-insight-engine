@@ -3,6 +3,7 @@ import { useJobDetail } from "@/hooks/useJobDetail";
 import { useAuth } from "@/hooks/useAuth";
 import { useClerkJobs } from "@/hooks/useClerkJobs";
 import AdminPayoutControls from "@/components/admin/AdminPayoutControls";
+import AdminSurchargeOverride from "@/components/admin/AdminSurchargeOverride";
 import CancellationFeeCard from "@/components/admin/CancellationFeeCard";
 import ClerkJobDetailPanel from "@/components/dashboard/ClerkJobDetailPanel";
 import { Button } from "@/components/ui/button";
@@ -512,6 +513,17 @@ const JobDetailPage = () => {
               currentCancellationFee={(job as any).cancellation_fee || 0}
               status={job.status}
               cancelledAt={(job as any).cancelled_at}
+              onUpdate={refetch}
+            />
+          )}
+
+          {/* Admin: Surcharge Override */}
+          {role === "admin" && (
+            <AdminSurchargeOverride
+              jobId={job.id}
+              shortNoticeSurchargeApplied={(job as any).short_notice_surcharge_applied || false}
+              quotedPrice={job.final_price || job.quoted_price || 0}
+              clerkPayout={(job as any).clerk_final_payout || (job as any).clerk_payout || 0}
               onUpdate={refetch}
             />
           )}

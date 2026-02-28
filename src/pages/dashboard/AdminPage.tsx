@@ -30,6 +30,8 @@ import ClerkReliabilityPanel from "@/components/admin/ClerkReliabilityPanel";
 import WaitlistLeadsPanel from "@/components/admin/WaitlistLeadsPanel";
 import { useInventoryBaseSync } from "@/hooks/useInventoryBaseSync";
 import FixBundlePayoutsTool from "@/components/admin/FixBundlePayoutsTool";
+import AdminCreateJobDialog from "@/components/admin/AdminCreateJobDialog";
+import { Plus } from "lucide-react";
 
 interface UserWithRole {
   id: string;
@@ -101,6 +103,7 @@ const AdminPage = () => {
   const [selectedDispute, setSelectedDispute] = useState<DisputeRow | null>(null);
   const [strikeTarget, setStrikeTarget] = useState<{ userId: string; name: string } | null>(null);
   const [passwordResetTarget, setPasswordResetTarget] = useState<{ userId: string; name: string | null; email: string | null } | null>(null);
+  const [createJobOpen, setCreateJobOpen] = useState(false);
 
   useEffect(() => {
     if (role !== "admin") {
@@ -788,7 +791,7 @@ const AdminPage = () => {
 
         {/* Jobs Tab */}
         <TabsContent value="jobs" className="space-y-4">
-          <div className="flex gap-1 flex-wrap">
+          <div className="flex gap-1 flex-wrap items-center">
             {["all", "published", "accepted", "in_progress", "submitted", "completed", "cancelled"].map((f) => (
               <Button
                 key={f}
@@ -800,6 +803,15 @@ const AdminPage = () => {
                 {f.replace("_", " ")}
               </Button>
             ))}
+            <Button
+              size="sm"
+              variant="accent"
+              className="ml-auto gap-1.5"
+              onClick={() => setCreateJobOpen(true)}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Create Job
+            </Button>
           </div>
 
           <div className="bg-card border border-border overflow-hidden">
@@ -1261,6 +1273,17 @@ const AdminPage = () => {
       <AdminPasswordResetDialog
         user={passwordResetTarget}
         onClose={() => setPasswordResetTarget(null)}
+      />
+
+      <AdminCreateJobDialog
+        open={createJobOpen}
+        onOpenChange={setCreateJobOpen}
+        onJobCreated={fetchJobs}
+        clients={users.filter((u) => u.role === "client").map((u) => ({
+          user_id: u.user_id,
+          full_name: u.full_name,
+          email: u.email,
+        }))}
       />
     </div>
   );

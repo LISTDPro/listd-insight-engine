@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { format, addDays, isBefore, startOfToday } from "date-fns";
+import { format, isBefore, startOfToday, isToday } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -32,7 +32,6 @@ const DateTimeSelector = ({
 }: DateTimeSelectorProps) => {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const today = startOfToday();
-  const minDate = addDays(today, 1);
 
   const handleDateSelect = (date: Date | undefined) => {
     onDateChange(date || null);
@@ -68,14 +67,14 @@ const DateTimeSelector = ({
               mode="single"
               selected={selectedDate || undefined}
               onSelect={handleDateSelect}
-              disabled={(date) => isBefore(date, minDate)}
+              disabled={(date) => isBefore(date, today)}
               initialFocus
               className={cn("p-3 pointer-events-auto")}
             />
           </PopoverContent>
         </Popover>
         <p className="text-[10px] text-muted-foreground">
-          Bookings must be made at least 24 hours in advance
+          Same-day bookings incur a £30 short-notice surcharge
         </p>
       </div>
 

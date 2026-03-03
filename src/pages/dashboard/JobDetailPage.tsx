@@ -88,6 +88,7 @@ const JobDetailPage = () => {
   const [tenantDetails, setTenantDetails] = useState<any[]>([]);
   const [editPropertyOpen, setEditPropertyOpen] = useState(false);
   const [editPropertyLoading, setEditPropertyLoading] = useState(false);
+  const [markingComplete, setMarkingComplete] = useState(false);
   const { updateProperty } = useProperties();
   // Fetch tenant details for this job
   useEffect(() => {
@@ -161,6 +162,78 @@ const JobDetailPage = () => {
     job.status === "in_progress" && 
     job.clerk_id === profile?.user_id;
 
+  // Clerk can mark as completed when job is "submitted" and report has been uploaded
+  const isClerkSubmittedJob = role === "clerk" &&
+    job.status === "submitted" &&
+    job.clerk_id === profile?.user_id;
+
+
+
+
+  const handleMarkCompleted = async () => {
+    if (!job) return;
+
+    // Validate: report must exist
+    const hasReport = !!(job as any).report_url;
+    if (!hasReport) {
+      // Also check inspection_reports table
+      const { data: reports } = await supabase
+        .from("inspection_reports")
+        .select("id")
+        .eq("job_id", job.id)
+        .limit(1);
+      
+      if (!reports || reports.length === 0) {
+        toast.error("Cannot mark as completed — no report has been uploaded for this job.");
+        return;
+      }
+    }
+
+    // Validate: required fields
+    if (!job.scheduled_date || !job.property_id) {
+      toast.error("Cannot mark as completed — required job fields are missing.");
+      return;
+    }
+
+    setMarkingComplete(true);
+
+    const { error: updateError } = await supabase
+      .from("jobs")
+      .update({
+        status: "completed" as any,
+        updated_at: new Date().toISOString(),
+      } as any)
+      .eq("id", job.id);
+
+    if (updateError) {
+      setMarkingComplete(false);
+      toast.error("Failed to mark job as completed");
+      return;
+    }
+
+    // Trigger completion email to client (fire-and-forget)
+    supabase.functions.invoke("notify-job-completed", {
+      body: { jobId: job.id },
+    }).then(({ error: notifyError }) => {
+      if (notifyError) {
+        console.error("Failed to send completion notification:", notifyError);
+      }
+    });
+
+    // Create in-app notification for client
+    await supabase.from("notifications").insert({
+      user_id: job.client_id,
+      type: "job",
+      title: "Inspection Completed",
+      message: `Your inspection at ${job.property?.address_line_1 || "your property"} has been completed.`,
+      link: `/dashboard/jobs/${job.id}`,
+    });
+
+    setMarkingComplete(false);
+    toast.success("Job marked as completed — client has been notified");
+    refetch();
+  };
+
   const handleAcceptJob = async () => {
     setAccepting(true);
     const { error } = await acceptJob(job.id);
@@ -218,7 +291,7 @@ const JobDetailPage = () => {
         </div>
 
         {/* Action buttons */}
-        {(needsPreAck || needsReportAcceptance || isClerkAvailableJob || isClerkAcceptedJob || isClerkInProgressJob || canRequestReschedule || (job as any).reschedule_status === "pending") && (
+        {(needsPreAck || needsReportAcceptance || isClerkAvailableJob || isClerkAcceptedJob || isClerkInProgressJob || isClerkSubmittedJob || canRequestReschedule || (job as any).reschedule_status === "pending") && (
           <div className="flex gap-2">
             {isClerkAvailableJob && (
               <>
@@ -252,6 +325,17 @@ const JobDetailPage = () => {
                 <ClipboardCheck className="w-4 h-4 text-primary" />
                 In progress via InventoryBase
               </div>
+            )}
+            {isClerkSubmittedJob && (
+              <Button
+                variant="success"
+                className="gap-1"
+                onClick={handleMarkCompleted}
+                disabled={markingComplete}
+              >
+                {markingComplete ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                Mark as Completed
+              </Button>
             )}
             {needsPreAck && (
               <Button onClick={() => openAckDialog("pre_inspection")} className="gap-2">

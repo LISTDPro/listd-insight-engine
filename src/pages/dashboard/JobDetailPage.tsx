@@ -446,6 +446,60 @@ const JobDetailPage = () => {
             <ClerkJobDetailPanel job={job as any} tenantDetails={tenantDetails} />
           )}
 
+          {/* Clerk Action Card — prominent status/action for clerks */}
+          {role === "clerk" && job.clerk_id === profile?.user_id && (
+            <Card className={
+              isClerkSubmittedJob
+                ? "border-success/40 bg-success/5"
+                : "border-border bg-muted/30"
+            }>
+              <CardContent className="p-5">
+                {isClerkSubmittedJob ? (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
+                        <FileCheck className="w-5 h-5 text-success" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-foreground">Report Submitted</p>
+                        <p className="text-sm text-muted-foreground">Mark this job as completed to notify the client.</p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="success"
+                      className="gap-1.5 w-full sm:w-auto"
+                      onClick={handleMarkCompleted}
+                      disabled={markingComplete}
+                    >
+                      {markingComplete ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                      Mark as Completed
+                    </Button>
+                  </div>
+                ) : isClerkInProgressJob ? (
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
+                      <ClipboardCheck className="w-5 h-5 text-warning" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">Inspection In Progress</p>
+                      <p className="text-sm text-muted-foreground">Once the report is submitted via InventoryBase, you'll be able to mark this job as completed here.</p>
+                    </div>
+                  </div>
+                ) : isClerkAcceptedJob ? (
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
+                      <ShieldCheck className="w-5 h-5 text-accent" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">Awaiting Inspection Start</p>
+                      <p className="text-sm text-muted-foreground">This job has been accepted. The inspection will begin once assigned in InventoryBase.</p>
+                    </div>
+                  </div>
+                ) : null}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Property Card — for clients and admins */}
           {role !== "clerk" && (
             <Card>

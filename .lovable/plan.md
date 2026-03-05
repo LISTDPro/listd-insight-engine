@@ -1,43 +1,31 @@
 
 
-## Plan: Property size auto-sync, notes visibility, and enhanced job cards
+## Problem
 
-### Issues identified
+1. The "Mark as Completed" button only renders when `job.status === "submitted"` — a very specific state that requires the report to already be uploaded via InventoryBase. If the job is in any other status, the button is invisible.
+2. When it does render, it sits in the header's `flex justify-between` row alongside navigation and status badges, making it easy to overlook — especially on mobile/tablet.
 
-1. **Property size not auto-filling**: When a client selects property size/furnishing in Step 3 (Size), the PropertyForm dialog in Step 4 (Property) does NOT pre-populate with those selections. The `PropertySelector` and `PropertyForm` components don't receive `selectedSize` or `selectedFurnishing` from BookJob. The `handleCreateProperty` override (line 137-139) only applies AFTER form submission, not during form rendering.
+## Plan
 
-2. **Notes not visible to clerks**: Property notes and job special instructions are partially shown. `ClerkJobDetailPanel` doesn't display `special_instructions` or property `notes` at all — only `SwipeJobCardContent` shows special instructions (truncated).
+### 1. Add a prominent clerk action card below the ClerkJobDetailPanel
 
-3. **Job cards need more visible info**: Clerk job cards in the list view (My Jobs/Today) lack payout, furnished status, and property type visibility.
+Instead of relying solely on the header button, add a visible action card in the main content area for clerks. This card will:
 
-### Changes
+- Show **"Mark as Completed"** when status is `submitted` (report uploaded, ready to finalise)
+- Show a contextual status message for other statuses (e.g., "Awaiting report submission" for `in_progress`, "Awaiting assignment" for `accepted/assigned`)
+- Be styled as a full-width card with clear call-to-action styling so it cannot be missed
 
-**1. `src/pages/BookJob.tsx`**
-- Pass `selectedSize` and `selectedFurnishing` to `PropertySelector` so the form can pre-fill.
+### 2. Keep the existing header button as-is
 
-**2. `src/components/booking/PropertySelector.tsx`**
-- Accept `defaultSize` and `defaultFurnishing` props, pass them to `PropertyForm` as `initialData` overrides so the form opens with the correct size/furnishing pre-selected.
+The header button remains for quick access but the new card ensures discoverability.
 
-**3. `src/components/dashboard/ClerkJobDetailPanel.tsx`**
-- Add a "Client Notes" card showing:
-  - `special_instructions` (cleaned of internal `[Additional services: ...]` and `[Service tier: ...]` tags)
-  - Property `notes` (e.g. access instructions, parking details)
-- Display both in a readable format with appropriate icons.
+### 3. File changes
 
-**4. `src/components/dashboard/ClerkJobsList.tsx`**
-- Enhance job cards (My Jobs + Today tabs) to show:
-  - Property type label (e.g. "2 Bed")
-  - Furnished status
-  - Clerk payout amount
-  - Tier badge (already on some cards but missing from others)
-- Make cards more information-dense without clutter.
+**`src/pages/dashboard/JobDetailPage.tsx`**:
+- After the `ClerkJobDetailPanel` render block (around line 447), add a new `Card` component for clerks that:
+  - When `isClerkSubmittedJob` is true: shows a green action card with the "Mark as Completed" button prominently displayed, along with a brief explanation ("Report has been submitted. Mark this job as completed to notify the client.")
+  - When job is `in_progress` and clerk is assigned: shows an informational card ("Report in progress — once submitted via InventoryBase, you'll be able to mark this job as completed here.")
+  - When job is `accepted`/`assigned` and clerk is assigned: shows "Awaiting inspection start"
 
-**5. `src/components/dashboard/SwipeJobCardContent.tsx`**
-- Add furnished status display alongside property type.
-- Show property notes if available.
-
-### Technical notes
-
-- The `handleCreateProperty` in BookJob already overrides `property_type` and `furnished_status` on submit (lines 137-139), but the form itself starts with defaults. Fix: pass initial overrides so the form renders with correct values.
-- Special instructions contain embedded metadata tags (`[Additional services: ...]`, `[Service tier: ...]`). A small helper will strip these before displaying to clerks, showing only the human-written notes.
+No database or backend changes needed — this is purely a UI improvement for button discoverability.
 

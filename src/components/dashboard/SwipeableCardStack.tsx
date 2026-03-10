@@ -89,7 +89,7 @@ function SwipeableCard<T>({
         </>
       )}
 
-      <div className="h-full w-full select-none">
+      <div className="h-full w-full select-none overflow-y-auto">
         {renderCard(item)}
       </div>
     </motion.div>

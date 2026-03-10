@@ -89,7 +89,7 @@ function SwipeableCard<T>({
         </>
       )}
 
-      <div className="h-full w-full select-none">
+      <div className="h-full w-full select-none overflow-y-auto">
         {renderCard(item)}
       </div>
     </motion.div>
@@ -136,7 +136,7 @@ export default function SwipeableCardStack<T extends { id: string }>({
   return (
     <div className={cn("space-y-4", className)}>
       {/* Card stack */}
-      <div className="relative mx-auto w-full" style={{ minHeight: 340 }}>
+      <div className="relative mx-auto w-full" style={{ minHeight: 420 }}>
         <AnimatePresence>
           {visibleItems.map((item, i) => (
             <SwipeableCard

@@ -2,3 +2,6 @@ project_id = "ssbheyzutjusdtyckbfq"
 
 [functions.admin-list-users]
 verify_jwt = false
+
+[functions.get-new-jobs]
+verify_jwt = false

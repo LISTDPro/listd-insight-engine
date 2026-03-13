@@ -46,6 +46,61 @@ const ConditionMapperPage = () => {
   const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeUploadItemId, setActiveUploadItemId] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [jobMeta, setJobMeta] = useState<{ inspectionType?: string; scheduledDate?: string; property?: any; clerkName?: string } | null>(null);
+
+  // Fetch job metadata for PDF
+  useEffect(() => {
+    if (!jobId) return;
+    (async () => {
+      const { data: job } = await supabase
+        .from("jobs")
+        .select("inspection_type, scheduled_date, property_id, clerk_id")
+        .eq("id", jobId)
+        .single();
+      if (!job) return;
+      const [propRes, profileRes] = await Promise.all([
+        supabase.from("properties").select("address_line_1, address_line_2, city, postcode").eq("id", job.property_id).single(),
+        job.clerk_id ? supabase.from("profiles").select("full_name").eq("user_id", job.clerk_id).single() : Promise.resolve({ data: null }),
+      ]);
+      setJobMeta({
+        inspectionType: job.inspection_type,
+        scheduledDate: job.scheduled_date,
+        property: propRes.data,
+        clerkName: profileRes.data?.full_name || undefined,
+      });
+    })();
+  }, [jobId]);
+
+  const handleDownloadReport = async () => {
+    if (!jobId || rooms.length === 0) {
+      toast.error("Add rooms before generating a report");
+      return;
+    }
+    setGenerating(true);
+    try {
+      const doc = await generateConditionReportPDF({
+        jobId,
+        inspectionType: jobMeta?.inspectionType,
+        scheduledDate: jobMeta?.scheduledDate,
+        property: jobMeta?.property,
+        rooms,
+        items,
+        photos,
+        clerkName: jobMeta?.clerkName,
+      }, (pct) => {
+        // Could show progress in future
+      });
+      const addr = jobMeta?.property?.address_line_1?.replace(/[^a-zA-Z0-9]/g, "_") || "property";
+      doc.save(`LISTD_Condition_Report_${addr}.pdf`);
+      toast.success("Report downloaded");
+    } catch (err) {
+      console.error("PDF generation failed", err);
+      toast.error("Failed to generate report");
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),

@@ -25,6 +25,7 @@ import NotFound from "./pages/NotFound";
 import XeroCallback from "./pages/XeroCallback";
 import EarlyAccessPage from "./pages/EarlyAccessPage";
 import ConditionMapperPage from "./pages/inspection/ConditionMapperPage";
+import ConditionReportPage from "./pages/inspection/ConditionReportPage";
 import BackToTop from "./components/ui/BackToTop";
 import WhatsAppButton from "./components/ui/WhatsAppButton";
 

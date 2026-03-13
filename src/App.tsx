@@ -31,6 +31,10 @@ import ClerkHome from "./pages/clerk/ClerkHome";
 import ClerkJobs from "./pages/clerk/ClerkJobs";
 import ClerkSchedule from "./pages/clerk/ClerkSchedule";
 import ClerkProfile from "./pages/clerk/ClerkProfile";
+import TenantLayout from "./pages/tenant/TenantLayout";
+import TenantHome from "./pages/tenant/TenantHome";
+import TenantReport from "./pages/tenant/TenantReport";
+import TenantDocuments from "./pages/tenant/TenantDocuments";
 import BackToTop from "./components/ui/BackToTop";
 import WhatsAppButton from "./components/ui/WhatsAppButton";
 

@@ -254,14 +254,28 @@ const ConditionMapperPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(`/dashboard/jobs/${jobId}`)}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-lg font-semibold">Condition Report</h1>
-            <p className="text-sm text-muted-foreground">{rooms.length} rooms · drag to reorder</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate(`/dashboard/jobs/${jobId}`)}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="text-lg font-semibold">Condition Report</h1>
+              <p className="text-sm text-muted-foreground">{rooms.length} rooms · drag to reorder</p>
+            </div>
           </div>
+          {rooms.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={handleDownloadReport}
+              disabled={generating}
+            >
+              {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              <span className="hidden sm:inline">Download PDF</span>
+            </Button>
+          )}
         </div>
       </div>
 

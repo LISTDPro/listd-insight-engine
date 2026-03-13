@@ -304,14 +304,14 @@ export const useDashboardStats = () => {
 
     for (const job of allJobs || []) {
       const monthKey = format(new Date(job.scheduled_date), "MMM yyyy");
-      const isCompleted = ["completed", "paid"].includes(job.status);
+      const isPaid = job.status === "paid";
       const payout = job.clerk_payout || 0;
       if (monthlyMap.has(monthKey)) {
         const entry = monthlyMap.get(monthKey)!;
         entry.jobs += 1;
-        if (isCompleted) entry.earnings += payout;
+        if (isPaid) entry.earnings += payout;
       }
-      if (isCompleted) {
+      if (isPaid) {
         totalEarnings += payout;
         completedJobs += 1;
       }

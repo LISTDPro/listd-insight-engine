@@ -300,6 +300,7 @@ export const useDashboardStats = () => {
     const inspectionMap = new Map<string, number>();
     let totalEarnings = 0;
     let totalJobs = 0;
+    let completedJobs = 0;
 
     for (const job of allJobs || []) {
       const monthKey = format(new Date(job.scheduled_date), "MMM yyyy");
@@ -310,7 +311,10 @@ export const useDashboardStats = () => {
         entry.jobs += 1;
         if (isCompleted) entry.earnings += payout;
       }
-      if (isCompleted) totalEarnings += payout;
+      if (isCompleted) {
+        totalEarnings += payout;
+        completedJobs += 1;
+      }
       totalJobs += 1;
       const iType = job.inspection_type || "other";
       inspectionMap.set(iType, (inspectionMap.get(iType) || 0) + 1);

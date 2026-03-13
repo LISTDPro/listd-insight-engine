@@ -269,10 +269,10 @@ export const useDashboardStats = () => {
     const monthStart = startOfMonth(new Date()).toISOString().split("T")[0];
     const { data: monthJobs } = await supabase
       .from("jobs")
-      .select("quoted_price, final_price")
+      .select("clerk_payout")
       .eq("clerk_id", user.id)
       .gte("scheduled_date", monthStart)
-      .in("status", ["completed", "paid", "submitted", "reviewed"]);
+      .in("status", ["completed", "paid"]);
 
     const monthEarnings = (monthJobs || []).reduce((sum, j) => sum + (j.clerk_payout || 0), 0);
 

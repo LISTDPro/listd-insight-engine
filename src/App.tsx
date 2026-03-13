@@ -60,6 +60,7 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/xero/callback" element={<XeroCallback />} />
               <Route path="/early-access" element={<EarlyAccessPage />} />
+              <Route path="/inspection/:jobId/mapper" element={<ConditionMapperPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

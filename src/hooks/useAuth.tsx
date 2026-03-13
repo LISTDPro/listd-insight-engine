@@ -19,6 +19,7 @@ interface Profile {
   clerk_jobs_completed: number | null;
   clerk_rating: number | null;
   clerk_level: number | null;
+  is_super_admin: boolean;
 }
 
 interface AuthContextType {

@@ -89,6 +89,13 @@ const App = () => (
                 <Route path="report/:reportId" element={<TenantReport />} />
                 <Route path="documents" element={<TenantDocuments />} />
               </Route>
+              <Route path="/admin/super" element={<SuperAdminLayout />}>
+                <Route index element={<SuperAdminOverview />} />
+                <Route path="organisations" element={<SuperAdminOrganisations />} />
+                <Route path="clerks" element={<SuperAdminClerks />} />
+                <Route path="jobs" element={<SuperAdminJobs />} />
+                <Route path="settings" element={<SuperAdminSettings />} />
+              </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

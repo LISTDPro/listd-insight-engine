@@ -1,0 +1,1 @@
+UPDATE profiles SET is_super_admin = true WHERE user_id = (SELECT id FROM auth.users WHERE email = 'hello@listd.co.uk');

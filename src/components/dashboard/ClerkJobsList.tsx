@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useClerkJobs } from "@/hooks/useClerkJobs";
 import { INSPECTION_TYPE_LABELS, PROPERTY_TYPE_LABELS, FURNISHED_STATUS_LABELS, PropertyType, FurnishedStatus } from "@/types/database";
 import { Card, CardContent } from "@/components/ui/card";
-import { calculatePayoutBreakdown } from "@/utils/escrow";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import TierBadge from "@/components/ui/tier-badge";
@@ -169,9 +169,7 @@ const ClerkJobsList = () => {
             </Card>
           ) : (
             todayJobs.map((job) => {
-              const grossPrice = (job as any).final_price || (job as any).quoted_price || 0;
-              const clerkPayoutStored = (job as any).clerk_final_payout || (job as any).clerk_payout;
-              const payout = clerkPayoutStored ? clerkPayoutStored : calculatePayoutBreakdown(grossPrice).clerkPayout;
+              const payout = (job as any).clerk_final_payout || (job as any).clerk_payout || 0;
               const propType = job.property?.property_type ? PROPERTY_TYPE_LABELS[job.property.property_type as PropertyType] : null;
               const furnished = (job.property as any)?.furnished_status ? FURNISHED_STATUS_LABELS[(job.property as any).furnished_status as FurnishedStatus] : null;
               return (
@@ -253,9 +251,7 @@ const ClerkJobsList = () => {
                   </h3>
                   <div className="space-y-3">
                     {todayJobs.map((job) => {
-                      const grossPrice = (job as any).final_price || (job as any).quoted_price || 0;
-                      const clerkPayoutStored = (job as any).clerk_final_payout || (job as any).clerk_payout;
-                      const payout = clerkPayoutStored ? clerkPayoutStored : calculatePayoutBreakdown(grossPrice).clerkPayout;
+                      const payout = (job as any).clerk_final_payout || (job as any).clerk_payout || 0;
                       const propType = job.property?.property_type ? PROPERTY_TYPE_LABELS[job.property.property_type as PropertyType] : null;
                       const furnished = (job.property as any)?.furnished_status ? FURNISHED_STATUS_LABELS[(job.property as any).furnished_status as FurnishedStatus] : null;
                       return (
@@ -318,9 +314,7 @@ const ClerkJobsList = () => {
                   </h3>
                   <div className="space-y-3">
                     {upcomingJobs.map((job) => {
-                      const grossPrice = (job as any).final_price || (job as any).quoted_price || 0;
-                      const clerkPayoutStored = (job as any).clerk_final_payout || (job as any).clerk_payout;
-                      const payout = clerkPayoutStored ? clerkPayoutStored : calculatePayoutBreakdown(grossPrice).clerkPayout;
+                      const payout = (job as any).clerk_final_payout || (job as any).clerk_payout || 0;
                       const propType = job.property?.property_type ? PROPERTY_TYPE_LABELS[job.property.property_type as PropertyType] : null;
                       const furnished = (job.property as any)?.furnished_status ? FURNISHED_STATUS_LABELS[(job.property as any).furnished_status as FurnishedStatus] : null;
                       return (

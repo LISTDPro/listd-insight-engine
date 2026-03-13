@@ -348,7 +348,7 @@ export const useDashboardStats = () => {
       pendingPayments: pendingPayCount || 0,
       totalEarnings,
       totalJobs,
-      avgJobValue: totalJobs > 0 ? totalEarnings / totalJobs : 0,
+      avgJobValue: completedJobs > 0 ? totalEarnings / completedJobs : 0,
       monthlyData,
       inspectionTypeBreakdown,
     });

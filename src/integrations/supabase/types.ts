@@ -272,6 +272,9 @@ export type Database = {
           report_url: string | null
           sent_at: string | null
           sent_to_email: string | null
+          signed_at: string | null
+          tenant_signature: string | null
+          tenant_token: string | null
         }
         Insert: {
           generated_at?: string
@@ -281,6 +284,9 @@ export type Database = {
           report_url?: string | null
           sent_at?: string | null
           sent_to_email?: string | null
+          signed_at?: string | null
+          tenant_signature?: string | null
+          tenant_token?: string | null
         }
         Update: {
           generated_at?: string
@@ -290,6 +296,9 @@ export type Database = {
           report_url?: string | null
           sent_at?: string | null
           sent_to_email?: string | null
+          signed_at?: string | null
+          tenant_signature?: string | null
+          tenant_token?: string | null
         }
         Relationships: [
           {
@@ -1313,6 +1322,7 @@ export type Database = {
           job_id: string
           phone: string | null
           tenant_order: number
+          tenant_token: string | null
           updated_at: string
         }
         Insert: {
@@ -1323,6 +1333,7 @@ export type Database = {
           job_id: string
           phone?: string | null
           tenant_order?: number
+          tenant_token?: string | null
           updated_at?: string
         }
         Update: {
@@ -1333,6 +1344,7 @@ export type Database = {
           job_id?: string
           phone?: string | null
           tenant_order?: number
+          tenant_token?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1453,6 +1465,10 @@ export type Database = {
         Args: { _org_id: string; _user_id: string }
         Returns: undefined
       }
+      generate_tenant_portal_token: {
+        Args: { _tenant_id: string }
+        Returns: string
+      }
       get_invitation_by_token: {
         Args: { _token: string }
         Returns: {
@@ -1485,6 +1501,15 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      tenant_portal_data: { Args: { _token: string }; Returns: Json }
+      tenant_report_detail: {
+        Args: { _job_id: string; _token: string }
+        Returns: Json
+      }
+      tenant_sign_report: {
+        Args: { _report_id: string; _signature: string; _token: string }
         Returns: boolean
       }
     }

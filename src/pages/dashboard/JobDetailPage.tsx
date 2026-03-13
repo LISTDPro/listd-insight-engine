@@ -501,16 +501,26 @@ const JobDetailPage = () => {
             </Card>
           )}
 
-          {/* Condition Report button for clerks on their jobs */}
+          {/* Condition Report buttons for clerks on their jobs */}
           {role === "clerk" && job.clerk_id === profile?.user_id && (
-            <Button
-              variant="outline"
-              className="w-full gap-2"
-              onClick={() => navigate(`/inspection/${job.id}/mapper`)}
-            >
-              <ClipboardList className="w-4 h-4" />
-              Condition Report
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1 gap-2"
+                onClick={() => navigate(`/inspection/${job.id}/mapper`)}
+              >
+                <ClipboardList className="w-4 h-4" />
+                Condition Mapper
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1 gap-2"
+                onClick={() => navigate(`/inspection/${job.id}/report`)}
+              >
+                <FileText className="w-4 h-4" />
+                View Report
+              </Button>
+            </div>
           )}
 
           {/* Property Card — for clients and admins */}

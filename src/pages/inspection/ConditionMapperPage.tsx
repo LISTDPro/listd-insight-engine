@@ -1,7 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useConditionMapper, MapRoom } from "@/hooks/useConditionMapper";
 import { getDefaultItemsForRoom, CONDITION_LABELS, CONDITION_COLORS, ItemCondition } from "@/utils/conditionMapperDefaults";
+import { generateConditionReportPDF } from "@/utils/generateConditionReport";
 import { SortableRoomCard } from "@/components/inspection/SortableRoomCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,8 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
-  ArrowLeft, Plus, Trash2, Camera, Loader2, X
+  ArrowLeft, Plus, Trash2, Camera, Loader2, X, Download
 } from "lucide-react";
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent,

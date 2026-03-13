@@ -1,7 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useConditionMapper, MapRoom } from "@/hooks/useConditionMapper";
 import { getDefaultItemsForRoom, CONDITION_LABELS, CONDITION_COLORS, ItemCondition } from "@/utils/conditionMapperDefaults";
+import { generateConditionReportPDF } from "@/utils/generateConditionReport";
 import { SortableRoomCard } from "@/components/inspection/SortableRoomCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,8 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
-  ArrowLeft, Plus, Trash2, Camera, Loader2, X
+  ArrowLeft, Plus, Trash2, Camera, Loader2, X, Download
 } from "lucide-react";
 import {
   DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors, DragEndEvent,
@@ -31,7 +33,7 @@ const ConditionMapperPage = () => {
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
   const {
-    rooms, loading,
+    rooms, items, photos, loading,
     addRoom, addItem, updateItem, deleteItem, deleteRoom, reorderRooms,
     uploadPhoto, deletePhoto,
     getRoomItems, getItemPhotos, getRoomStatus,
@@ -44,6 +46,61 @@ const ConditionMapperPage = () => {
   const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeUploadItemId, setActiveUploadItemId] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [jobMeta, setJobMeta] = useState<{ inspectionType?: string; scheduledDate?: string; property?: any; clerkName?: string } | null>(null);
+
+  // Fetch job metadata for PDF
+  useEffect(() => {
+    if (!jobId) return;
+    (async () => {
+      const { data: job } = await supabase
+        .from("jobs")
+        .select("inspection_type, scheduled_date, property_id, clerk_id")
+        .eq("id", jobId)
+        .single();
+      if (!job) return;
+      const [propRes, profileRes] = await Promise.all([
+        supabase.from("properties").select("address_line_1, address_line_2, city, postcode").eq("id", job.property_id).single(),
+        job.clerk_id ? supabase.from("profiles").select("full_name").eq("user_id", job.clerk_id).single() : Promise.resolve({ data: null }),
+      ]);
+      setJobMeta({
+        inspectionType: job.inspection_type,
+        scheduledDate: job.scheduled_date,
+        property: propRes.data,
+        clerkName: profileRes.data?.full_name || undefined,
+      });
+    })();
+  }, [jobId]);
+
+  const handleDownloadReport = async () => {
+    if (!jobId || rooms.length === 0) {
+      toast.error("Add rooms before generating a report");
+      return;
+    }
+    setGenerating(true);
+    try {
+      const doc = await generateConditionReportPDF({
+        jobId,
+        inspectionType: jobMeta?.inspectionType,
+        scheduledDate: jobMeta?.scheduledDate,
+        property: jobMeta?.property,
+        rooms,
+        items,
+        photos,
+        clerkName: jobMeta?.clerkName,
+      }, (pct) => {
+        // Could show progress in future
+      });
+      const addr = jobMeta?.property?.address_line_1?.replace(/[^a-zA-Z0-9]/g, "_") || "property";
+      doc.save(`LISTD_Condition_Report_${addr}.pdf`);
+      toast.success("Report downloaded");
+    } catch (err) {
+      console.error("PDF generation failed", err);
+      toast.error("Failed to generate report");
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -197,14 +254,28 @@ const ConditionMapperPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 z-10 bg-background border-b border-border px-4 py-3">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate(`/dashboard/jobs/${jobId}`)}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-lg font-semibold">Condition Report</h1>
-            <p className="text-sm text-muted-foreground">{rooms.length} rooms · drag to reorder</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate(`/dashboard/jobs/${jobId}`)}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="text-lg font-semibold">Condition Report</h1>
+              <p className="text-sm text-muted-foreground">{rooms.length} rooms · drag to reorder</p>
+            </div>
           </div>
+          {rooms.length > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={handleDownloadReport}
+              disabled={generating}
+            >
+              {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+              <span className="hidden sm:inline">Download PDF</span>
+            </Button>
+          )}
         </div>
       </div>
 

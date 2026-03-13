@@ -19,7 +19,7 @@ import {
 import {
   SortableContext, verticalListSortingStrategy, arrayMove,
 } from "@dnd-kit/sortable";
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers" with { type: "macro" };
+
 
 const STATUS_BADGE: Record<string, { label: string; className: string }> = {
   not_started: { label: "Not Started", className: "bg-muted text-muted-foreground" },

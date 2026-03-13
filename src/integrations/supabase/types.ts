@@ -263,6 +263,44 @@ export type Database = {
           },
         ]
       }
+      generated_reports: {
+        Row: {
+          generated_at: string
+          generated_by: string
+          id: string
+          job_id: string
+          report_url: string | null
+          sent_at: string | null
+          sent_to_email: string | null
+        }
+        Insert: {
+          generated_at?: string
+          generated_by: string
+          id?: string
+          job_id: string
+          report_url?: string | null
+          sent_at?: string | null
+          sent_to_email?: string | null
+        }
+        Update: {
+          generated_at?: string
+          generated_by?: string
+          id?: string
+          job_id?: string
+          report_url?: string | null
+          sent_at?: string | null
+          sent_to_email?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "generated_reports_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inspection_item_photos: {
         Row: {
           created_at: string

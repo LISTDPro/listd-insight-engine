@@ -215,6 +215,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               clerk_jobs_completed: null,
               clerk_rating: null,
               clerk_level: null,
+              is_super_admin: false,
             }
       );
     }

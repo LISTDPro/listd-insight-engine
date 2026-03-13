@@ -78,6 +78,11 @@ const App = () => (
                 <Route path="schedule" element={<ClerkSchedule />} />
                 <Route path="profile" element={<ClerkProfile />} />
               </Route>
+              <Route path="/tenant/portal" element={<TenantLayout />}>
+                <Route index element={<TenantHome />} />
+                <Route path="report/:reportId" element={<TenantReport />} />
+                <Route path="documents" element={<TenantDocuments />} />
+              </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

@@ -19,6 +19,7 @@ interface Profile {
   clerk_jobs_completed: number | null;
   clerk_rating: number | null;
   clerk_level: number | null;
+  is_super_admin: boolean;
 }
 
 interface AuthContextType {
@@ -214,6 +215,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               clerk_jobs_completed: null,
               clerk_rating: null,
               clerk_level: null,
+              is_super_admin: false,
             }
       );
     }

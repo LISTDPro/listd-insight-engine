@@ -37,6 +37,12 @@ import TenantReport from "./pages/tenant/TenantReport";
 import TenantDocuments from "./pages/tenant/TenantDocuments";
 import BackToTop from "./components/ui/BackToTop";
 import WhatsAppButton from "./components/ui/WhatsAppButton";
+import SuperAdminLayout from "./pages/super-admin/SuperAdminLayout";
+import SuperAdminOverview from "./pages/super-admin/SuperAdminOverview";
+import SuperAdminOrganisations from "./pages/super-admin/SuperAdminOrganisations";
+import SuperAdminClerks from "./pages/super-admin/SuperAdminClerks";
+import SuperAdminJobs from "./pages/super-admin/SuperAdminJobs";
+import SuperAdminSettings from "./pages/super-admin/SuperAdminSettings";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +88,13 @@ const App = () => (
                 <Route index element={<TenantHome />} />
                 <Route path="report/:reportId" element={<TenantReport />} />
                 <Route path="documents" element={<TenantDocuments />} />
+              </Route>
+              <Route path="/admin/super" element={<SuperAdminLayout />}>
+                <Route index element={<SuperAdminOverview />} />
+                <Route path="organisations" element={<SuperAdminOrganisations />} />
+                <Route path="clerks" element={<SuperAdminClerks />} />
+                <Route path="jobs" element={<SuperAdminJobs />} />
+                <Route path="settings" element={<SuperAdminSettings />} />
               </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

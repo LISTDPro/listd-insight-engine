@@ -99,14 +99,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         // Defer profile fetch with setTimeout to avoid deadlock
         if (session?.user) {
-          setTimeout(() => {
-            fetchProfile(session.user.id);
+          setTimeout(async () => {
+            await fetchProfile(session.user.id);
+            setLoading(false);
           }, 0);
         } else {
           setProfile(null);
           setRoleState(null);
           setOrgRole(null);
           setOrganisationId(null);
+          setLoading(false);
         }
 
         if (event === "SIGNED_OUT") {
@@ -114,9 +116,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setRoleState(null);
           setOrgRole(null);
           setOrganisationId(null);
+          setLoading(false);
         }
-
-        setLoading(false);
       }
     );
 

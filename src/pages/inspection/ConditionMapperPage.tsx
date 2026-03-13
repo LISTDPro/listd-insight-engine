@@ -33,7 +33,7 @@ const ConditionMapperPage = () => {
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
   const {
-    rooms, loading,
+    rooms, items, photos, loading,
     addRoom, addItem, updateItem, deleteItem, deleteRoom, reorderRooms,
     uploadPhoto, deletePhoto,
     getRoomItems, getItemPhotos, getRoomStatus,

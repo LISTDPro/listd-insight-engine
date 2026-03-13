@@ -99,14 +99,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         // Defer profile fetch with setTimeout to avoid deadlock
         if (session?.user) {
-          setTimeout(() => {
-            fetchProfile(session.user.id);
+          setTimeout(async () => {
+            await fetchProfile(session.user.id);
+            setLoading(false);
           }, 0);
         } else {
           setProfile(null);
           setRoleState(null);
           setOrgRole(null);
           setOrganisationId(null);
+          setLoading(false);
         }
 
         if (event === "SIGNED_OUT") {
@@ -114,19 +116,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           setRoleState(null);
           setOrgRole(null);
           setOrganisationId(null);
+          setLoading(false);
         }
-
-        setLoading(false);
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchProfile(session.user.id);
+        await fetchProfile(session.user.id);
       }
       
       setLoading(false);

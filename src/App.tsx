@@ -26,6 +26,11 @@ import XeroCallback from "./pages/XeroCallback";
 import EarlyAccessPage from "./pages/EarlyAccessPage";
 import ConditionMapperPage from "./pages/inspection/ConditionMapperPage";
 import ConditionReportPage from "./pages/inspection/ConditionReportPage";
+import ClerkLayout from "./pages/clerk/ClerkLayout";
+import ClerkHome from "./pages/clerk/ClerkHome";
+import ClerkJobs from "./pages/clerk/ClerkJobs";
+import ClerkSchedule from "./pages/clerk/ClerkSchedule";
+import ClerkProfile from "./pages/clerk/ClerkProfile";
 import BackToTop from "./components/ui/BackToTop";
 import WhatsAppButton from "./components/ui/WhatsAppButton";
 

@@ -4,8 +4,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Briefcase, CheckCircle, Clock, Loader2 } from "lucide-react";
 import { format, isToday, startOfWeek, endOfWeek, parseISO } from "date-fns";
+import CompleteJobDialog from "@/components/clerk/CompleteJobDialog";
 
 interface ClerkJob {
   id: string;
@@ -13,6 +15,7 @@ interface ClerkJob {
   scheduled_date: string;
   preferred_time_slot: string | null;
   status: string;
+  client_id: string;
   properties: {
     address_line_1: string;
     city: string;
@@ -30,30 +33,34 @@ const statusColor: Record<string, string> = {
   pending: "bg-muted text-muted-foreground",
 };
 
+const completableStatuses = ["in_progress", "accepted", "assigned"];
+
 const ClerkHome = () => {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<ClerkJob[]>([]);
   const [loading, setLoading] = useState(true);
+  const [completeJob, setCompleteJob] = useState<ClerkJob | null>(null);
+
+  const fetchJobs = async () => {
+    if (!user) return;
+    const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+    const weekEnd = format(endOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
+
+    const { data } = await supabase
+      .from("jobs")
+      .select("id, inspection_type, scheduled_date, preferred_time_slot, status, client_id, properties(address_line_1, city, postcode)")
+      .eq("clerk_id", user.id)
+      .gte("scheduled_date", weekStart)
+      .lte("scheduled_date", weekEnd)
+      .neq("status", "cancelled")
+      .order("scheduled_date", { ascending: true });
+
+    setJobs((data as any) || []);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    if (!user) return;
-    const fetchJobs = async () => {
-      const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
-      const weekEnd = format(endOfWeek(new Date(), { weekStartsOn: 1 }), "yyyy-MM-dd");
-
-      const { data } = await supabase
-        .from("jobs")
-        .select("id, inspection_type, scheduled_date, preferred_time_slot, status, properties(address_line_1, city, postcode)")
-        .eq("clerk_id", user.id)
-        .gte("scheduled_date", weekStart)
-        .lte("scheduled_date", weekEnd)
-        .neq("status", "cancelled")
-        .order("scheduled_date", { ascending: true });
-
-      setJobs((data as any) || []);
-      setLoading(false);
-    };
     fetchJobs();
   }, [user]);
 
@@ -96,9 +103,22 @@ const ClerkHome = () => {
           {formatType(job.inspection_type)} · {job.preferred_time_slot || "TBC"}
         </p>
       </div>
-      <Badge variant="outline" className={`shrink-0 ml-3 text-[10px] ${statusColor[job.status] || ""}`}>
-        {formatType(job.status)}
-      </Badge>
+      <div className="flex items-center gap-2 shrink-0">
+        {completableStatuses.includes(job.status) && (
+          <Button
+            size="sm"
+            variant="success"
+            className="text-[11px] h-7 px-2"
+            onClick={(e) => { e.stopPropagation(); setCompleteJob(job); }}
+          >
+            <CheckCircle className="w-3 h-3 mr-1" />
+            Complete
+          </Button>
+        )}
+        <Badge variant="outline" className={`ml-1 text-[10px] ${statusColor[job.status] || ""}`}>
+          {formatType(job.status)}
+        </Badge>
+      </div>
     </div>
   );
 
@@ -169,6 +189,17 @@ const ClerkHome = () => {
           )}
         </CardContent>
       </Card>
+
+      {completeJob && (
+        <CompleteJobDialog
+          open={!!completeJob}
+          onOpenChange={(o) => !o && setCompleteJob(null)}
+          jobId={completeJob.id}
+          propertyAddress={completeJob.properties?.address_line_1 || "the property"}
+          clientId={completeJob.client_id}
+          onCompleted={fetchJobs}
+        />
+      )}
     </div>
   );
 };

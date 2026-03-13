@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, CheckCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
+import CompleteJobDialog from "@/components/clerk/CompleteJobDialog";
 
 interface ClerkJob {
   id: string;
@@ -17,6 +18,7 @@ interface ClerkJob {
   preferred_time_slot: string | null;
   status: string;
   created_by_name: string | null;
+  client_id: string;
   properties: {
     address_line_1: string;
     city: string;
@@ -39,6 +41,8 @@ const statusColor: Record<string, string> = {
 
 const formatType = (t: string) => t.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
+const completableStatuses = ["in_progress", "accepted", "assigned"];
+
 const ClerkJobs = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -47,25 +51,27 @@ const ClerkJobs = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [completeJob, setCompleteJob] = useState<ClerkJob | null>(null);
+
+  const fetchJobs = async () => {
+    if (!user) return;
+    let q = supabase
+      .from("jobs")
+      .select("id, inspection_type, scheduled_date, preferred_time_slot, status, created_by_name, client_id, properties(address_line_1, city, postcode)")
+      .eq("clerk_id", user.id)
+      .neq("status", "cancelled")
+      .order("scheduled_date", { ascending: false });
+
+    if (dateFrom) q = q.gte("scheduled_date", dateFrom);
+    if (dateTo) q = q.lte("scheduled_date", dateTo);
+
+    const { data } = await q;
+    setJobs((data as any) || []);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    if (!user) return;
-    const fetch = async () => {
-      let q = supabase
-        .from("jobs")
-        .select("id, inspection_type, scheduled_date, preferred_time_slot, status, created_by_name, properties(address_line_1, city, postcode)")
-        .eq("clerk_id", user.id)
-        .neq("status", "cancelled")
-        .order("scheduled_date", { ascending: false });
-
-      if (dateFrom) q = q.gte("scheduled_date", dateFrom);
-      if (dateTo) q = q.lte("scheduled_date", dateTo);
-
-      const { data } = await q;
-      setJobs((data as any) || []);
-      setLoading(false);
-    };
-    fetch();
+    fetchJobs();
   }, [user, dateFrom, dateTo]);
 
   const completedStatuses = ["completed", "paid", "signed", "reviewed", "submitted"];
@@ -143,14 +149,38 @@ const ClerkJobs = () => {
                     <p className="text-[10px] text-muted-foreground mt-0.5">Client: {job.created_by_name}</p>
                   )}
                 </div>
-                <Badge variant="outline" className={`shrink-0 text-[10px] ${statusColor[job.status] || ""}`}>
-                  {formatType(job.status)}
-                </Badge>
+                <div className="flex items-center gap-2 shrink-0">
+                  {completableStatuses.includes(job.status) ? (
+                    <Button
+                      size="sm"
+                      variant="success"
+                      className="text-[11px] h-7 px-2"
+                      onClick={(e) => { e.stopPropagation(); setCompleteJob(job); }}
+                    >
+                      <CheckCircle className="w-3 h-3 mr-1" />
+                      Complete
+                    </Button>
+                  ) : null}
+                  <Badge variant="outline" className={`text-[10px] ${statusColor[job.status] || ""}`}>
+                    {formatType(job.status)}
+                  </Badge>
+                </div>
               </CardContent>
             </Card>
           ))
         )}
       </div>
+
+      {completeJob && (
+        <CompleteJobDialog
+          open={!!completeJob}
+          onOpenChange={(o) => !o && setCompleteJob(null)}
+          jobId={completeJob.id}
+          propertyAddress={completeJob.properties?.address_line_1 || "the property"}
+          clientId={completeJob.client_id}
+          onCompleted={fetchJobs}
+        />
+      )}
     </div>
   );
 };

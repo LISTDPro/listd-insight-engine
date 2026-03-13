@@ -303,13 +303,14 @@ export const useDashboardStats = () => {
 
     for (const job of allJobs || []) {
       const monthKey = format(new Date(job.scheduled_date), "MMM yyyy");
-      const price = (job.final_price || job.quoted_price || 0) * 0.85;
+      const isCompleted = ["completed", "paid"].includes(job.status);
+      const payout = job.clerk_payout || 0;
       if (monthlyMap.has(monthKey)) {
         const entry = monthlyMap.get(monthKey)!;
         entry.jobs += 1;
-        entry.earnings += price;
+        if (isCompleted) entry.earnings += payout;
       }
-      totalEarnings += price;
+      if (isCompleted) totalEarnings += payout;
       totalJobs += 1;
       const iType = job.inspection_type || "other";
       inspectionMap.set(iType, (inspectionMap.get(iType) || 0) + 1);

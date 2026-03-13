@@ -62,6 +62,7 @@ const App = () => (
               <Route path="/xero/callback" element={<XeroCallback />} />
               <Route path="/early-access" element={<EarlyAccessPage />} />
               <Route path="/inspection/:jobId/mapper" element={<ConditionMapperPage />} />
+              <Route path="/inspection/:jobId/report" element={<ConditionReportPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

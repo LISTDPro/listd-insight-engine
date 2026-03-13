@@ -1,0 +1,1 @@
+UPDATE profiles SET is_super_admin = true WHERE user_id = 'f6947d7f-1b12-4d25-a8d0-fc4792905ed3';

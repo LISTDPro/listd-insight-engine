@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import TierBadge from "@/components/ui/tier-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { INSPECTION_TYPE_LABELS, PROPERTY_TYPE_LABELS, FURNISHED_STATUS_LABELS, FurnishedStatus } from "@/types/database";
-import { calculatePayoutBreakdown } from "@/utils/escrow";
+
 
 interface SwipeJobCardContentProps {
   job: {

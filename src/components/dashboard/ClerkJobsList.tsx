@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useClerkJobs } from "@/hooks/useClerkJobs";
 import { INSPECTION_TYPE_LABELS, PROPERTY_TYPE_LABELS, FURNISHED_STATUS_LABELS, PropertyType, FurnishedStatus } from "@/types/database";
 import { Card, CardContent } from "@/components/ui/card";
-import { calculatePayoutBreakdown } from "@/utils/escrow";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import TierBadge from "@/components/ui/tier-badge";

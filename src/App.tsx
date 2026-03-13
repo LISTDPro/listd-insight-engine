@@ -68,6 +68,12 @@ const App = () => (
               <Route path="/early-access" element={<EarlyAccessPage />} />
               <Route path="/inspection/:jobId/mapper" element={<ConditionMapperPage />} />
               <Route path="/inspection/:jobId/report" element={<ConditionReportPage />} />
+              <Route path="/clerk" element={<ClerkLayout />}>
+                <Route path="dashboard" element={<ClerkHome />} />
+                <Route path="jobs" element={<ClerkJobs />} />
+                <Route path="schedule" element={<ClerkSchedule />} />
+                <Route path="profile" element={<ClerkProfile />} />
+              </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

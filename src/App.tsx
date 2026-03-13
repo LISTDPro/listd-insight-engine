@@ -26,6 +26,11 @@ import XeroCallback from "./pages/XeroCallback";
 import EarlyAccessPage from "./pages/EarlyAccessPage";
 import ConditionMapperPage from "./pages/inspection/ConditionMapperPage";
 import ConditionReportPage from "./pages/inspection/ConditionReportPage";
+import ClerkLayout from "./pages/clerk/ClerkLayout";
+import ClerkHome from "./pages/clerk/ClerkHome";
+import ClerkJobs from "./pages/clerk/ClerkJobs";
+import ClerkSchedule from "./pages/clerk/ClerkSchedule";
+import ClerkProfile from "./pages/clerk/ClerkProfile";
 import BackToTop from "./components/ui/BackToTop";
 import WhatsAppButton from "./components/ui/WhatsAppButton";
 
@@ -63,6 +68,12 @@ const App = () => (
               <Route path="/early-access" element={<EarlyAccessPage />} />
               <Route path="/inspection/:jobId/mapper" element={<ConditionMapperPage />} />
               <Route path="/inspection/:jobId/report" element={<ConditionReportPage />} />
+              <Route path="/clerk" element={<ClerkLayout />}>
+                <Route path="dashboard" element={<ClerkHome />} />
+                <Route path="jobs" element={<ClerkJobs />} />
+                <Route path="schedule" element={<ClerkSchedule />} />
+                <Route path="profile" element={<ClerkProfile />} />
+              </Route>
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

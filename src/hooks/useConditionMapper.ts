@@ -112,6 +112,22 @@ export function useConditionMapper(jobId: string | undefined) {
     setItems(prev => prev.filter(i => i.room_id !== roomId));
   };
 
+  const reorderRooms = async (reorderedRooms: MapRoom[]) => {
+    setRooms(reorderedRooms);
+    // Update room_order for each room in parallel
+    const updates = reorderedRooms.map((room, index) =>
+      supabase
+        .from("inspection_rooms_map" as any)
+        .update({ room_order: index } as any)
+        .eq("id", room.id)
+    );
+    const results = await Promise.all(updates);
+    if (results.some(r => r.error)) {
+      toast.error("Failed to save room order");
+      fetchAll(); // Revert on error
+    }
+  };
+
   const uploadPhoto = async (itemId: string, file: File) => {
     if (!jobId) return;
     // Compress image

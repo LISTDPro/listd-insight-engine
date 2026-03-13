@@ -56,7 +56,8 @@ import {
   ClipboardCheck,
   CheckCircle2,
   ShieldCheck,
-  Pencil
+  Pencil,
+  ClipboardList
 } from "lucide-react";
 
 const STATUS_STYLES: Partial<Record<JobStatus, string>> = {

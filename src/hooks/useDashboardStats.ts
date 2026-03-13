@@ -269,12 +269,12 @@ export const useDashboardStats = () => {
     const monthStart = startOfMonth(new Date()).toISOString().split("T")[0];
     const { data: monthJobs } = await supabase
       .from("jobs")
-      .select("quoted_price, final_price")
+      .select("clerk_payout")
       .eq("clerk_id", user.id)
       .gte("scheduled_date", monthStart)
-      .in("status", ["completed", "paid", "submitted", "reviewed"]);
+      .in("status", ["completed", "paid"]);
 
-    const monthEarnings = (monthJobs || []).reduce((sum, j) => sum + ((j.final_price || j.quoted_price || 0) * 0.85), 0);
+    const monthEarnings = (monthJobs || []).reduce((sum, j) => sum + (j.clerk_payout || 0), 0);
 
     const { count: pendingPayCount } = await supabase
       .from("jobs")
@@ -285,7 +285,7 @@ export const useDashboardStats = () => {
     const sixMonthsAgo = subMonths(new Date(), 6).toISOString().split("T")[0];
     const { data: allJobs } = await supabase
       .from("jobs")
-      .select("scheduled_date, quoted_price, final_price, inspection_type, status")
+      .select("scheduled_date, clerk_payout, inspection_type, status")
       .eq("clerk_id", user.id)
       .gte("scheduled_date", sixMonthsAgo)
       .not("status", "in", '("draft","cancelled")');
@@ -300,16 +300,21 @@ export const useDashboardStats = () => {
     const inspectionMap = new Map<string, number>();
     let totalEarnings = 0;
     let totalJobs = 0;
+    let completedJobs = 0;
 
     for (const job of allJobs || []) {
       const monthKey = format(new Date(job.scheduled_date), "MMM yyyy");
-      const price = (job.final_price || job.quoted_price || 0) * 0.85;
+      const isCompleted = ["completed", "paid"].includes(job.status);
+      const payout = job.clerk_payout || 0;
       if (monthlyMap.has(monthKey)) {
         const entry = monthlyMap.get(monthKey)!;
         entry.jobs += 1;
-        entry.earnings += price;
+        if (isCompleted) entry.earnings += payout;
       }
-      totalEarnings += price;
+      if (isCompleted) {
+        totalEarnings += payout;
+        completedJobs += 1;
+      }
       totalJobs += 1;
       const iType = job.inspection_type || "other";
       inspectionMap.set(iType, (inspectionMap.get(iType) || 0) + 1);
@@ -343,7 +348,7 @@ export const useDashboardStats = () => {
       pendingPayments: pendingPayCount || 0,
       totalEarnings,
       totalJobs,
-      avgJobValue: totalJobs > 0 ? totalEarnings / totalJobs : 0,
+      avgJobValue: completedJobs > 0 ? totalEarnings / completedJobs : 0,
       monthlyData,
       inspectionTypeBreakdown,
     });

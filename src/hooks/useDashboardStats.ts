@@ -272,7 +272,7 @@ export const useDashboardStats = () => {
       .select("clerk_payout")
       .eq("clerk_id", user.id)
       .gte("scheduled_date", monthStart)
-      .in("status", ["completed", "paid"]);
+      .eq("status", "paid");
 
     const monthEarnings = (monthJobs || []).reduce((sum, j) => sum + (j.clerk_payout || 0), 0);
 

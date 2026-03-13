@@ -263,6 +263,45 @@ export type Database = {
           },
         ]
       }
+      inspection_item_photos: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          job_id: string
+          photo_url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          job_id: string
+          photo_url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          job_id?: string
+          photo_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_item_photos_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_items_map"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_item_photos_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inspection_items: {
         Row: {
           cleanliness: string | null
@@ -318,6 +357,51 @@ export type Database = {
             columns: ["room_id"]
             isOneToOne: false
             referencedRelation: "inspection_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_items_map: {
+        Row: {
+          condition: Database["public"]["Enums"]["item_condition"] | null
+          created_at: string
+          id: string
+          item_name: string
+          job_id: string
+          notes: string | null
+          room_id: string
+        }
+        Insert: {
+          condition?: Database["public"]["Enums"]["item_condition"] | null
+          created_at?: string
+          id?: string
+          item_name: string
+          job_id: string
+          notes?: string | null
+          room_id: string
+        }
+        Update: {
+          condition?: Database["public"]["Enums"]["item_condition"] | null
+          created_at?: string
+          id?: string
+          item_name?: string
+          job_id?: string
+          notes?: string | null
+          room_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_items_map_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "inspection_items_map_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "inspection_rooms_map"
             referencedColumns: ["id"]
           },
         ]
@@ -488,6 +572,38 @@ export type Database = {
             columns: ["report_id"]
             isOneToOne: false
             referencedRelation: "inspection_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inspection_rooms_map: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string
+          room_name: string
+          room_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id: string
+          room_name: string
+          room_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string
+          room_name?: string
+          room_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inspection_rooms_map_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
         ]
@@ -1351,6 +1467,7 @@ export type Database = {
         | "check_out"
         | "mid_term"
         | "interim"
+      item_condition: "good" | "fair" | "poor" | "na"
       job_status:
         | "draft"
         | "pending"
@@ -1535,6 +1652,7 @@ export const Constants = {
         "mid_term",
         "interim",
       ],
+      item_condition: ["good", "fair", "poor", "na"],
       job_status: [
         "draft",
         "pending",

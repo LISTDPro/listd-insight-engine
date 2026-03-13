@@ -24,6 +24,7 @@ import CookiesPage from "./pages/CookiesPage";
 import NotFound from "./pages/NotFound";
 import XeroCallback from "./pages/XeroCallback";
 import EarlyAccessPage from "./pages/EarlyAccessPage";
+import ConditionMapperPage from "./pages/inspection/ConditionMapperPage";
 import BackToTop from "./components/ui/BackToTop";
 import WhatsAppButton from "./components/ui/WhatsAppButton";
 
@@ -59,6 +60,7 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/xero/callback" element={<XeroCallback />} />
               <Route path="/early-access" element={<EarlyAccessPage />} />
+              <Route path="/inspection/:jobId/mapper" element={<ConditionMapperPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

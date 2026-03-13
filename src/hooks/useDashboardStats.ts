@@ -274,7 +274,7 @@ export const useDashboardStats = () => {
       .gte("scheduled_date", monthStart)
       .in("status", ["completed", "paid", "submitted", "reviewed"]);
 
-    const monthEarnings = (monthJobs || []).reduce((sum, j) => sum + ((j.final_price || j.quoted_price || 0) * 0.85), 0);
+    const monthEarnings = (monthJobs || []).reduce((sum, j) => sum + (j.clerk_payout || 0), 0);
 
     const { count: pendingPayCount } = await supabase
       .from("jobs")

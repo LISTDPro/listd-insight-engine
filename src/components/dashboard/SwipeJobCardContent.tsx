@@ -141,26 +141,16 @@ const SwipeJobCardContent = ({ job, statusBadge, showNetPayout = false }: SwipeJ
           )}
         </div>
 
-        {/* Price — show net payout for clerks */}
-        {grossPrice > 0 && (
+        {/* Price — show clerk payout only, never client price */}
+        {clerkPayout > 0 && (
           <div className="bg-muted/50 rounded-lg p-3">
-            {showNetPayout ? (
-              <div>
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Your Payout</span>
-                <div className="flex items-center gap-1 text-accent">
-                  <PoundSterling className="w-5 h-5" />
-                  <span className="text-2xl font-bold">{payout.clerkPayout.toFixed(0)}</span>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1 text-primary">
+            <div>
+              <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Your Payout</span>
+              <div className="flex items-center gap-1 text-accent">
                 <PoundSterling className="w-5 h-5" />
-                <span className="text-2xl font-bold">{grossPrice.toFixed(0)}</span>
-                <span className="text-xs text-muted-foreground ml-1">
-                  {job.final_price ? "final" : "quoted"}
-                </span>
+                <span className="text-2xl font-bold">{clerkPayout.toFixed(0)}</span>
               </div>
-            )}
+            </div>
           </div>
         )}
 

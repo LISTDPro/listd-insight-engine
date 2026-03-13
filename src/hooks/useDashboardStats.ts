@@ -285,7 +285,7 @@ export const useDashboardStats = () => {
     const sixMonthsAgo = subMonths(new Date(), 6).toISOString().split("T")[0];
     const { data: allJobs } = await supabase
       .from("jobs")
-      .select("scheduled_date, quoted_price, final_price, inspection_type, status")
+      .select("scheduled_date, clerk_payout, inspection_type, status")
       .eq("clerk_id", user.id)
       .gte("scheduled_date", sixMonthsAgo)
       .not("status", "in", '("draft","cancelled")');

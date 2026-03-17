@@ -1260,6 +1260,14 @@ const AdminPage = () => {
                   quotedPrice={job.quoted_price || 0}
                   margin={job.margin || 0}
                   onUpdate={fetchJobs}
+                  propertyAddress={job.propertyAddress}
+                  propertyPostcode={job.propertyPostcode}
+                  inspectionType={job.inspection_type}
+                  serviceTier={job.service_tier}
+                  scheduledDate={job.scheduled_date}
+                  clerkName={job.clerkName}
+                  clientName={job.clientName}
+                  organisationName={job.organisationName}
                 />
               ))}
             {jobs.filter(j => ["submitted", "reviewed", "signed", "completed", "paid"].includes(j.status) && j.clerk_id).length === 0 && (

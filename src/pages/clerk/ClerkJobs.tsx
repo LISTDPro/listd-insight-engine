@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, CheckCircle } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isPast } from "date-fns";
 import CompleteJobDialog from "@/components/clerk/CompleteJobDialog";
 
 interface ClerkJob {

@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Building2, ClipboardCheck, ArrowRight, ArrowLeft, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import listdLogo from "@/assets/listd-pro-green.png";

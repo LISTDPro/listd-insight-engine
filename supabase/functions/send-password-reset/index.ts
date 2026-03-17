@@ -115,7 +115,7 @@ const handler = async (req: Request): Promise<Response> => {
     const safeResetLink = escapeHtml(resetLink);
 
     const emailResponse = await resend.emails.send({
-      from: "LISTD <noreply@listd.co.uk>",
+      from: "LISTD <hello@listd.co.uk>",
       to: [email],
       subject: "Reset your LISTD password",
       html: `

@@ -170,7 +170,44 @@ const AdminPage = () => {
       .from("jobs")
       .select("*")
       .order("created_at", { ascending: false });
-    if (data) setJobs(data as JobRow[]);
+    if (!data) return;
+
+    // Enrich with property, clerk, client, org names
+    const propertyIds = [...new Set(data.map((j: any) => j.property_id))];
+    const clerkIds = [...new Set(data.filter((j: any) => j.clerk_id).map((j: any) => j.clerk_id!))];
+    const clientIds = [...new Set(data.map((j: any) => j.client_id))];
+    const orgIds = [...new Set(data.filter((j: any) => j.organisation_id).map((j: any) => j.organisation_id!))];
+
+    const [propRes, clerkRes, clientRes, orgRes] = await Promise.all([
+      propertyIds.length > 0
+        ? supabase.from("properties").select("id, address_line_1, postcode").in("id", propertyIds)
+        : Promise.resolve({ data: [] }),
+      clerkIds.length > 0
+        ? supabase.from("profiles").select("user_id, full_name").in("user_id", clerkIds)
+        : Promise.resolve({ data: [] }),
+      clientIds.length > 0
+        ? supabase.from("profiles").select("user_id, full_name").in("user_id", clientIds)
+        : Promise.resolve({ data: [] }),
+      orgIds.length > 0
+        ? supabase.from("organisations").select("id, name").in("id", orgIds)
+        : Promise.resolve({ data: [] }),
+    ]);
+
+    const propMap = Object.fromEntries((propRes.data || []).map((p: any) => [p.id, p]));
+    const clerkMap = Object.fromEntries((clerkRes.data || []).map((c: any) => [c.user_id, c]));
+    const clientMap = Object.fromEntries((clientRes.data || []).map((c: any) => [c.user_id, c]));
+    const orgMap = Object.fromEntries((orgRes.data || []).map((o: any) => [o.id, o]));
+
+    const enriched = data.map((j: any) => ({
+      ...j,
+      propertyAddress: propMap[j.property_id]?.address_line_1 || undefined,
+      propertyPostcode: propMap[j.property_id]?.postcode || undefined,
+      clerkName: j.clerk_id ? clerkMap[j.clerk_id]?.full_name || undefined : undefined,
+      clientName: clientMap[j.client_id]?.full_name || undefined,
+      organisationName: j.organisation_id ? orgMap[j.organisation_id]?.name || undefined : undefined,
+    }));
+
+    setJobs(enriched as JobRow[]);
   };
 
   const fetchDisputes = async () => {

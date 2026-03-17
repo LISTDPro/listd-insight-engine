@@ -161,6 +161,9 @@ const ClerkJobs = () => {
                       Complete
                     </Button>
                   ) : null}
+                  {!["completed", "cancelled", "paid", "signed"].includes(job.status) && isPast(parseISO(job.scheduled_date + "T23:59:59")) && (
+                    <Badge variant="destructive" className="text-[10px]">Overdue</Badge>
+                  )}
                   <Badge variant="outline" className={`text-[10px] ${statusColor[job.status] || ""}`}>
                     {formatType(job.status)}
                   </Badge>

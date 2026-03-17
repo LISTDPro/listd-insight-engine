@@ -13,6 +13,7 @@ import SettingsPage from "@/pages/dashboard/SettingsPage";
 import HelpPage from "@/pages/dashboard/HelpPage";
 import AdminPage from "@/pages/dashboard/AdminPage";
 import TeamPage from "@/pages/dashboard/TeamPage";
+import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -79,9 +80,15 @@ const Dashboard = () => {
     <div className="flex min-h-screen bg-background">
       <Sidebar />
       
-      <main className="flex-1 overflow-auto">
-        {getContent()}
-      </main>
+      <div className="flex-1 flex flex-col overflow-auto">
+        {/* Dashboard header with notification bell */}
+        <header className="h-12 flex items-center justify-end border-b border-border px-4 bg-card shrink-0">
+          <NotificationDropdown />
+        </header>
+        <main className="flex-1 overflow-auto">
+          {getContent()}
+        </main>
+      </div>
     </div>
   );
 };

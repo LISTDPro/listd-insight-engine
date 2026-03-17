@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import ClerkDashboardContent from "@/components/dashboard/ClerkDashboardContent";
 import ClientDashboardContent from "@/components/dashboard/ClientDashboardContent";
-import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 import TermsAgreementModal from "@/components/dashboard/TermsAgreementModal";
 import RoleBanner from "@/components/dashboard/RoleBanner";
 import { Button } from "@/components/ui/button";
@@ -74,7 +73,6 @@ const DashboardHome = () => {
         </div>
         <div className="flex items-center gap-3">
           <RoleBanner />
-          <NotificationDropdown />
           <div className="flex items-center gap-2 pl-2 border-l border-border">
             <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">
               <span className="text-[10px] font-semibold text-accent-foreground">{initials}</span>

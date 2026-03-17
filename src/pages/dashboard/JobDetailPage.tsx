@@ -532,40 +532,50 @@ const JobDetailPage = () => {
                       <ExternalLink className="w-3.5 h-3.5" />
                       Open in InventoryBase
                     </Button>
-
-                    {/* Report Link */}
-                    {reportUrl ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="gap-1.5"
-                        onClick={() => window.open(reportUrl, "_blank")}
-                      >
-                        <FileText className="w-3.5 h-3.5" />
-                        View Report
-                      </Button>
-                    ) : (
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="Paste InventoryBase report URL..."
-                          value={reportLinkInput}
-                          onChange={(e) => setReportLinkInput(e.target.value)}
-                          className="text-sm"
-                        />
-                        <Button
-                          size="sm"
-                          onClick={handleSaveReportLink}
-                          disabled={savingReportLink || !reportLinkInput.trim()}
-                          className="gap-1 shrink-0"
-                        >
-                          {savingReportLink ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                          Save
-                        </Button>
-                      </div>
-                    )}
                   </CardContent>
                 </Card>
               )}
+
+              {/* Report Link — save or view */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <FileText className="w-4 h-4" />
+                    Report
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {reportUrl ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => window.open(reportUrl, "_blank")}
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      View Report
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Paste report URL..."
+                        value={reportLinkInput}
+                        onChange={(e) => setReportLinkInput(e.target.value)}
+                        className="text-sm"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={handleSaveReportLink}
+                        disabled={savingReportLink || !reportLinkInput.trim()}
+                        className="gap-1 shrink-0"
+                      >
+                        {savingReportLink ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                        Save
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </>
           )}
 
@@ -643,6 +653,29 @@ const JobDetailPage = () => {
                 View Report
               </Button>
             </div>
+          )}
+
+          {/* Report Link — for clients and admins */}
+          {role !== "clerk" && reportUrl && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <FileText className="w-4 h-4" />
+                  Report
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => window.open(reportUrl, "_blank")}
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  View Report
+                </Button>
+              </CardContent>
+            </Card>
           )}
 
           {/* Property Card — for clients and admins */}

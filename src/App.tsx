@@ -43,6 +43,7 @@ import SuperAdminOrganisations from "./pages/super-admin/SuperAdminOrganisations
 import SuperAdminClerks from "./pages/super-admin/SuperAdminClerks";
 import SuperAdminJobs from "./pages/super-admin/SuperAdminJobs";
 import SuperAdminSettings from "./pages/super-admin/SuperAdminSettings";
+import OrgDashboard from "./pages/org/OrgDashboard";
 
 const queryClient = new QueryClient();
 

@@ -1055,6 +1055,18 @@ const JobDetailPage = () => {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Complete Job Dialog for clerks */}
+      {canClerkComplete && job.property && (
+        <CompleteJobDialog
+          open={completeDialogOpen}
+          onOpenChange={setCompleteDialogOpen}
+          jobId={job.id}
+          propertyAddress={job.property.address_line_1}
+          clientId={job.client_id}
+          onCompleted={refetch}
+        />
+      )}
     </div>
   );
 };

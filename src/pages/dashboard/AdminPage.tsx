@@ -152,6 +152,7 @@ const AdminPage = () => {
         full_name: p.full_name,
         email: emailMap[p.user_id] || null,
         phone: p.phone,
+        company_name: p.company_name || null,
         onboarding_completed: p.onboarding_completed,
         verification_status: p.verification_status || "unverified",
         created_at: p.created_at,

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 // Provider role reserved for future SaaS expansion. Not active in Phase 1.
 type AppRole = "client" | "provider" | "clerk" | "admin";
-type OrgRole = "owner" | "staff" | null;
+type OrgRole = "owner" | "admin" | "staff" | null;
 
 interface Profile {
   id: string;

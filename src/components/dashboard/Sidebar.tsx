@@ -57,13 +57,15 @@ const Sidebar = () => {
         .filter(item => ["Dashboard", "Jobs", "Reports", "Payments"].includes(item.label))
         .map(item => item.label === "Payments" ? { ...item, label: "Earnings" } : item);
     }
-    // Client role: add Team tab for owners, hide Payments for staff
+    // Client role: add Team tab for owners/admins, hide Payments for staff
     if (role === "client") {
       let items = [...mainNavItems];
-      if (orgRole === "owner") {
+      if (orgRole === "owner" || orgRole === "admin") {
         // Insert Team after Properties
         const propsIdx = items.findIndex(i => i.label === "Properties");
         items.splice(propsIdx + 1, 0, { icon: Users, label: "Team", to: "/dashboard/team" });
+        // Add Team View link
+        items.push({ icon: Building2, label: "Team View", to: "/org/dashboard" });
       }
       if (orgRole === "staff") {
         items = items.filter(i => i.label !== "Payments");

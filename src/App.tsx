@@ -90,6 +90,7 @@ const App = () => (
                 <Route path="report/:reportId" element={<TenantReport />} />
                 <Route path="documents" element={<TenantDocuments />} />
               </Route>
+              <Route path="/org/dashboard" element={<OrgDashboard />} />
               <Route path="/admin/super" element={<SuperAdminLayout />}>
                 <Route index element={<SuperAdminOverview />} />
                 <Route path="organisations" element={<SuperAdminOrganisations />} />

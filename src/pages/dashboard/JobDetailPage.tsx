@@ -171,6 +171,35 @@ const JobDetailPage = () => {
     job.status === "submitted" &&
     job.clerk_id === profile?.user_id;
 
+  // Clerk can complete from accepted/assigned/in_progress via CompleteJobDialog
+  const canClerkComplete = role === "clerk" &&
+    ["accepted", "assigned", "in_progress"].includes(job.status) &&
+    job.clerk_id === profile?.user_id;
+
+  // Overdue check
+  const isOverdue = job && !["completed", "cancelled", "paid", "signed"].includes(job.status) &&
+    isPast(parseISO(job.scheduled_date + "T23:59:59"));
+
+  // InventoryBase
+  const inventorybaseJobId = (job as any).inventorybase_job_id;
+  const reportUrl = (job as any).report_url;
+
+  const handleSaveReportLink = async () => {
+    if (!reportLinkInput.trim()) return;
+    setSavingReportLink(true);
+    const { error } = await supabase
+      .from("jobs")
+      .update({ report_url: reportLinkInput.trim() } as any)
+      .eq("id", job.id);
+    setSavingReportLink(false);
+    if (error) {
+      toast.error("Failed to save report link");
+    } else {
+      toast.success("Report link saved");
+      setReportLinkInput("");
+      refetch();
+    }
+  };
 
 
 

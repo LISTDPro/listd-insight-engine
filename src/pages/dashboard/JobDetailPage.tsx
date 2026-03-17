@@ -826,8 +826,8 @@ const JobDetailPage = () => {
             />
           )}
 
-          {/* Tenant Details Card */}
-          {tenantDetails.length > 0 && (role === "client" || role === "admin" || role === "clerk") && (
+          {/* Tenant Details Card — only for client/admin (clerk sees it in ClerkJobDetailPanel) */}
+          {tenantDetails.length > 0 && (role === "client" || role === "admin") && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -851,20 +851,6 @@ const JobDetailPage = () => {
                     </div>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
-          )}
-          {/* Empty tenant state for clerks on check-in jobs */}
-          {tenantDetails.length === 0 && role === "clerk" && job.inspection_type === "check_in" && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  Tenant Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">No tenant details provided yet.</p>
               </CardContent>
             </Card>
           )}

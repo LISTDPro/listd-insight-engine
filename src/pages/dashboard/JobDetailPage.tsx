@@ -353,10 +353,21 @@ const JobDetailPage = () => {
               </>
             )}
             {isClerkAcceptedJob && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle2 className="w-4 h-4 text-success" />
-                Accepted — awaiting InventoryBase assignment
-              </div>
+              <>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CheckCircle2 className="w-4 h-4 text-success" />
+                  Accepted — ready to begin inspection
+                </div>
+                <Button
+                  variant="success"
+                  size="sm"
+                  className="gap-1"
+                  onClick={() => setCompleteDialogOpen(true)}
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  Mark as Complete
+                </Button>
+              </>
             )}
             {isClerkInProgressJob && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">

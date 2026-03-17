@@ -311,6 +311,11 @@ const JobDetailPage = () => {
               >
                 {JOB_STATUS_LABELS[job.status as JobStatus]}
               </Badge>
+              {isOverdue && (
+                <Badge variant="destructive" className="text-xs">
+                  Overdue
+                </Badge>
+              )}
             </div>
             <p className="text-muted-foreground flex items-center gap-2 flex-wrap">
               {INSPECTION_TYPE_LABELS[job.inspection_type as keyof typeof INSPECTION_TYPE_LABELS]} • 

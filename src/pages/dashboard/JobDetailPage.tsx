@@ -655,6 +655,29 @@ const JobDetailPage = () => {
             </div>
           )}
 
+          {/* Report Link — for clients and admins */}
+          {role !== "clerk" && reportUrl && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <FileText className="w-4 h-4" />
+                  Report
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={() => window.open(reportUrl, "_blank")}
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  View Report
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Property Card — for clients and admins */}
           {role !== "clerk" && (
             <Card>

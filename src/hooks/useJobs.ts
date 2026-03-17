@@ -65,9 +65,20 @@ export const useJobs = () => {
     let payoutBreakdown: Record<string, unknown> = {};
     let margin = 0;
 
-    const allTypes = input.inspection_types && input.inspection_types.length > 0
+    // Build complete list of services: explicit array OR parse from special_instructions
+    let allTypes: InspectionType[] = input.inspection_types && input.inspection_types.length > 0
       ? input.inspection_types
       : [input.inspection_type];
+
+    // Fallback: also parse additional services embedded in special_instructions
+    if (allTypes.length <= 1 && input.special_instructions) {
+      const match = input.special_instructions.match(/\[Additional services:\s*(.+?)\]/);
+      if (match) {
+        const extras = match[1].split(",").map((s: string) => s.trim()) as InspectionType[];
+        const merged = new Set([...allTypes, ...extras]);
+        allTypes = Array.from(merged);
+      }
+    }
 
     try {
       if (propertyDetails?.property_type) {

@@ -126,6 +126,15 @@ const Onboarding = () => {
       return;
     }
 
+    if (selectedRole === "client" && !companyName.trim()) {
+      toast({
+        title: "Company name required",
+        description: "Please enter your company or organisation name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     // Set role if not already set

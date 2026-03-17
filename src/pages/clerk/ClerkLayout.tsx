@@ -16,6 +16,7 @@ import { NavLink } from "@/components/NavLink";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Home, Briefcase, Calendar, User, LogOut, Loader2 } from "lucide-react";
+import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 
 const clerkNav = [
   { title: "Home", url: "/clerk/dashboard", icon: Home },
@@ -113,9 +114,12 @@ const ClerkLayout = () => {
         </Sidebar>
 
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-12 flex items-center border-b border-border px-4 bg-card">
-            <SidebarTrigger className="mr-3" />
-            <span className="text-sm font-medium text-foreground">LISTD — Clerk Portal</span>
+          <header className="h-12 flex items-center justify-between border-b border-border px-4 bg-card">
+            <div className="flex items-center">
+              <SidebarTrigger className="mr-3" />
+              <span className="text-sm font-medium text-foreground">LISTD — Clerk Portal</span>
+            </div>
+            <NotificationDropdown />
           </header>
           <main className="flex-1 p-4 md:p-6 overflow-auto bg-muted/30">
             <Outlet />

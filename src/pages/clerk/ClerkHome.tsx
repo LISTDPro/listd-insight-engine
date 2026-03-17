@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Briefcase, CheckCircle, Clock, Loader2 } from "lucide-react";
-import { format, isToday, startOfWeek, endOfWeek, parseISO } from "date-fns";
+import { format, isToday, startOfWeek, endOfWeek, parseISO, isPast } from "date-fns";
 import CompleteJobDialog from "@/components/clerk/CompleteJobDialog";
 
 interface ClerkJob {
@@ -114,6 +114,9 @@ const ClerkHome = () => {
             <CheckCircle className="w-3 h-3 mr-1" />
             Complete
           </Button>
+        )}
+        {!["completed", "cancelled", "paid", "signed"].includes(job.status) && isPast(parseISO(job.scheduled_date + "T23:59:59")) && (
+          <Badge variant="destructive" className="text-[10px]">Overdue</Badge>
         )}
         <Badge variant="outline" className={`ml-1 text-[10px] ${statusColor[job.status] || ""}`}>
           {formatType(job.status)}

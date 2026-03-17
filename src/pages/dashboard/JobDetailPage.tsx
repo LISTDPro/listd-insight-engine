@@ -6,10 +6,12 @@ import AdminPayoutControls from "@/components/admin/AdminPayoutControls";
 import AdminSurchargeOverride from "@/components/admin/AdminSurchargeOverride";
 import CancellationFeeCard from "@/components/admin/CancellationFeeCard";
 import ClerkJobDetailPanel from "@/components/dashboard/ClerkJobDetailPanel";
+import CompleteJobDialog from "@/components/clerk/CompleteJobDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 import TierBadge from "@/components/ui/tier-badge";
 import JobTimeline from "@/components/dashboard/JobTimeline";
 import AcknowledgementDialog from "@/components/dashboard/AcknowledgementDialog";
@@ -21,7 +23,7 @@ import {
   PropertyType,
   JobStatus
 } from "@/types/database";
-import { format } from "date-fns";
+import { format, isPast, parseISO } from "date-fns";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,7 +59,9 @@ import {
   CheckCircle2,
   ShieldCheck,
   Pencil,
-  ClipboardList
+  ClipboardList,
+  ExternalLink,
+  Save
 } from "lucide-react";
 
 const STATUS_STYLES: Partial<Record<JobStatus, string>> = {
@@ -90,6 +94,9 @@ const JobDetailPage = () => {
   const [editPropertyOpen, setEditPropertyOpen] = useState(false);
   const [editPropertyLoading, setEditPropertyLoading] = useState(false);
   const [markingComplete, setMarkingComplete] = useState(false);
+  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
+  const [reportLinkInput, setReportLinkInput] = useState("");
+  const [savingReportLink, setSavingReportLink] = useState(false);
   const { updateProperty } = useProperties();
   // Fetch tenant details for this job
   useEffect(() => {
@@ -168,6 +175,35 @@ const JobDetailPage = () => {
     job.status === "submitted" &&
     job.clerk_id === profile?.user_id;
 
+  // Clerk can complete from accepted/assigned/in_progress via CompleteJobDialog
+  const canClerkComplete = role === "clerk" &&
+    ["accepted", "assigned", "in_progress"].includes(job.status) &&
+    job.clerk_id === profile?.user_id;
+
+  // Overdue check
+  const isOverdue = job && !["completed", "cancelled", "paid", "signed"].includes(job.status) &&
+    isPast(parseISO(job.scheduled_date + "T23:59:59"));
+
+  // InventoryBase
+  const inventorybaseJobId = (job as any).inventorybase_job_id;
+  const reportUrl = (job as any).report_url;
+
+  const handleSaveReportLink = async () => {
+    if (!reportLinkInput.trim()) return;
+    setSavingReportLink(true);
+    const { error } = await supabase
+      .from("jobs")
+      .update({ report_url: reportLinkInput.trim() } as any)
+      .eq("id", job.id);
+    setSavingReportLink(false);
+    if (error) {
+      toast.error("Failed to save report link");
+    } else {
+      toast.success("Report link saved");
+      setReportLinkInput("");
+      refetch();
+    }
+  };
 
 
 
@@ -279,6 +315,11 @@ const JobDetailPage = () => {
               >
                 {JOB_STATUS_LABELS[job.status as JobStatus]}
               </Badge>
+              {isOverdue && (
+                <Badge variant="destructive" className="text-xs">
+                  Overdue
+                </Badge>
+              )}
             </div>
             <p className="text-muted-foreground flex items-center gap-2 flex-wrap">
               {INSPECTION_TYPE_LABELS[job.inspection_type as keyof typeof INSPECTION_TYPE_LABELS]} • 
@@ -316,16 +357,38 @@ const JobDetailPage = () => {
               </>
             )}
             {isClerkAcceptedJob && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle2 className="w-4 h-4 text-success" />
-                Accepted — awaiting InventoryBase assignment
-              </div>
+              <>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <CheckCircle2 className="w-4 h-4 text-success" />
+                  Accepted — ready to begin inspection
+                </div>
+                <Button
+                  variant="success"
+                  size="sm"
+                  className="gap-1"
+                  onClick={() => setCompleteDialogOpen(true)}
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  Mark as Complete
+                </Button>
+              </>
             )}
             {isClerkInProgressJob && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <ClipboardCheck className="w-4 h-4 text-primary" />
-                In progress via InventoryBase
-              </div>
+              <>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <ClipboardCheck className="w-4 h-4 text-primary" />
+                  In progress via InventoryBase
+                </div>
+                <Button
+                  variant="success"
+                  size="sm"
+                  className="gap-1"
+                  onClick={() => setCompleteDialogOpen(true)}
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  Mark as Complete
+                </Button>
+              </>
             )}
             {isClerkSubmittedJob && (
               <Button
@@ -444,7 +507,66 @@ const JobDetailPage = () => {
 
           {/* Clerk Job Detail Panel — scoped view for clerks only */}
           {role === "clerk" && (
-            <ClerkJobDetailPanel job={job as any} tenantDetails={tenantDetails} />
+            <>
+              <ClerkJobDetailPanel job={job as any} tenantDetails={tenantDetails} />
+
+              {/* InventoryBase Link */}
+              {inventorybaseJobId && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-sm">
+                      <ExternalLink className="w-4 h-4" />
+                      InventoryBase
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-foreground">
+                      {inventorybaseJobId} — {job.property?.address_line_1}{job.property?.city ? `, ${job.property.city}` : ""}
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => window.open(`https://app.inventorybase.co.uk/jobs/${inventorybaseJobId}`, "_blank")}
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Open in InventoryBase
+                    </Button>
+
+                    {/* Report Link */}
+                    {reportUrl ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => window.open(reportUrl, "_blank")}
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        View Report
+                      </Button>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Paste InventoryBase report URL..."
+                          value={reportLinkInput}
+                          onChange={(e) => setReportLinkInput(e.target.value)}
+                          className="text-sm"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={handleSaveReportLink}
+                          disabled={savingReportLink || !reportLinkInput.trim()}
+                          className="gap-1 shrink-0"
+                        >
+                          {savingReportLink ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                          Save
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </>
           )}
 
           {/* Clerk Action Card — prominent status/action for clerks */}
@@ -704,8 +826,8 @@ const JobDetailPage = () => {
             />
           )}
 
-          {/* Tenant Details Card */}
-          {tenantDetails.length > 0 && (role === "client" || role === "admin" || role === "clerk") && (
+          {/* Tenant Details Card — only for client/admin (clerk sees it in ClerkJobDetailPanel) */}
+          {tenantDetails.length > 0 && (role === "client" || role === "admin") && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -729,20 +851,6 @@ const JobDetailPage = () => {
                     </div>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
-          )}
-          {/* Empty tenant state for clerks on check-in jobs */}
-          {tenantDetails.length === 0 && role === "clerk" && job.inspection_type === "check_in" && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  Tenant Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">No tenant details provided yet.</p>
               </CardContent>
             </Card>
           )}
@@ -946,6 +1054,18 @@ const JobDetailPage = () => {
             />
           </DialogContent>
         </Dialog>
+      )}
+
+      {/* Complete Job Dialog for clerks */}
+      {canClerkComplete && job.property && (
+        <CompleteJobDialog
+          open={completeDialogOpen}
+          onOpenChange={setCompleteDialogOpen}
+          jobId={job.id}
+          propertyAddress={job.property.address_line_1}
+          clientId={job.client_id}
+          onCompleted={refetch}
+        />
       )}
     </div>
   );

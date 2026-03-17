@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, CheckCircle } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isPast } from "date-fns";
 import CompleteJobDialog from "@/components/clerk/CompleteJobDialog";
 
 interface ClerkJob {
@@ -161,6 +161,9 @@ const ClerkJobs = () => {
                       Complete
                     </Button>
                   ) : null}
+                  {!["completed", "cancelled", "paid", "signed"].includes(job.status) && isPast(parseISO(job.scheduled_date + "T23:59:59")) && (
+                    <Badge variant="destructive" className="text-[10px]">Overdue</Badge>
+                  )}
                   <Badge variant="outline" className={`text-[10px] ${statusColor[job.status] || ""}`}>
                     {formatType(job.status)}
                   </Badge>

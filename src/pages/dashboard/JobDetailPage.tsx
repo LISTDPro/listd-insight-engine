@@ -503,7 +503,66 @@ const JobDetailPage = () => {
 
           {/* Clerk Job Detail Panel — scoped view for clerks only */}
           {role === "clerk" && (
-            <ClerkJobDetailPanel job={job as any} tenantDetails={tenantDetails} />
+            <>
+              <ClerkJobDetailPanel job={job as any} tenantDetails={tenantDetails} />
+
+              {/* InventoryBase Link */}
+              {inventorybaseJobId && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-sm">
+                      <ExternalLink className="w-4 h-4" />
+                      InventoryBase
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-foreground">
+                      {inventorybaseJobId} — {job.property?.address_line_1}{job.property?.city ? `, ${job.property.city}` : ""}
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => window.open(`https://app.inventorybase.co.uk/jobs/${inventorybaseJobId}`, "_blank")}
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Open in InventoryBase
+                    </Button>
+
+                    {/* Report Link */}
+                    {reportUrl ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5"
+                        onClick={() => window.open(reportUrl, "_blank")}
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        View Report
+                      </Button>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Paste InventoryBase report URL..."
+                          value={reportLinkInput}
+                          onChange={(e) => setReportLinkInput(e.target.value)}
+                          className="text-sm"
+                        />
+                        <Button
+                          size="sm"
+                          onClick={handleSaveReportLink}
+                          disabled={savingReportLink || !reportLinkInput.trim()}
+                          className="gap-1 shrink-0"
+                        >
+                          {savingReportLink ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                          Save
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </>
           )}
 
           {/* Clerk Action Card — prominent status/action for clerks */}

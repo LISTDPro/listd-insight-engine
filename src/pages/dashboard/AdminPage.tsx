@@ -67,6 +67,13 @@ interface JobRow {
   clerk_payout_locked: boolean | null;
   clerk_payment_date: string | null;
   margin: number | null;
+  organisation_id: string | null;
+  // Enriched data
+  propertyAddress?: string;
+  propertyPostcode?: string;
+  clerkName?: string;
+  clientName?: string;
+  organisationName?: string;
 }
 
 interface DisputeRow {

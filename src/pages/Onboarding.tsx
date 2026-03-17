@@ -234,6 +234,26 @@ const Onboarding = () => {
           ))}
         </div>
 
+        {/* Company Name - Client only */}
+        {selectedRole === "client" && (
+          <div className="max-w-md mx-auto mb-8">
+            <Label htmlFor="companyName" className="text-sm font-medium text-primary-foreground mb-2 block">
+              Company / Organisation Name <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="companyName"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="e.g. Andrews Property Group"
+              className="bg-card"
+              maxLength={100}
+            />
+            <p className="text-xs text-primary-foreground/50 mt-1">
+              This will be used as your organisation name on the platform.
+            </p>
+          </div>
+        )}
+
         {/* Continue Button */}
         <div className="text-center">
           <Button

@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Building2, ClipboardCheck, ArrowRight, ArrowLeft, Check } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import listdLogo from "@/assets/listd-pro-green.png";
@@ -86,6 +88,7 @@ const roles: { role: RoleOption; title: string; description: string; features: s
 
 const Onboarding = () => {
   const [selectedRole, setSelectedRole] = useState<RoleOption | null>(null);
+  const [companyName, setCompanyName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -123,6 +126,15 @@ const Onboarding = () => {
       return;
     }
 
+    if (selectedRole === "client" && !companyName.trim()) {
+      toast({
+        title: "Company name required",
+        description: "Please enter your company or organisation name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     // Set role if not already set
@@ -137,6 +149,14 @@ const Onboarding = () => {
         setIsLoading(false);
         return;
       }
+    }
+
+    // Save company name for clients
+    if (selectedRole === "client" && companyName.trim() && user) {
+      await supabase
+        .from("profiles")
+        .update({ company_name: companyName.trim() } as any)
+        .eq("user_id", user.id);
     }
 
     // Complete onboarding
@@ -213,6 +233,26 @@ const Onboarding = () => {
             />
           ))}
         </div>
+
+        {/* Company Name - Client only */}
+        {selectedRole === "client" && (
+          <div className="max-w-md mx-auto mb-8">
+            <Label htmlFor="companyName" className="text-sm font-medium text-primary-foreground mb-2 block">
+              Company / Organisation Name <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="companyName"
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              placeholder="e.g. Andrews Property Group"
+              className="bg-card"
+              maxLength={100}
+            />
+            <p className="text-xs text-primary-foreground/50 mt-1">
+              This will be used as your organisation name on the platform.
+            </p>
+          </div>
+        )}
 
         {/* Continue Button */}
         <div className="text-center">

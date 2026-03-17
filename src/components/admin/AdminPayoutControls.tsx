@@ -14,7 +14,20 @@ import {
   Gift,
   Save,
   Loader2,
+  MapPin,
+  Calendar,
+  User,
+  Building2,
 } from "lucide-react";
+import { format } from "date-fns";
+
+const INSPECTION_TYPE_LABELS: Record<string, string> = {
+  new_inventory: "New Inventory",
+  check_in: "Check-In",
+  check_out: "Check-Out",
+  mid_term: "Mid-Term",
+  interim: "Interim",
+};
 
 interface AdminPayoutControlsProps {
   jobId: string;
@@ -26,6 +39,15 @@ interface AdminPayoutControlsProps {
   quotedPrice: number;
   margin: number;
   onUpdate: () => void;
+  // Enriched job info
+  propertyAddress?: string;
+  propertyPostcode?: string;
+  inspectionType?: string;
+  serviceTier?: string;
+  scheduledDate?: string;
+  clerkName?: string;
+  clientName?: string;
+  organisationName?: string;
 }
 
 const AdminPayoutControls = ({
@@ -38,6 +60,14 @@ const AdminPayoutControls = ({
   quotedPrice,
   margin,
   onUpdate,
+  propertyAddress,
+  propertyPostcode,
+  inspectionType,
+  serviceTier,
+  scheduledDate,
+  clerkName,
+  clientName,
+  organisationName,
 }: AdminPayoutControlsProps) => {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
@@ -119,7 +149,7 @@ const AdminPayoutControls = ({
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-semibold flex items-center gap-2">
           <PoundSterling className="w-4 h-4 text-accent" />
-          Admin Payout Controls
+          Payout Controls
           {clerkPayoutLocked && (
             <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30 text-[10px]">
               <Lock className="w-3 h-3 mr-1" />
@@ -135,6 +165,61 @@ const AdminPayoutControls = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Job info header */}
+        {propertyAddress && (
+          <div className="bg-muted/50 rounded-lg p-3 space-y-1.5">
+            <div className="flex items-start gap-2">
+              <MapPin className="w-3.5 h-3.5 text-muted-foreground mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-foreground leading-tight">{propertyAddress}</p>
+                {propertyPostcode && (
+                  <p className="text-xs text-muted-foreground">{propertyPostcode}</p>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+              {inspectionType && (
+                <span className="flex items-center gap-1">
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                    {INSPECTION_TYPE_LABELS[inspectionType] || inspectionType}
+                  </Badge>
+                  {serviceTier && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 capitalize">
+                      {serviceTier}
+                    </Badge>
+                  )}
+                </span>
+              )}
+              {scheduledDate && (
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  {format(new Date(scheduledDate), "d MMM yyyy")}
+                </span>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground pt-0.5">
+              {clerkName && (
+                <span className="flex items-center gap-1">
+                  <User className="w-3 h-3" />
+                  Clerk: <span className="text-foreground font-medium">{clerkName}</span>
+                </span>
+              )}
+              {clientName && (
+                <span className="flex items-center gap-1">
+                  <User className="w-3 h-3" />
+                  Client: <span className="text-foreground font-medium">{clientName}</span>
+                </span>
+              )}
+              {organisationName && (
+                <span className="flex items-center gap-1">
+                  <Building2 className="w-3 h-3" />
+                  <span className="text-foreground font-medium">{organisationName}</span>
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Financial summary */}
         <div className="grid grid-cols-3 gap-3 text-center">
           <div className="bg-muted/50 rounded-lg p-2.5">

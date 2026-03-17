@@ -39,6 +39,7 @@ interface UserWithRole {
   full_name: string | null;
   email: string | null;
   phone: string | null;
+  company_name: string | null;
   onboarding_completed: boolean;
   verification_status: string;
   created_at: string;
@@ -66,6 +67,13 @@ interface JobRow {
   clerk_payout_locked: boolean | null;
   clerk_payment_date: string | null;
   margin: number | null;
+  organisation_id: string | null;
+  // Enriched data
+  propertyAddress?: string;
+  propertyPostcode?: string;
+  clerkName?: string;
+  clientName?: string;
+  organisationName?: string;
 }
 
 interface DisputeRow {
@@ -144,6 +152,7 @@ const AdminPage = () => {
         full_name: p.full_name,
         email: emailMap[p.user_id] || null,
         phone: p.phone,
+        company_name: p.company_name || null,
         onboarding_completed: p.onboarding_completed,
         verification_status: p.verification_status || "unverified",
         created_at: p.created_at,
@@ -161,7 +170,44 @@ const AdminPage = () => {
       .from("jobs")
       .select("*")
       .order("created_at", { ascending: false });
-    if (data) setJobs(data as JobRow[]);
+    if (!data) return;
+
+    // Enrich with property, clerk, client, org names
+    const propertyIds = [...new Set(data.map((j: any) => j.property_id))];
+    const clerkIds = [...new Set(data.filter((j: any) => j.clerk_id).map((j: any) => j.clerk_id!))];
+    const clientIds = [...new Set(data.map((j: any) => j.client_id))];
+    const orgIds = [...new Set(data.filter((j: any) => j.organisation_id).map((j: any) => j.organisation_id!))];
+
+    const [propRes, clerkRes, clientRes, orgRes] = await Promise.all([
+      propertyIds.length > 0
+        ? supabase.from("properties").select("id, address_line_1, postcode").in("id", propertyIds)
+        : Promise.resolve({ data: [] }),
+      clerkIds.length > 0
+        ? supabase.from("profiles").select("user_id, full_name").in("user_id", clerkIds)
+        : Promise.resolve({ data: [] }),
+      clientIds.length > 0
+        ? supabase.from("profiles").select("user_id, full_name").in("user_id", clientIds)
+        : Promise.resolve({ data: [] }),
+      orgIds.length > 0
+        ? supabase.from("organisations").select("id, name").in("id", orgIds)
+        : Promise.resolve({ data: [] }),
+    ]);
+
+    const propMap = Object.fromEntries((propRes.data || []).map((p: any) => [p.id, p]));
+    const clerkMap = Object.fromEntries((clerkRes.data || []).map((c: any) => [c.user_id, c]));
+    const clientMap = Object.fromEntries((clientRes.data || []).map((c: any) => [c.user_id, c]));
+    const orgMap = Object.fromEntries((orgRes.data || []).map((o: any) => [o.id, o]));
+
+    const enriched = data.map((j: any) => ({
+      ...j,
+      propertyAddress: propMap[j.property_id]?.address_line_1 || undefined,
+      propertyPostcode: propMap[j.property_id]?.postcode || undefined,
+      clerkName: j.clerk_id ? clerkMap[j.clerk_id]?.full_name || undefined : undefined,
+      clientName: clientMap[j.client_id]?.full_name || undefined,
+      organisationName: j.organisation_id ? orgMap[j.organisation_id]?.name || undefined : undefined,
+    }));
+
+    setJobs(enriched as JobRow[]);
   };
 
   const fetchDisputes = async () => {
@@ -656,7 +702,10 @@ const AdminPage = () => {
                   filteredUsers.map((u) => (
                     <TableRow key={u.id}>
                       <TableCell className="font-medium">
-                        {u.full_name || "—"}
+                        <div>{u.full_name || "—"}</div>
+                        {u.role === "client" && u.company_name && (
+                          <div className="text-xs text-muted-foreground font-normal">{u.company_name}</div>
+                        )}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {u.email || "—"}
@@ -1211,6 +1260,14 @@ const AdminPage = () => {
                   quotedPrice={job.quoted_price || 0}
                   margin={job.margin || 0}
                   onUpdate={fetchJobs}
+                  propertyAddress={job.propertyAddress}
+                  propertyPostcode={job.propertyPostcode}
+                  inspectionType={job.inspection_type}
+                  serviceTier={job.service_tier}
+                  scheduledDate={job.scheduled_date}
+                  clerkName={job.clerkName}
+                  clientName={job.clientName}
+                  organisationName={job.organisationName}
                 />
               ))}
             {jobs.filter(j => ["submitted", "reviewed", "signed", "completed", "paid"].includes(j.status) && j.clerk_id).length === 0 && (

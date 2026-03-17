@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Briefcase, CheckCircle, Clock, Loader2 } from "lucide-react";
-import { format, isToday, startOfWeek, endOfWeek, parseISO } from "date-fns";
+import { format, isToday, startOfWeek, endOfWeek, parseISO, isPast } from "date-fns";
 import CompleteJobDialog from "@/components/clerk/CompleteJobDialog";
 
 interface ClerkJob {

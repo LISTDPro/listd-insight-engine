@@ -702,7 +702,10 @@ const AdminPage = () => {
                   filteredUsers.map((u) => (
                     <TableRow key={u.id}>
                       <TableCell className="font-medium">
-                        {u.full_name || "—"}
+                        <div>{u.full_name || "—"}</div>
+                        {u.role === "client" && u.company_name && (
+                          <div className="text-xs text-muted-foreground font-normal">{u.company_name}</div>
+                        )}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {u.email || "—"}

@@ -23,7 +23,7 @@ import {
   PropertyType,
   JobStatus
 } from "@/types/database";
-import { format } from "date-fns";
+import { format, isPast, parseISO } from "date-fns";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";

@@ -2,8 +2,6 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -20,16 +18,12 @@ const ALLOWED_REDIRECT_HOSTS = [
 ];
 
 function isAllowedHost(hostname: string): boolean {
-  return ALLOWED_REDIRECT_HOSTS.some(h => hostname === h || hostname.endsWith('.lovableproject.com') || hostname.endsWith('.lovable.app'));
-}
-
-function escapeHtml(unsafe: string): string {
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  return ALLOWED_REDIRECT_HOSTS.some(
+    (h) =>
+      hostname === h ||
+      hostname.endsWith(".lovableproject.com") ||
+      hostname.endsWith(".lovable.app")
+  );
 }
 
 function isValidEmail(email: string): boolean {
@@ -44,11 +38,22 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const apiKey = Deno.env.get("RESEND_API_KEY");
+    if (!apiKey) {
+      console.error("RESEND_API_KEY is not configured");
+      return new Response(
+        JSON.stringify({ error: "Email service not configured" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const resend = new Resend(apiKey);
+
     const body = await req.json();
     const email = typeof body.email === "string" ? body.email.trim() : "";
-    const redirectUrl = typeof body.redirectUrl === "string" ? body.redirectUrl.trim() : "";
+    const redirectUrl =
+      typeof body.redirectUrl === "string" ? body.redirectUrl.trim() : "";
 
-    // Validate email
     if (!email || !isValidEmail(email)) {
       return new Response(JSON.stringify({ error: "Invalid email address" }), {
         status: 400,
@@ -56,7 +61,6 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
-    // Validate redirect URL against allowlist
     if (!redirectUrl) {
       return new Response(JSON.stringify({ error: "Missing redirectUrl" }), {
         status: 400,
@@ -68,16 +72,16 @@ const handler = async (req: Request): Promise<Response> => {
       const parsedUrl = new URL(redirectUrl);
       if (!isAllowedHost(parsedUrl.hostname)) {
         console.error("Rejected redirect URL:", parsedUrl.hostname);
-        return new Response(JSON.stringify({ error: "Invalid redirect URL" }), {
-          status: 400,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        });
+        return new Response(
+          JSON.stringify({ error: "Invalid redirect URL" }),
+          { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+        );
       }
     } catch {
-      return new Response(JSON.stringify({ error: "Invalid redirect URL format" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      });
+      return new Response(
+        JSON.stringify({ error: "Invalid redirect URL format" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
     }
 
     console.log("Processing password reset for:", email);
@@ -88,33 +92,43 @@ const handler = async (req: Request): Promise<Response> => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    const { data, error: resetError } = await supabaseAdmin.auth.admin.generateLink({
-      type: "recovery",
-      email: email,
-      options: {
-        redirectTo: redirectUrl,
-      },
-    });
+    const { data, error: resetError } =
+      await supabaseAdmin.auth.admin.generateLink({
+        type: "recovery",
+        email: email,
+        options: { redirectTo: redirectUrl },
+      });
 
     if (resetError) {
-      console.log("Reset link generation result:", resetError.message);
+      console.error("Reset link generation failed:", resetError.message);
+      // Return success to avoid leaking whether email exists
+      await supabaseAdmin.from("email_logs").insert({
+        function_name: "send-password-reset",
+        recipient_email: email,
+        subject: "Reset your LISTD password",
+        status: "failed",
+        resend_id: null,
+        error_message: "Link generation failed: " + resetError.message,
+        metadata: {},
+      });
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
 
-    console.log("Reset link generated successfully");
+    const resetLink = data?.properties?.action_link;
 
-    const resetLink = data.properties?.action_link;
-    
     if (!resetLink) {
-      throw new Error("Failed to generate reset link");
+      console.error("No action_link in response. Data:", JSON.stringify(data));
+      throw new Error("Failed to generate reset link — no action_link returned");
     }
 
-    const safeResetLink = escapeHtml(resetLink);
+    console.log("Reset link generated successfully");
 
-    const emailResponse = await resend.emails.send({
+    // Do NOT escapeHtml the link — it corrupts & in query params.
+    // The link is inserted into an href attribute, which is safe.
+    const { data: emailData, error: emailError } = await resend.emails.send({
       from: "LISTD <hello@listd.co.uk>",
       to: [email],
       subject: "Reset your LISTD password",
@@ -144,7 +158,7 @@ const handler = async (req: Request): Promise<Response> => {
                       <table width="100%" cellpadding="0" cellspacing="0">
                         <tr>
                           <td align="center" style="padding: 8px 0 24px 0;">
-                            <a href="${safeResetLink}" style="display: inline-block; background-color: #F59E0B; color: #0F172A; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 15px;">
+                            <a href="${resetLink}" style="display: inline-block; background-color: #F59E0B; color: #0F172A; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 15px;">
                               Reset Password
                             </a>
                           </td>
@@ -158,7 +172,7 @@ const handler = async (req: Request): Promise<Response> => {
                         If the button doesn't work, copy and paste this link into your browser:
                       </p>
                       <p style="margin: 8px 0 0 0; color: #64748B; font-size: 12px; word-break: break-all;">
-                        ${safeResetLink}
+                        ${resetLink}
                       </p>
                     </td>
                   </tr>
@@ -178,14 +192,32 @@ const handler = async (req: Request): Promise<Response> => {
       `,
     });
 
-    console.log("Password reset email sent successfully:", emailResponse);
+    if (emailError) {
+      console.error("Resend API error:", JSON.stringify(emailError));
+      await supabaseAdmin.from("email_logs").insert({
+        function_name: "send-password-reset",
+        recipient_email: email,
+        subject: "Reset your LISTD password",
+        status: "failed",
+        resend_id: null,
+        error_message: emailError.message || JSON.stringify(emailError),
+        metadata: {},
+      });
+      return new Response(JSON.stringify({ success: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      });
+    }
+
+    const resendId = emailData?.id ?? null;
+    console.log("Password reset email sent successfully. Resend ID:", resendId);
 
     await supabaseAdmin.from("email_logs").insert({
       function_name: "send-password-reset",
       recipient_email: email,
       subject: "Reset your LISTD password",
-      status: emailResponse?.id ? "sent" : "failed",
-      resend_id: emailResponse?.id || null,
+      status: resendId ? "sent" : "failed",
+      resend_id: resendId,
       metadata: {},
     });
 
@@ -194,7 +226,7 @@ const handler = async (req: Request): Promise<Response> => {
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
   } catch (error: any) {
-    console.error("Error in send-password-reset function:", error);
+    console.error("Error in send-password-reset function:", error.message, error.stack);
     return new Response(
       JSON.stringify({ error: "An internal error occurred" }),
       {

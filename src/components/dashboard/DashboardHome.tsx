@@ -1,7 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import ClerkDashboardContent from "@/components/dashboard/ClerkDashboardContent";
 import ClientDashboardContent from "@/components/dashboard/ClientDashboardContent";
-import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 import TermsAgreementModal from "@/components/dashboard/TermsAgreementModal";
 import RoleBanner from "@/components/dashboard/RoleBanner";
 import { Button } from "@/components/ui/button";

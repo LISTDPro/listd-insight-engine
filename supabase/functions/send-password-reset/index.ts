@@ -15,6 +15,7 @@ const ALLOWED_REDIRECT_HOSTS = [
   "www.listd.co.uk",
   "listd.app",
   "listdcouk.lovable.app",
+  "listd-insight-engine.lovable.app",
   "localhost",
 ];
 

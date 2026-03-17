@@ -39,6 +39,7 @@ interface UserWithRole {
   full_name: string | null;
   email: string | null;
   phone: string | null;
+  company_name: string | null;
   onboarding_completed: boolean;
   verification_status: string;
   created_at: string;

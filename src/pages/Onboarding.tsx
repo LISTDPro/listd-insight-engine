@@ -151,6 +151,14 @@ const Onboarding = () => {
       }
     }
 
+    // Save company name for clients
+    if (selectedRole === "client" && companyName.trim() && user) {
+      await supabase
+        .from("profiles")
+        .update({ company_name: companyName.trim() } as any)
+        .eq("user_id", user.id);
+    }
+
     // Complete onboarding
     const { error: onboardingError } = await completeOnboarding();
     if (onboardingError) {

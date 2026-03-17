@@ -90,6 +90,9 @@ const JobDetailPage = () => {
   const [editPropertyOpen, setEditPropertyOpen] = useState(false);
   const [editPropertyLoading, setEditPropertyLoading] = useState(false);
   const [markingComplete, setMarkingComplete] = useState(false);
+  const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
+  const [reportLinkInput, setReportLinkInput] = useState("");
+  const [savingReportLink, setSavingReportLink] = useState(false);
   const { updateProperty } = useProperties();
   // Fetch tenant details for this job
   useEffect(() => {

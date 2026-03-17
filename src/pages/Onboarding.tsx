@@ -88,6 +88,7 @@ const roles: { role: RoleOption; title: string; description: string; features: s
 
 const Onboarding = () => {
   const [selectedRole, setSelectedRole] = useState<RoleOption | null>(null);
+  const [companyName, setCompanyName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();

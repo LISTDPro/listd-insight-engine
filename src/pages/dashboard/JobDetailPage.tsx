@@ -370,10 +370,21 @@ const JobDetailPage = () => {
               </>
             )}
             {isClerkInProgressJob && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <ClipboardCheck className="w-4 h-4 text-primary" />
-                In progress via InventoryBase
-              </div>
+              <>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <ClipboardCheck className="w-4 h-4 text-primary" />
+                  In progress via InventoryBase
+                </div>
+                <Button
+                  variant="success"
+                  size="sm"
+                  className="gap-1"
+                  onClick={() => setCompleteDialogOpen(true)}
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  Mark as Complete
+                </Button>
+              </>
             )}
             {isClerkSubmittedJob && (
               <Button

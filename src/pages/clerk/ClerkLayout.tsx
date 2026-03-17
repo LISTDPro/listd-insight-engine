@@ -16,6 +16,7 @@ import { NavLink } from "@/components/NavLink";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Home, Briefcase, Calendar, User, LogOut, Loader2 } from "lucide-react";
+import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 
 const clerkNav = [
   { title: "Home", url: "/clerk/dashboard", icon: Home },

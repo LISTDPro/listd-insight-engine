@@ -6,6 +6,7 @@ import AdminPayoutControls from "@/components/admin/AdminPayoutControls";
 import AdminSurchargeOverride from "@/components/admin/AdminSurchargeOverride";
 import CancellationFeeCard from "@/components/admin/CancellationFeeCard";
 import ClerkJobDetailPanel from "@/components/dashboard/ClerkJobDetailPanel";
+import CompleteJobDialog from "@/components/clerk/CompleteJobDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

@@ -12,6 +12,7 @@ import {
   Plus,
   Search,
 } from "lucide-react";
+import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 
 const DashboardHome = () => {
   const navigate = useNavigate();

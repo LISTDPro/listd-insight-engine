@@ -27,6 +27,8 @@ const Dashboard = () => {
         navigate("/auth");
       } else if (!role || !profile?.onboarding_completed) {
         navigate("/onboarding");
+      } else if (role === "clerk") {
+        navigate("/clerk/dashboard", { replace: true });
       }
     }
   }, [user, role, profile, loading, navigate]);

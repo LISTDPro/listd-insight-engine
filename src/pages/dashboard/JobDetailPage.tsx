@@ -820,6 +820,44 @@ const JobDetailPage = () => {
                         <span className="text-sm">{job.property.bathrooms} Baths</span>
                       </div>
                     </div>
+
+                    {/* Admin: full property breakdown */}
+                    {role === "admin" && (
+                      <>
+                        <div className="pt-3 border-t space-y-2">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Furnished Status</p>
+                          <p className="text-sm">{FURNISHED_STATUS_LABELS[job.property.furnished_status as FurnishedStatus]}{(job.property as any).heavily_furnished ? " (Heavily Furnished)" : ""}</p>
+                        </div>
+                        <div className="pt-3 border-t space-y-2">
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Complete Room Breakdown</p>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                            {[
+                              { label: "Bedrooms", val: job.property.bedrooms },
+                              { label: "Bathrooms", val: job.property.bathrooms },
+                              { label: "Kitchens", val: (job.property as any).kitchens },
+                              { label: "Living Rooms", val: (job.property as any).living_rooms },
+                              { label: "Dining Areas", val: (job.property as any).dining_areas },
+                              { label: "Utility Rooms", val: (job.property as any).utility_rooms },
+                              { label: "Storage Rooms", val: (job.property as any).storage_rooms },
+                              { label: "Hallways/Stairs", val: (job.property as any).hallways_stairs },
+                              { label: "Gardens", val: (job.property as any).gardens },
+                              { label: "Communal Areas", val: (job.property as any).communal_areas },
+                            ].filter(r => r.val > 0).map(r => (
+                              <div key={r.label} className="flex items-center gap-1.5 text-sm">
+                                <Check className="w-3.5 h-3.5 text-success shrink-0" />
+                                <span>{r.val} {r.label}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        {(job.property as any).notes && (
+                          <div className="pt-3 border-t space-y-1">
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Property Notes</p>
+                            <p className="text-sm text-foreground">{(job.property as any).notes}</p>
+                          </div>
+                        )}
+                      </>
+                    )}
                   </>
                 )}
               </CardContent>

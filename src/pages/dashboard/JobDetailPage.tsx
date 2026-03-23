@@ -894,12 +894,41 @@ const JobDetailPage = () => {
                 )}
               </div>
 
-              {job.special_instructions && (
+              {job.special_instructions && role === "admin" ? (
+                <div className="pt-2 border-t space-y-2">
+                  <p className="text-sm text-muted-foreground mb-1">Client Notes & Instructions</p>
+                  {(() => {
+                    const parsed = parseSpecialInstructions(job.special_instructions);
+                    return (
+                      <div className="space-y-1.5">
+                        {parsed.tier && (
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs capitalize">{parsed.tier} Tier</Badge>
+                          </div>
+                        )}
+                        {parsed.additionalServices.length > 0 && (
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs text-muted-foreground">Additional:</span>
+                            {parsed.additionalServices.map(s => (
+                              <Badge key={s} variant="secondary" className="text-xs">
+                                {INSPECTION_TYPE_LABELS[s as keyof typeof INSPECTION_TYPE_LABELS] || s.replace(/_/g, " ")}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
+                        {parsed.freeText && (
+                          <p className="text-sm text-foreground bg-muted/50 rounded p-2">{parsed.freeText}</p>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              ) : job.special_instructions ? (
                 <div className="pt-2 border-t">
                   <p className="text-sm text-muted-foreground mb-1">Special Instructions</p>
                   <p className="text-sm">{job.special_instructions}</p>
                 </div>
-              )}
+              ) : null}
             </CardContent>
           </Card>
 

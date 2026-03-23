@@ -1154,6 +1154,234 @@ const JobDetailPage = () => {
               </CardContent>
             </Card>
           )}
+
+          {/* Admin: InventoryBase Section */}
+          {role === "admin" && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <ExternalLink className="w-4 h-4" />
+                  InventoryBase
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {inventorybaseJobId ? (
+                  <>
+                    <p className="text-sm text-foreground">
+                      <span className="font-medium">{inventorybaseJobId}</span> — {job.property?.address_line_1}{job.property?.city ? `, ${job.property.city}` : ""}
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => window.open(`https://app.inventorybase.co.uk/jobs/${inventorybaseJobId}`, "_blank")}
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      Open in InventoryBase
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm text-muted-foreground">No InventoryBase ID assigned</p>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Enter IB job ID..."
+                        value={ibIdInput}
+                        onChange={(e) => setIbIdInput(e.target.value)}
+                        className="text-sm"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={handleSaveIbId}
+                        disabled={savingIbId || !ibIdInput.trim()}
+                        className="gap-1 shrink-0"
+                      >
+                        {savingIbId ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                        Set
+                      </Button>
+                    </div>
+                  </>
+                )}
+                {/* Report link */}
+                <div className="pt-3 border-t space-y-2">
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Report Link</p>
+                  {reportUrl ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => window.open(reportUrl, "_blank")}
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      View Report
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Paste report URL..."
+                        value={reportLinkInput}
+                        onChange={(e) => setReportLinkInput(e.target.value)}
+                        className="text-sm"
+                      />
+                      <Button
+                        size="sm"
+                        onClick={handleSaveReportLink}
+                        disabled={savingReportLink || !reportLinkInput.trim()}
+                        className="gap-1 shrink-0"
+                      >
+                        {savingReportLink ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                        Save
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Admin: Payout Breakdown */}
+          {role === "admin" && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <PoundSterling className="w-4 h-4" />
+                  Financial Breakdown
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Client Price</span>
+                    <span className="font-medium">£{(job.final_price || job.quoted_price || 0).toFixed(2)}</span>
+                  </div>
+                  {(job as any).clerk_payout_breakdown && typeof (job as any).clerk_payout_breakdown === "object" && Object.keys((job as any).clerk_payout_breakdown).length > 0 && (
+                    <>
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide pt-2">Service Line Items</p>
+                      {(job as any).clerk_payout_breakdown.bundle && Array.isArray((job as any).clerk_payout_breakdown.services) ? (
+                        (job as any).clerk_payout_breakdown.services.map((svc: any, i: number) => (
+                          <div key={i} className="flex justify-between text-sm">
+                            <span>{INSPECTION_TYPE_LABELS[svc.type as keyof typeof INSPECTION_TYPE_LABELS] || svc.type?.replace(/_/g, " ")}</span>
+                            <span>£{(svc.total ?? svc.base ?? 0).toFixed(2)}</span>
+                          </div>
+                        ))
+                      ) : (job as any).clerk_payout_breakdown.base != null ? (
+                        <div className="flex justify-between text-sm">
+                          <span>{INSPECTION_TYPE_LABELS[(job as any).clerk_payout_breakdown.inspectionType as keyof typeof INSPECTION_TYPE_LABELS] || "Base"}</span>
+                          <span>£{((job as any).clerk_payout_breakdown.base || 0).toFixed(2)}</span>
+                        </div>
+                      ) : null}
+                      {Array.isArray((job as any).clerk_payout_breakdown.addOns) && (job as any).clerk_payout_breakdown.addOns.map((addon: any, i: number) => (
+                        <div key={i} className="flex justify-between text-sm pl-3 text-muted-foreground">
+                          <span>{addon.label}{addon.quantity > 1 ? ` ×${addon.quantity}` : ""}</span>
+                          <span>£{(addon.total || 0).toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                  <div className="border-t pt-2 flex justify-between text-sm">
+                    <span className="text-muted-foreground">Clerk Payout</span>
+                    <span className="font-medium">£{((job as any).clerk_payout || 0).toFixed(2)}</span>
+                  </div>
+                  {(job as any).clerk_bonus > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Bonus</span>
+                      <span className="font-medium text-success">+£{(job as any).clerk_bonus.toFixed(2)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Final Clerk Payout</span>
+                    <span className="font-bold">£{((job as any).clerk_final_payout || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="border-t pt-2 flex justify-between text-sm">
+                    <span className="text-muted-foreground">Platform Margin</span>
+                    <span className="font-medium">£{((job as any).margin || 0).toFixed(2)}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Admin: Report Status */}
+          {role === "admin" && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <FileCheck className="w-4 h-4" />
+                  Report Status
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {adminReportInfo ? (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Started</span>
+                      <span>{adminReportInfo.started_at ? format(new Date(adminReportInfo.started_at), "d MMM yyyy HH:mm") : "—"}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Submitted</span>
+                      <span>{adminReportInfo.submitted_at ? format(new Date(adminReportInfo.submitted_at), "d MMM yyyy HH:mm") : "Not yet"}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Client Accepted</span>
+                      <span>{job.client_report_accepted ? format(new Date(job.client_report_accepted_at!), "d MMM yyyy HH:mm") : "Not yet"}</span>
+                    </div>
+                    {adminReportInfo.general_notes && (
+                      <div className="pt-2 border-t">
+                        <p className="text-xs text-muted-foreground">General Notes</p>
+                        <p className="text-sm">{adminReportInfo.general_notes}</p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No report has been created yet</p>
+                )}
+                {reportUrl && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 mt-2"
+                    onClick={() => window.open(reportUrl, "_blank")}
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    View Report
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Admin: Included Rooms */}
+          {role === "admin" && job.property && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Layers className="w-4 h-4" />
+                  Included Areas / Rooms
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {[
+                    { label: "Bedroom", val: job.property.bedrooms },
+                    { label: "Bathroom", val: job.property.bathrooms },
+                    { label: "Kitchen", val: (job.property as any).kitchens },
+                    { label: "Living Room", val: (job.property as any).living_rooms },
+                    { label: "Dining Area", val: (job.property as any).dining_areas },
+                    { label: "Utility Room", val: (job.property as any).utility_rooms },
+                    { label: "Storage Room", val: (job.property as any).storage_rooms },
+                    { label: "Hallway/Stairs", val: (job.property as any).hallways_stairs },
+                    { label: "Garden", val: (job.property as any).gardens },
+                    { label: "Communal Area", val: (job.property as any).communal_areas },
+                  ].filter(r => r.val > 0).map(r => (
+                    <div key={r.label} className="flex items-center gap-1.5 text-sm">
+                      <Check className="w-3.5 h-3.5 text-success shrink-0" />
+                      <span>{r.val} {r.label}{r.val > 1 ? "s" : ""}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Right column - Timeline + Messaging */}
@@ -1184,6 +1412,34 @@ const JobDetailPage = () => {
               otherUserId={job.client_id}
               otherUserName="Client"
             />
+          )}
+
+          {/* Admin: read-only message history */}
+          {role === "admin" && adminMessages.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Layers className="w-4 h-4" />
+                  Message History ({adminMessages.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                  {adminMessages.map((msg) => {
+                    const isFromClerk = msg.sender_id === job.clerk_id;
+                    return (
+                      <div key={msg.id} className={`flex ${isFromClerk ? "justify-end" : "justify-start"}`}>
+                        <div className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${isFromClerk ? "bg-accent/10 text-foreground" : "bg-muted text-foreground"}`}>
+                          <p className="text-[10px] text-muted-foreground mb-0.5">{isFromClerk ? (job.clerk_profile?.full_name || "Clerk") : (clientProfile?.full_name || "Client")}</p>
+                          <p>{msg.message_text}</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">{format(new Date(msg.created_at), "d MMM HH:mm")}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>

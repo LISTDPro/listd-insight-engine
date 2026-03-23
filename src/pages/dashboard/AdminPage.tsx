@@ -1264,12 +1264,13 @@ const AdminPage = () => {
                     return (
                       <TableRow key={job.id} className="cursor-pointer hover:bg-muted/30" onClick={() => navigate(`/dashboard/jobs/${job.id}`)}>
                         <TableCell>{renderJobProperty(job)}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{job.clerkName || "—"}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{job.clientName || "—"}</TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="text-xs">
                             {job.inspection_type.replace("_", " ")}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-xs capitalize">{job.service_tier}</TableCell>
                         <TableCell>{getStatusBadge(job.status)}</TableCell>
                         <TableCell className="text-right font-medium">£{clientPrice.toFixed(0)}</TableCell>
                         <TableCell className="text-right font-medium text-accent">£{payout.toFixed(0)}</TableCell>

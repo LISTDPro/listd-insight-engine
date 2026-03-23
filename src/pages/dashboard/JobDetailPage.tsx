@@ -21,7 +21,7 @@ import {
   JOB_STATUS_LABELS,
   PROPERTY_TYPE_LABELS,
   PropertyType,
-  JobStatus
+  JobStatus,
   FURNISHED_STATUS_LABELS,
   FurnishedStatus,
 } from "@/types/database";

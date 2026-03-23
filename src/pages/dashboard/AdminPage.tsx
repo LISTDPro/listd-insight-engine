@@ -806,9 +806,20 @@ const AdminPage = () => {
                           <KeyRound className="w-3.5 h-3.5 mr-1" />
                           Reset
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => navigate(`/dashboard/jobs/${u.user_id}`)}>
                           <Eye className="w-4 h-4" />
                         </Button>
+                        {u.role !== "admin" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs text-destructive hover:text-destructive"
+                            onClick={() => setDeleteTarget(u)}
+                            title="Delete user"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))

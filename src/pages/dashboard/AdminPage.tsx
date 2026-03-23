@@ -14,8 +14,15 @@ import {
   Users, Briefcase, ShieldCheck, AlertTriangle,
   CheckCircle2, XCircle, Clock, Search, Eye, UserCheck, Package, Zap,
   ListChecks, ExternalLink, ClipboardList, Mail, RefreshCw, Calendar,
-  PoundSterling, Download, KeyRound, SlidersHorizontal,
+  PoundSterling, Download, KeyRound, SlidersHorizontal, Trash2, Plus,
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import AdminPayoutControls from "@/components/admin/AdminPayoutControls";
@@ -31,7 +38,6 @@ import WaitlistLeadsPanel from "@/components/admin/WaitlistLeadsPanel";
 import { useInventoryBaseSync } from "@/hooks/useInventoryBaseSync";
 import FixBundlePayoutsTool from "@/components/admin/FixBundlePayoutsTool";
 import AdminCreateJobDialog from "@/components/admin/AdminCreateJobDialog";
-import { Plus } from "lucide-react";
 
 interface UserWithRole {
   id: string;

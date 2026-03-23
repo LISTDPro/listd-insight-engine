@@ -160,6 +160,8 @@ const JobDetailPage = () => {
       .maybeSingle()
       .then(({ data }) => { if (data) setClientProfile(data); });
   }, [job?.id, role]);
+
+  // Reschedule eligibility: client only, not completed/cancelled/in_progress+
   const canRequestReschedule = role === "client" && 
     job && ['published', 'accepted', 'assigned'].includes(job.status) &&
     !(job as any).reschedule_status;

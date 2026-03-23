@@ -254,6 +254,46 @@ const JobDetailPage = () => {
     }
   };
 
+  const handleSaveIbId = async () => {
+    if (!ibIdInput.trim()) return;
+    setSavingIbId(true);
+    const { error } = await supabase
+      .from("jobs")
+      .update({ inventorybase_job_id: ibIdInput.trim() } as any)
+      .eq("id", job.id);
+    setSavingIbId(false);
+    if (error) {
+      toast.error("Failed to save InventoryBase ID");
+    } else {
+      toast.success("InventoryBase ID saved");
+      setIbIdInput("");
+      refetch();
+    }
+  };
+
+  // Parse special_instructions into structured parts
+  const parseSpecialInstructions = (text: string | null) => {
+    if (!text) return { tier: null, additionalServices: [] as string[], freeText: "" };
+    let remaining = text;
+    let tier: string | null = null;
+    const additionalServices: string[] = [];
+
+    const tierMatch = remaining.match(/\[Service tier:\s*([^\]]+)\]/i);
+    if (tierMatch) {
+      tier = tierMatch[1].trim();
+      remaining = remaining.replace(tierMatch[0], "");
+    }
+    const addMatch = remaining.match(/\[Additional services?:\s*([^\]]+)\]/i);
+    if (addMatch) {
+      addMatch[1].split(",").forEach(s => {
+        const trimmed = s.trim();
+        if (trimmed) additionalServices.push(trimmed);
+      });
+      remaining = remaining.replace(addMatch[0], "");
+    }
+    const freeText = remaining.replace(/\s+/g, " ").trim();
+    return { tier, additionalServices, freeText };
+  };
 
 
   const handleMarkCompleted = async () => {

@@ -99,6 +99,12 @@ const JobDetailPage = () => {
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [reportLinkInput, setReportLinkInput] = useState("");
   const [savingReportLink, setSavingReportLink] = useState(false);
+  const [adminReportInfo, setAdminReportInfo] = useState<any>(null);
+  const [adminMessages, setAdminMessages] = useState<any[]>([]);
+  const [clerkEmail, setClerkEmail] = useState<string | null>(null);
+  const [clientProfile, setClientProfile] = useState<any>(null);
+  const [ibIdInput, setIbIdInput] = useState("");
+  const [savingIbId, setSavingIbId] = useState(false);
   const { updateProperty } = useProperties();
   // Fetch tenant details for this job
   useEffect(() => {

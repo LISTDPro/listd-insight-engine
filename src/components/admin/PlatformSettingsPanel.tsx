@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { usePlatformSettings, useUpdatePlatformSetting } from "@/hooks/usePlatformSettings";
-import { Star, Instagram, Facebook, Link2, Mail, Save, Code } from "lucide-react";
+import { Star, Instagram, Facebook, Link2, Mail, Save, Code, Phone } from "lucide-react";
 
 const PlatformSettingsPanel = () => {
   const { data: settings, isLoading } = usePlatformSettings();

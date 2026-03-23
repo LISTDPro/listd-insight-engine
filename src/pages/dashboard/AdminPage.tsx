@@ -274,7 +274,49 @@ const AdminPage = () => {
     }
   };
 
-  // Stats
+  const handleDeleteUser = async (user: UserWithRole) => {
+    setDeleting(true);
+    try {
+      // Delete user role, profile, then auth user via edge function
+      await supabase.from("user_roles").delete().eq("user_id", user.user_id);
+      await supabase.from("profiles").delete().eq("user_id", user.user_id);
+      // Call edge function to delete auth user
+      const { error } = await supabase.functions.invoke("admin-list-users", {
+        body: { action: "delete", userId: user.user_id },
+      });
+      if (error) throw error;
+      toast({ title: "User deleted", description: `${user.full_name || user.email} has been removed.` });
+      fetchUsers();
+    } catch (e: any) {
+      toast({ title: "Error deleting user", description: e?.message || "Failed to delete user", variant: "destructive" });
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
+
+  // Helper to render property name for a job
+  const renderJobProperty = (job: JobRow) => {
+    const addr = job.propertyAddress;
+    const pc = job.propertyPostcode;
+    if (addr) {
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="text-sm font-medium cursor-default">
+                {addr}{pc ? `, ${pc}` : ""}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="font-mono text-xs">
+              {job.id}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+    return <span className="font-mono text-xs text-muted-foreground">{job.id.slice(0, 8)}...</span>;
+  };
   const totalUsers = users.length;
   const totalClerks = users.filter((u) => u.role === "clerk").length;
   const totalClients = users.filter((u) => u.role === "client").length;

@@ -971,8 +971,6 @@ const JobDetailPage = () => {
                       {clientProfile.phone && <p className="text-xs text-muted-foreground">{clientProfile.phone}</p>}
                     </div>
                   </div>
-                    </div>
-                  </div>
                 )}
               </CardContent>
             </Card>

@@ -917,7 +917,7 @@ const AdminPage = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40">
-                  <TableHead>Job ID</TableHead>
+                  <TableHead>Property</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Tier</TableHead>
                   <TableHead>Status</TableHead>
@@ -936,10 +936,8 @@ const AdminPage = () => {
                   </TableRow>
                 ) : (
                   filteredJobs.map((job) => (
-                    <TableRow key={job.id}>
-                      <TableCell className="font-mono text-xs">
-                        {job.id.slice(0, 8)}...
-                      </TableCell>
+                    <TableRow key={job.id} className="cursor-pointer hover:bg-muted/30" onClick={() => navigate(`/dashboard/jobs/${job.id}`)}>
+                      <TableCell>{renderJobProperty(job)}</TableCell>
                       <TableCell className="capitalize">
                         {job.inspection_type.replace("_", " ")}
                       </TableCell>

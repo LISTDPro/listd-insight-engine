@@ -22,6 +22,8 @@ import {
   PROPERTY_TYPE_LABELS,
   PropertyType,
   JobStatus
+  FURNISHED_STATUS_LABELS,
+  FurnishedStatus,
 } from "@/types/database";
 import { format, isPast, parseISO } from "date-fns";
 import { useState, useEffect } from "react";

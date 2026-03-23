@@ -602,8 +602,8 @@ const AdminPage = () => {
                         <TableCell className="text-sm text-muted-foreground">
                           {new Date(job.scheduled_date).toLocaleDateString()}
                         </TableCell>
-                        <TableCell className="font-mono text-xs text-muted-foreground">
-                          {job.clerk_id ? job.clerk_id.slice(0, 8) + "..." : "—"}
+                        <TableCell className="text-sm text-muted-foreground">
+                          {job.clerkName || (job.clerk_id ? job.clerk_id.slice(0, 8) + "..." : "—")}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button

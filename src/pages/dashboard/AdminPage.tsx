@@ -596,7 +596,7 @@ const AdminPage = () => {
                     .filter(j => j.status === "accepted" && !j.inventorybase_job_id)
                     .map((job) => (
                       <TableRow key={job.id}>
-                        <TableCell className="font-mono text-xs">{job.id.slice(0, 8)}...</TableCell>
+                        <TableCell>{renderJobProperty(job)}</TableCell>
                         <TableCell className="capitalize text-sm">{job.inspection_type.replace("_", " ")}</TableCell>
                         <TableCell className="capitalize text-sm">{job.service_tier}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">

@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Book, Video, FileText, ExternalLink } from "lucide-react";
+import { Book, Video, HelpCircle, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const resources = [
-  { icon: Book, title: "Documentation", description: "Comprehensive guides and tutorials", action: "View Docs", link: "https://docs.listd.co.uk" },
-  { icon: Video, title: "Video Tutorials", description: "Step-by-step walkthroughs", action: "Watch Videos", link: "https://www.youtube.com/@listduk" },
-  { icon: FileText, title: "FAQs", description: "Answers to common questions", action: "Browse FAQs", link: "https://listd.co.uk/faqs" },
+  { icon: Video, title: "Video Tutorials", description: "Step-by-step walkthroughs", action: "Watch Videos", link: "https://www.youtube.com/@listduk", external: true },
+  { icon: HelpCircle, title: "FAQs", description: "Answers to common questions", action: "Browse FAQs", link: "/help/faqs", external: false },
+  { icon: Book, title: "Getting Started", description: "Learn how to use the platform", action: "View Guide", link: "/help", external: false },
 ];
 
 const HelpResources = () => (
@@ -18,9 +19,17 @@ const HelpResources = () => (
           </div>
           <h3 className="text-sm font-semibold text-foreground">{r.title}</h3>
           <p className="text-xs text-muted-foreground mt-1 mb-4">{r.description}</p>
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => window.open(r.link, "_blank")}>
-            {r.action} <ExternalLink className="w-3 h-3" />
-          </Button>
+          {r.external ? (
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => window.open(r.link, "_blank")}>
+              {r.action} <ExternalLink className="w-3 h-3" />
+            </Button>
+          ) : (
+            <Link to={r.link}>
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                {r.action}
+              </Button>
+            </Link>
+          )}
         </div>
       ))}
     </div>

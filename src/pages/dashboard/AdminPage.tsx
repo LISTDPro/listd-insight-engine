@@ -677,7 +677,7 @@ const AdminPage = () => {
                     .filter(j => ["in_progress", "submitted"].includes(j.status))
                     .map((job) => (
                       <TableRow key={job.id}>
-                        <TableCell className="font-mono text-xs">{job.id.slice(0, 8)}...</TableCell>
+                        <TableCell>{renderJobProperty(job)}</TableCell>
                         <TableCell className="capitalize text-sm">{job.inspection_type.replace("_", " ")}</TableCell>
                         <TableCell>{getStatusBadge(job.status)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">

@@ -1214,9 +1214,10 @@ const AdminPage = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40">
-                  <TableHead>Job</TableHead>
+                  <TableHead>Property</TableHead>
+                  <TableHead>Clerk</TableHead>
+                  <TableHead>Client</TableHead>
                   <TableHead>Type</TableHead>
-                  <TableHead>Tier</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Client Price</TableHead>
                   <TableHead className="text-right">Clerk Payout</TableHead>

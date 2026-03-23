@@ -952,7 +952,7 @@ const AdminPage = () => {
                       <TableCell>
                         {job.quoted_price ? `£${job.quoted_price}` : "—"}
                       </TableCell>
-                      <TableCell className="text-right space-x-1">
+                      <TableCell className="text-right space-x-1" onClick={(e) => e.stopPropagation()}>
                         {["accepted", "in_progress"].includes(job.status) && (
                           <Button
                             size="sm"

@@ -575,7 +575,7 @@ const AdminPage = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40">
-                  <TableHead>Job ID</TableHead>
+                  <TableHead>Property</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Tier</TableHead>
                   <TableHead>Scheduled</TableHead>

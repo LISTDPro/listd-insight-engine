@@ -118,6 +118,8 @@ const AdminPage = () => {
   const [strikeTarget, setStrikeTarget] = useState<{ userId: string; name: string } | null>(null);
   const [passwordResetTarget, setPasswordResetTarget] = useState<{ userId: string; name: string | null; email: string | null } | null>(null);
   const [createJobOpen, setCreateJobOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<UserWithRole | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (role !== "admin") {

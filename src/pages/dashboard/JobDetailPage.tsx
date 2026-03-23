@@ -944,13 +944,33 @@ const JobDetailPage = () => {
               <CardContent className="space-y-4">
                 {/* Provider role reserved for future SaaS expansion. Not active in Phase 1. */}
                 {job.clerk_profile && (
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
                       <User className="w-5 h-5 text-accent" />
                     </div>
                     <div>
                       <p className="font-medium">{job.clerk_profile.full_name || "Clerk"}</p>
                       <p className="text-sm text-muted-foreground">Inventory Clerk</p>
+                      {role === "admin" && job.clerk_profile.phone && (
+                        <p className="text-xs text-muted-foreground">{job.clerk_profile.phone}</p>
+                      )}
+                      {role === "admin" && clerkEmail && (
+                        <p className="text-xs text-muted-foreground">{clerkEmail}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {role === "admin" && clientProfile && (
+                  <div className="flex items-start gap-3 pt-2 border-t">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <Building className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{clientProfile.full_name || "Client"}</p>
+                      <p className="text-sm text-muted-foreground">Client{clientProfile.company_name ? ` — ${clientProfile.company_name}` : ""}</p>
+                      {clientProfile.phone && <p className="text-xs text-muted-foreground">{clientProfile.phone}</p>}
+                    </div>
+                  </div>
                     </div>
                   </div>
                 )}

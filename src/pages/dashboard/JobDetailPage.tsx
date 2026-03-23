@@ -120,7 +120,46 @@ const JobDetailPage = () => {
       });
   }, [jobId]);
 
-  // Reschedule eligibility: client only, not completed/cancelled/in_progress+
+  // Admin: fetch report info, messages, clerk email, client profile
+  useEffect(() => {
+    if (!jobId || role !== "admin") return;
+    // Report info
+    supabase
+      .from("inspection_reports")
+      .select("id, started_at, submitted_at, completed_at, general_notes")
+      .eq("job_id", jobId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .then(({ data }) => { if (data?.[0]) setAdminReportInfo(data[0]); });
+    // Messages
+    supabase
+      .from("messages")
+      .select("*")
+      .eq("job_id", jobId)
+      .order("created_at", { ascending: true })
+      .then(({ data }) => { if (data) setAdminMessages(data); });
+  }, [jobId, role]);
+
+  useEffect(() => {
+    if (role !== "admin" || !job) return;
+    // Clerk email via admin-list-users is expensive; use profiles phone (already have) 
+    // but also get email from auth if clerk_id exists
+    if (job.clerk_id) {
+      supabase.functions.invoke("admin-list-users", { body: {} }).then(({ data }) => {
+        if (data?.users) {
+          const clerkUser = data.users.find((u: any) => u.id === job.clerk_id);
+          if (clerkUser) setClerkEmail(clerkUser.email);
+        }
+      });
+    }
+    // Client profile
+    supabase
+      .from("profiles")
+      .select("full_name, company_name, phone")
+      .eq("user_id", job.client_id)
+      .maybeSingle()
+      .then(({ data }) => { if (data) setClientProfile(data); });
+  }, [job?.id, role]);
   const canRequestReschedule = role === "client" && 
     job && ['published', 'accepted', 'assigned'].includes(job.status) &&
     !(job as any).reschedule_status;

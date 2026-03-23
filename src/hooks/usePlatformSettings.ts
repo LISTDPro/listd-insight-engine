@@ -14,6 +14,7 @@ export interface PlatformSettings {
   facebook_url: string;
   review_email_enabled: string;
   tenancies_completed_override: string;
+  business_phone: string;
 }
 
 const DEFAULT_SETTINGS: PlatformSettings = {

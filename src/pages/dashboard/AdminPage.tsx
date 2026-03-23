@@ -1262,7 +1262,7 @@ const AdminPage = () => {
                     const marginPct = clientPrice > 0 ? ((jobMargin / clientPrice) * 100).toFixed(0) : "—";
                     return (
                       <TableRow key={job.id} className="cursor-pointer hover:bg-muted/30" onClick={() => navigate(`/dashboard/jobs/${job.id}`)}>
-                        <TableCell className="font-mono text-xs">{job.id.slice(0, 8)}...</TableCell>
+                        <TableCell>{renderJobProperty(job)}</TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="text-xs">
                             {job.inspection_type.replace("_", " ")}

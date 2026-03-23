@@ -14,8 +14,15 @@ import {
   Users, Briefcase, ShieldCheck, AlertTriangle,
   CheckCircle2, XCircle, Clock, Search, Eye, UserCheck, Package, Zap,
   ListChecks, ExternalLink, ClipboardList, Mail, RefreshCw, Calendar,
-  PoundSterling, Download, KeyRound, SlidersHorizontal,
+  PoundSterling, Download, KeyRound, SlidersHorizontal, Trash2, Plus,
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import AdminPayoutControls from "@/components/admin/AdminPayoutControls";
@@ -31,7 +38,6 @@ import WaitlistLeadsPanel from "@/components/admin/WaitlistLeadsPanel";
 import { useInventoryBaseSync } from "@/hooks/useInventoryBaseSync";
 import FixBundlePayoutsTool from "@/components/admin/FixBundlePayoutsTool";
 import AdminCreateJobDialog from "@/components/admin/AdminCreateJobDialog";
-import { Plus } from "lucide-react";
 
 interface UserWithRole {
   id: string;
@@ -112,6 +118,8 @@ const AdminPage = () => {
   const [strikeTarget, setStrikeTarget] = useState<{ userId: string; name: string } | null>(null);
   const [passwordResetTarget, setPasswordResetTarget] = useState<{ userId: string; name: string | null; email: string | null } | null>(null);
   const [createJobOpen, setCreateJobOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<UserWithRole | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (role !== "admin") {
@@ -266,7 +274,49 @@ const AdminPage = () => {
     }
   };
 
-  // Stats
+  const handleDeleteUser = async (user: UserWithRole) => {
+    setDeleting(true);
+    try {
+      // Delete user role, profile, then auth user via edge function
+      await supabase.from("user_roles").delete().eq("user_id", user.user_id);
+      await supabase.from("profiles").delete().eq("user_id", user.user_id);
+      // Call edge function to delete auth user
+      const { error } = await supabase.functions.invoke("admin-list-users", {
+        body: { action: "delete", userId: user.user_id },
+      });
+      if (error) throw error;
+      toast({ title: "User deleted", description: `${user.full_name || user.email} has been removed.` });
+      fetchUsers();
+    } catch (e: any) {
+      toast({ title: "Error deleting user", description: e?.message || "Failed to delete user", variant: "destructive" });
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
+
+  // Helper to render property name for a job
+  const renderJobProperty = (job: JobRow) => {
+    const addr = job.propertyAddress;
+    const pc = job.propertyPostcode;
+    if (addr) {
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="text-sm font-medium cursor-default">
+                {addr}{pc ? `, ${pc}` : ""}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="font-mono text-xs">
+              {job.id}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+    return <span className="font-mono text-xs text-muted-foreground">{job.id.slice(0, 8)}...</span>;
+  };
   const totalUsers = users.length;
   const totalClerks = users.filter((u) => u.role === "clerk").length;
   const totalClients = users.filter((u) => u.role === "client").length;
@@ -525,7 +575,7 @@ const AdminPage = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40">
-                  <TableHead>Job ID</TableHead>
+                  <TableHead>Property</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Tier</TableHead>
                   <TableHead>Scheduled</TableHead>
@@ -546,14 +596,14 @@ const AdminPage = () => {
                     .filter(j => j.status === "accepted" && !j.inventorybase_job_id)
                     .map((job) => (
                       <TableRow key={job.id}>
-                        <TableCell className="font-mono text-xs">{job.id.slice(0, 8)}...</TableCell>
+                        <TableCell>{renderJobProperty(job)}</TableCell>
                         <TableCell className="capitalize text-sm">{job.inspection_type.replace("_", " ")}</TableCell>
                         <TableCell className="capitalize text-sm">{job.service_tier}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {new Date(job.scheduled_date).toLocaleDateString()}
                         </TableCell>
-                        <TableCell className="font-mono text-xs text-muted-foreground">
-                          {job.clerk_id ? job.clerk_id.slice(0, 8) + "..." : "—"}
+                        <TableCell className="text-sm text-muted-foreground">
+                          {job.clerkName || (job.clerk_id ? job.clerk_id.slice(0, 8) + "..." : "—")}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
@@ -606,7 +656,7 @@ const AdminPage = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40">
-                  <TableHead>Job ID</TableHead>
+                  <TableHead>Property</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Scheduled</TableHead>
@@ -627,7 +677,7 @@ const AdminPage = () => {
                     .filter(j => ["in_progress", "submitted"].includes(j.status))
                     .map((job) => (
                       <TableRow key={job.id}>
-                        <TableCell className="font-mono text-xs">{job.id.slice(0, 8)}...</TableCell>
+                        <TableCell>{renderJobProperty(job)}</TableCell>
                         <TableCell className="capitalize text-sm">{job.inspection_type.replace("_", " ")}</TableCell>
                         <TableCell>{getStatusBadge(job.status)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
@@ -756,9 +806,20 @@ const AdminPage = () => {
                           <KeyRound className="w-3.5 h-3.5 mr-1" />
                           Reset
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="sm" onClick={() => navigate(`/dashboard/jobs/${u.user_id}`)}>
                           <Eye className="w-4 h-4" />
                         </Button>
+                        {u.role !== "admin" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs text-destructive hover:text-destructive"
+                            onClick={() => setDeleteTarget(u)}
+                            title="Delete user"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))
@@ -867,7 +928,7 @@ const AdminPage = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40">
-                  <TableHead>Job ID</TableHead>
+                  <TableHead>Property</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Tier</TableHead>
                   <TableHead>Status</TableHead>
@@ -886,10 +947,8 @@ const AdminPage = () => {
                   </TableRow>
                 ) : (
                   filteredJobs.map((job) => (
-                    <TableRow key={job.id}>
-                      <TableCell className="font-mono text-xs">
-                        {job.id.slice(0, 8)}...
-                      </TableCell>
+                    <TableRow key={job.id} className="cursor-pointer hover:bg-muted/30" onClick={() => navigate(`/dashboard/jobs/${job.id}`)}>
+                      <TableCell>{renderJobProperty(job)}</TableCell>
                       <TableCell className="capitalize">
                         {job.inspection_type.replace("_", " ")}
                       </TableCell>
@@ -904,7 +963,7 @@ const AdminPage = () => {
                       <TableCell>
                         {job.quoted_price ? `£${job.quoted_price}` : "—"}
                       </TableCell>
-                      <TableCell className="text-right space-x-1">
+                      <TableCell className="text-right space-x-1" onClick={(e) => e.stopPropagation()}>
                         {["accepted", "in_progress"].includes(job.status) && (
                           <Button
                             size="sm"
@@ -1155,9 +1214,10 @@ const AdminPage = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40">
-                  <TableHead>Job</TableHead>
+                  <TableHead>Property</TableHead>
+                  <TableHead>Clerk</TableHead>
+                  <TableHead>Client</TableHead>
                   <TableHead>Type</TableHead>
-                  <TableHead>Tier</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Client Price</TableHead>
                   <TableHead className="text-right">Clerk Payout</TableHead>
@@ -1203,13 +1263,14 @@ const AdminPage = () => {
                     const marginPct = clientPrice > 0 ? ((jobMargin / clientPrice) * 100).toFixed(0) : "—";
                     return (
                       <TableRow key={job.id} className="cursor-pointer hover:bg-muted/30" onClick={() => navigate(`/dashboard/jobs/${job.id}`)}>
-                        <TableCell className="font-mono text-xs">{job.id.slice(0, 8)}...</TableCell>
+                        <TableCell>{renderJobProperty(job)}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{job.clerkName || "—"}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">{job.clientName || "—"}</TableCell>
                         <TableCell>
                           <Badge variant="secondary" className="text-xs">
                             {job.inspection_type.replace("_", " ")}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-xs capitalize">{job.service_tier}</TableCell>
                         <TableCell>{getStatusBadge(job.status)}</TableCell>
                         <TableCell className="text-right font-medium">£{clientPrice.toFixed(0)}</TableCell>
                         <TableCell className="text-right font-medium text-accent">£{payout.toFixed(0)}</TableCell>
@@ -1342,6 +1403,29 @@ const AdminPage = () => {
           email: u.email,
         }))}
       />
+
+      {/* Delete User Confirmation */}
+      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete User Account</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete <span className="font-semibold text-foreground">{deleteTarget?.full_name || deleteTarget?.email}</span>?
+              This action cannot be undone. All account data will be removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleting}
+              onClick={() => deleteTarget && handleDeleteUser(deleteTarget)}
+            >
+              {deleting ? "Deleting..." : "Delete Permanently"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

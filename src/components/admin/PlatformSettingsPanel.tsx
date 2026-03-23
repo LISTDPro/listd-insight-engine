@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { usePlatformSettings, useUpdatePlatformSetting } from "@/hooks/usePlatformSettings";
-import { Star, Instagram, Facebook, Link2, Mail, Save, Code } from "lucide-react";
+import { Star, Instagram, Facebook, Link2, Mail, Save, Code, Phone } from "lucide-react";
 
 const PlatformSettingsPanel = () => {
   const { data: settings, isLoading } = usePlatformSettings();
@@ -26,6 +26,7 @@ const PlatformSettingsPanel = () => {
     facebook_url: "",
     review_email_enabled: "true",
     tenancies_completed_override: "",
+    business_phone: "0117 427 5675",
   });
 
   useEffect(() => {
@@ -268,6 +269,38 @@ const PlatformSettingsPanel = () => {
                 updateSetting.mutate({ key: "review_email_enabled", value });
               }}
             />
+          </div>
+        </div>
+      </div>
+
+      {/* Business Phone */}
+      <div className="bg-card border border-border overflow-hidden">
+        <div className="px-5 py-4 border-b border-border flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <Phone className="w-4 h-4 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Business Contact</h3>
+            <p className="text-xs text-muted-foreground">Main business phone number displayed across the platform</p>
+          </div>
+        </div>
+        <div className="p-5 space-y-4">
+          <div className="space-y-1.5">
+            <Label className="text-xs flex items-center gap-1.5">
+              <Phone className="w-3.5 h-3.5" /> Business Phone Number
+            </Label>
+            <div className="flex gap-2">
+              <Input
+                value={form.business_phone}
+                onChange={(e) => setForm((f) => ({ ...f, business_phone: e.target.value }))}
+                placeholder="e.g. 0117 427 5675"
+                className="text-sm"
+              />
+              <Button size="sm" variant="outline" onClick={() => handleSave("business_phone")}>
+                <Save className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground">Used in contact sections and email footers</p>
           </div>
         </div>
       </div>

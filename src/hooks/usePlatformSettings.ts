@@ -14,6 +14,7 @@ export interface PlatformSettings {
   facebook_url: string;
   review_email_enabled: string;
   tenancies_completed_override: string;
+  business_phone: string;
 }
 
 const DEFAULT_SETTINGS: PlatformSettings = {
@@ -29,6 +30,7 @@ const DEFAULT_SETTINGS: PlatformSettings = {
   facebook_url: "https://www.facebook.com/share/1Cj3tD4Zre/?mibextid=wwXIfr",
   review_email_enabled: "true",
   tenancies_completed_override: "",
+  business_phone: "0117 427 5675",
 };
 
 export const usePlatformSettings = () => {

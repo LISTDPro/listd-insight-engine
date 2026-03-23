@@ -1,9 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { ClipboardList, FileCheck, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const documents = [
-  { icon: ClipboardList, title: "Work Order Form", description: "Manual inventory work order form for booking inspections", action: "Open Form", link: "https://forms.gle/7dz8Qy1RdRvC2X767", badge: null },
-  { icon: FileCheck, title: "Terms of Business Agreement", description: "Client agreement form — required before first booking", action: "Sign Agreement", link: "https://forms.gle/oZZvtLZw4ztiy23j7", badge: "Mandatory" },
+  { icon: ClipboardList, title: "Work Order Form", description: "Submit a manual inventory work order for booking inspections", action: "Open Form", link: "/book", badge: null },
+  { icon: FileCheck, title: "Terms of Business Agreement", description: "Client agreement — required before first booking", action: "View Terms", link: "/terms", badge: "Mandatory" },
 ];
 
 const HelpDocuments = () => (
@@ -24,9 +25,11 @@ const HelpDocuments = () => (
           </div>
           <h3 className="text-sm font-semibold text-foreground">{d.title}</h3>
           <p className="text-xs text-muted-foreground mt-1 mb-4">{d.description}</p>
-          <Button variant="outline" size="sm" className="gap-1.5 text-xs" onClick={() => window.open(d.link, "_blank")}>
-            {d.action} <ExternalLink className="w-3 h-3" />
-          </Button>
+          <Link to={d.link}>
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+              {d.action}
+            </Button>
+          </Link>
         </div>
       ))}
     </div>

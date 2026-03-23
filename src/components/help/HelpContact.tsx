@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 const contacts = [
   { icon: Mail, title: "Email Support", description: "support@listd.co.uk", availability: "24–48hr response", action: "Send Email", onClick: () => { window.location.href = "mailto:support@listd.co.uk"; } },
   { icon: MessageCircle, title: "WhatsApp", description: "+44 7413 065681", availability: "Business hours, Mon–Fri", action: "Chat Now", onClick: () => window.open("https://wa.me/447413065681", "_blank") },
-  { icon: Phone, title: "Phone", description: "+44 7413 065681", availability: "Business hours only", action: "Call Us", onClick: () => { window.location.href = "tel:+447413065681"; } },
+  { icon: Phone, title: "Phone", description: "0117 427 5675", availability: "Business hours, Mon–Fri", action: "Call Us", onClick: () => { window.location.href = "tel:+441174275675"; } },
   { icon: Calendar, title: "Book a Walkthrough", description: "15-minute platform demo", availability: "Free, no commitment", action: "Book Now", onClick: () => window.open("https://outlook.office365.com/book/listd", "_blank") },
 ];
 
